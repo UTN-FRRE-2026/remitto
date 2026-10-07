@@ -1,0 +1,437 @@
+// =============================================================
+//  Remitto – Modelo de datos
+//  PostgreSQL + Prisma
+//  v2: carrito de salida + endpoint de integración (solo unidades)
+// =============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Genera el diagrama entidad-relación a partir de este schema.
+// Requiere dependencias extra; descomentar cuando se quiera regenerar el DER:
+//   npm i -D prisma-erd-generator @mermaid-js/mermaid-cli
+// generator erd {
+//   provider = "prisma-erd-generator"
+//   output   = "../docs/der-remitto.svg"
+// }
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================================
+//  ENUMS
+// =============================================================
+
+enum Rol {
+  PROPIETARIO
+  EMPLEADO
+}
+
+enum UnidadMedida {
+  UNIDAD
+  KILOGRAMO
+  GRAMO
+  LITRO
+  MILILITRO
+  METRO
+  PAQUETE
+}
+
+enum TipoComprobante {
+  REMITO
+  FACTURA
+  OTRO
+}
+
+enum OrigenArchivo {
+  FOTO
+  PDF
+}
+
+enum EstadoComprobante {
+  PENDIENTE    // archivo subido, aún no procesado
+  PROCESANDO   // enviado al modelo de IA
+  EN_REVISION  // extracción lista, esperando confirmación humana
+  CONFIRMADO   // movimientos generados
+  ERROR        // falló la extracción
+  ANULADO
+}
+
+enum EstadoDetalle {
+  PROPUESTO    // generado por la IA, sin validar
+  CONFIRMADO   // validado por el usuario
+  DESCARTADO   // el usuario lo descartó
+}
+
+enum TipoMovimiento {
+  ENTRADA
+  SALIDA
+  AJUSTE
+}
+
+enum MotivoMovimiento {
+  COMPRA
+  VENTA
+  CONSUMO_INTERNO
+  ROTURA
+  VENCIMIENTO
+  RECUENTO
+  OTRO
+}
+
+enum OrigenSalida {
+  CARRITO      // cargada por un usuario desde la aplicación
+  INTEGRACION  // informada por un sistema externo vía endpoint
+}
+
+enum TipoAlerta {
+  STOCK_BAJO
+  SIN_STOCK
+  STOCK_NEGATIVO  // p. ej., el POS informó una venta de algo que no ingresó
+}
+
+enum EstadoAlerta {
+  ACTIVA
+  RESUELTA
+}
+
+// =============================================================
+//  USUARIOS E INTEGRACIONES
+// =============================================================
+
+model Usuario {
+  id            Int      @id @default(autoincrement())
+  nombre        String
+  email         String   @unique
+  passwordHash  String   @map("password_hash")
+  rol           Rol      @default(EMPLEADO)
+  activo        Boolean  @default(true)
+  creadoEn      DateTime @default(now()) @map("creado_en")
+  actualizadoEn DateTime @updatedAt @map("actualizado_en")
+
+  comprobantesCargados    Comprobante[]      @relation("ComprobanteCargadoPor")
+  comprobantesConfirmados Comprobante[]      @relation("ComprobanteConfirmadoPor")
+  salidas                 Salida[]
+  movimientos             MovimientoStock[]
+  clavesCreadas           ClaveIntegracion[]
+  consultas               ConsultaAgente[]
+
+  @@map("usuarios")
+}
+
+/// Credencial de un sistema externo (POS) autorizado a informar salidas.
+/// Nunca se guarda la clave en claro: solo su hash y un prefijo visible
+/// para que el propietario la identifique en la pantalla de configuración.
+model ClaveIntegracion {
+  id          Int       @id @default(autoincrement())
+  nombre      String    // ej. "Caja mostrador"
+  prefijo     String    @unique // primeros caracteres de la clave, ej. "rmt_4f9a"
+  hashClave   String    @unique @map("hash_clave")
+  activa      Boolean   @default(true)
+  creadaPorId Int       @map("creada_por_id")
+  creadaEn    DateTime  @default(now()) @map("creada_en")
+  ultimoUsoEn DateTime? @map("ultimo_uso_en")
+  revocadaEn  DateTime? @map("revocada_en")
+
+  creadaPor Usuario  @relation(fields: [creadaPorId], references: [id])
+  salidas   Salida[]
+
+  @@map("claves_integracion")
+}
+
+// =============================================================
+//  CATÁLOGO
+// =============================================================
+
+model Categoria {
+  id        Int        @id @default(autoincrement())
+  nombre    String     @unique
+  productos Producto[]
+
+  @@map("categorias")
+}
+
+model Producto {
+  id           Int          @id @default(autoincrement())
+  codigoBarras String?      @unique @map("codigo_barras")
+  nombre       String
+  descripcion  String?
+  categoriaId  Int?         @map("categoria_id")
+  unidadMedida UnidadMedida @default(UNIDAD) @map("unidad_medida")
+
+  /// Valor cacheado. Se actualiza en la MISMA transacción que cada
+  /// MovimientoStock. La fuente de verdad es SUM(movimientos.cantidad).
+  /// Puede quedar negativo si el POS informa ventas no ingresadas.
+  stockActual  Decimal      @default(0) @map("stock_actual") @db.Decimal(12, 3)
+  stockMinimo  Decimal      @default(0) @map("stock_minimo") @db.Decimal(12, 3)
+  /// Nivel al que se quiere llegar al reponer (base de la sugerencia).
+  stockDeseado Decimal?     @map("stock_deseado") @db.Decimal(12, 3)
+
+  activo        Boolean  @default(true)
+  creadoEn      DateTime @default(now()) @map("creado_en")
+  actualizadoEn DateTime @updatedAt @map("actualizado_en")
+
+  categoria        Categoria?           @relation(fields: [categoriaId], references: [id], onDelete: SetNull)
+  codigosProveedor CodigoProveedor[]
+  detalles         DetalleComprobante[]
+  movimientos      MovimientoStock[]
+  precios          PrecioCompra[]
+  alertas          AlertaStock[]
+
+  @@index([nombre])
+  @@index([categoriaId])
+  @@map("productos")
+}
+
+// =============================================================
+//  PROVEEDORES
+// =============================================================
+
+model Proveedor {
+  id            Int      @id @default(autoincrement())
+  razonSocial   String   @map("razon_social")
+  cuit          String?  @unique
+  telefono      String?
+  email         String?
+  direccion     String?
+  contacto      String?
+  activo        Boolean  @default(true)
+  creadoEn      DateTime @default(now()) @map("creado_en")
+  actualizadoEn DateTime @updatedAt @map("actualizado_en")
+
+  comprobantes    Comprobante[]
+  codigosProducto CodigoProveedor[]
+  precios         PrecioCompra[]
+
+  @@map("proveedores")
+}
+
+/// Cómo nombra cada proveedor a cada producto en sus remitos.
+/// Se alimenta con cada confirmación y mejora la asociación
+/// automática en los comprobantes siguientes.
+model CodigoProveedor {
+  id              Int      @id @default(autoincrement())
+  proveedorId     Int      @map("proveedor_id")
+  productoId      Int      @map("producto_id")
+  codigo          String?  // código impreso en el remito
+  descripcion     String   // descripción tal como la imprime el proveedor
+  vecesConfirmado Int      @default(1) @map("veces_confirmado")
+  ultimaVez       DateTime @default(now()) @map("ultima_vez")
+
+  proveedor Proveedor @relation(fields: [proveedorId], references: [id], onDelete: Cascade)
+  producto  Producto  @relation(fields: [productoId], references: [id], onDelete: Cascade)
+
+  @@unique([proveedorId, codigo])
+  @@unique([proveedorId, descripcion])
+  @@index([productoId])
+  @@map("codigos_proveedor")
+}
+
+// =============================================================
+//  COMPROBANTES (ingesta con IA)
+// =============================================================
+
+model Comprobante {
+  id             Int             @id @default(autoincrement())
+  proveedorId    Int             @map("proveedor_id")
+  tipo           TipoComprobante @default(REMITO)
+  numero         String?
+  fechaEmision   DateTime?       @map("fecha_emision") @db.Date
+  totalDeclarado Decimal?        @map("total_declarado") @db.Decimal(14, 2)
+
+  archivoUrl    String        @map("archivo_url")
+  archivoMime   String        @map("archivo_mime")
+  origenArchivo OrigenArchivo @map("origen_archivo")
+
+  estado             EstadoComprobante @default(PENDIENTE)
+  /// true si la IA detecta texto manuscrito o baja calidad:
+  /// se exige confirmar todas las líneas una por una.
+  requiereRevision   Boolean           @default(false) @map("requiere_revision")
+  /// JSON devuelto por el modelo, ya validado contra el esquema.
+  respuestaIa        Json?             @map("respuesta_ia")
+  modeloIa           String?           @map("modelo_ia")
+  errorProcesamiento String?           @map("error_procesamiento")
+
+  cargadoPorId    Int       @map("cargado_por_id")
+  confirmadoPorId Int?      @map("confirmado_por_id")
+  cargadoEn       DateTime  @default(now()) @map("cargado_en")
+  confirmadoEn    DateTime? @map("confirmado_en")
+
+  proveedor     Proveedor            @relation(fields: [proveedorId], references: [id])
+  cargadoPor    Usuario              @relation("ComprobanteCargadoPor", fields: [cargadoPorId], references: [id])
+  confirmadoPor Usuario?             @relation("ComprobanteConfirmadoPor", fields: [confirmadoPorId], references: [id])
+  detalles      DetalleComprobante[]
+
+  // Evita cargar dos veces el mismo remito (numero NULL no colisiona)
+  @@unique([proveedorId, tipo, numero])
+  @@index([estado])
+  @@index([cargadoEn])
+  @@map("comprobantes")
+}
+
+/// Cada línea guarda por separado lo que leyó la IA y lo que
+/// confirmó el usuario. Nada con estado PROPUESTO genera movimientos.
+model DetalleComprobante {
+  id                  Int     @id @default(autoincrement())
+  comprobanteId       Int     @map("comprobante_id")
+  nroLinea            Int     @map("nro_linea")
+  agregadaManualmente Boolean @default(false) @map("agregada_manualmente")
+
+  // --- Lo que extrajo la IA (no se modifica) ---
+  codigoExtraido         String?  @map("codigo_extraido")
+  descripcionExtraida    String?  @map("descripcion_extraida")
+  cantidadExtraida       Decimal? @map("cantidad_extraida") @db.Decimal(12, 3)
+  precioUnitarioExtraido Decimal? @map("precio_unitario_extraido") @db.Decimal(12, 2)
+
+  // --- Asociación propuesta al catálogo ---
+  productoId Int?     @map("producto_id")
+  confianza  Decimal? @db.Decimal(4, 3) // 0.000 a 1.000
+
+  // --- Lo que confirmó el usuario ---
+  cantidad       Decimal?      @db.Decimal(12, 3)
+  precioUnitario Decimal?      @map("precio_unitario") @db.Decimal(12, 2)
+  estado         EstadoDetalle @default(PROPUESTO)
+
+  comprobante  Comprobante      @relation(fields: [comprobanteId], references: [id], onDelete: Cascade)
+  producto     Producto?        @relation(fields: [productoId], references: [id], onDelete: SetNull)
+  movimiento   MovimientoStock?
+  precioCompra PrecioCompra?
+
+  @@unique([comprobanteId, nroLinea])
+  @@index([productoId])
+  @@map("detalles_comprobante")
+}
+
+// =============================================================
+//  SALIDAS (carrito + integración)
+// =============================================================
+
+/// Cabecera que agrupa los movimientos de salida confirmados juntos.
+/// - CARRITO:     usuarioId obligatorio, claveIntegracionId nulo.
+/// - INTEGRACION: claveIntegracionId y referenciaExterna obligatorios,
+///                usuarioId nulo.
+/// (Reglas aplicadas con CHECK en la migración SQL.)
+model Salida {
+  id     Int              @id @default(autoincrement())
+  origen OrigenSalida
+  motivo MotivoMovimiento @default(VENTA) // VENTA, CONSUMO_INTERNO, ROTURA, VENCIMIENTO u OTRO
+  observacion String?
+
+  usuarioId          Int? @map("usuario_id")
+  claveIntegracionId Int? @map("clave_integracion_id")
+  /// Id de la operación en el sistema externo (ticket, venta).
+  /// Garantiza idempotencia: si el POS reenvía, no se descuenta dos veces.
+  referenciaExterna  String?   @map("referencia_externa")
+  /// Momento en que ocurrió la venta según el sistema externo.
+  fechaExterna       DateTime? @map("fecha_externa")
+  registradaEn       DateTime  @default(now()) @map("registrada_en")
+
+  usuario          Usuario?          @relation(fields: [usuarioId], references: [id])
+  claveIntegracion ClaveIntegracion? @relation(fields: [claveIntegracionId], references: [id])
+  movimientos      MovimientoStock[]
+
+  @@unique([claveIntegracionId, referenciaExterna])
+  @@index([registradaEn])
+  @@index([origen, registradaEn])
+  @@map("salidas")
+}
+
+// =============================================================
+//  STOCK
+// =============================================================
+
+/// Entidad central. El stock de un producto es la suma de sus movimientos.
+/// Origen: una línea de comprobante (ENTRADA), una Salida (SALIDA)
+/// o ninguno (AJUSTE por recuento).
+model MovimientoStock {
+  id         Int              @id @default(autoincrement())
+  productoId Int              @map("producto_id")
+  tipo       TipoMovimiento
+  motivo     MotivoMovimiento
+  /// Positiva en entradas, negativa en salidas.
+  /// En ajustes: diferencia (stock contado - stock registrado).
+  cantidad      Decimal @db.Decimal(12, 3)
+  /// Stock registrado justo antes del movimiento (auditoría).
+  /// En un ajuste, stock contado = stockAnterior + cantidad.
+  stockAnterior Decimal @map("stock_anterior") @db.Decimal(12, 3)
+  observacion   String?
+  fecha         DateTime @default(now())
+  /// Nulo solo en salidas informadas por integración
+  /// (la trazabilidad queda en salida.claveIntegracion).
+  usuarioId     Int?     @map("usuario_id")
+
+  detalleComprobanteId Int? @unique @map("detalle_comprobante_id")
+  salidaId             Int? @map("salida_id")
+
+  producto           Producto            @relation(fields: [productoId], references: [id])
+  usuario            Usuario?            @relation(fields: [usuarioId], references: [id])
+  detalleComprobante DetalleComprobante? @relation(fields: [detalleComprobanteId], references: [id])
+  salida             Salida?             @relation(fields: [salidaId], references: [id], onDelete: Cascade)
+
+  // Un producto aparece una sola vez por salida (se suman cantidades en el carrito)
+  @@unique([salidaId, productoId])
+  @@index([productoId, fecha])
+  @@index([tipo, fecha])
+  @@map("movimientos_stock")
+}
+
+/// Historial de precios de compra. Se genera automáticamente al confirmar
+/// un comprobante, pero admite cargas manuales (ej. lista de precios).
+model PrecioCompra {
+  id                   Int      @id @default(autoincrement())
+  productoId           Int      @map("producto_id")
+  proveedorId          Int      @map("proveedor_id")
+  precioUnitario       Decimal  @map("precio_unitario") @db.Decimal(12, 2)
+  fechaVigencia        DateTime @map("fecha_vigencia") @db.Date
+  detalleComprobanteId Int?     @unique @map("detalle_comprobante_id")
+  creadoEn             DateTime @default(now()) @map("creado_en")
+
+  producto           Producto            @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  proveedor          Proveedor           @relation(fields: [proveedorId], references: [id], onDelete: Cascade)
+  detalleComprobante DetalleComprobante? @relation(fields: [detalleComprobanteId], references: [id], onDelete: SetNull)
+
+  @@index([productoId, proveedorId, fechaVigencia(sort: Desc)])
+  @@map("precios_compra")
+}
+
+/// Generadas por el observador de movimientos (patrón Observer).
+model AlertaStock {
+  id             Int          @id @default(autoincrement())
+  productoId     Int          @map("producto_id")
+  tipo           TipoAlerta
+  estado         EstadoAlerta @default(ACTIVA)
+  stockAlGenerar Decimal      @map("stock_al_generar") @db.Decimal(12, 3)
+  creadaEn       DateTime     @default(now()) @map("creada_en")
+  resueltaEn     DateTime?    @map("resuelta_en")
+
+  producto Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
+
+  @@index([estado, productoId])
+  @@map("alertas_stock")
+}
+
+// =============================================================
+//  AGENTE DE CONSULTAS
+// =============================================================
+
+/// Registro de consultas al agente. Sirve para auditar y para medir
+/// el objetivo de "8 tipos de preguntas respondidas".
+model ConsultaAgente {
+  id           Int      @id @default(autoincrement())
+  usuarioId    Int      @map("usuario_id")
+  pregunta     String
+  respuesta    String?
+  /// Herramientas invocadas por el agente y sus parámetros.
+  herramientas Json?
+  exitosa      Boolean  @default(true)
+  duracionMs   Int?     @map("duracion_ms")
+  creadaEn     DateTime @default(now()) @map("creada_en")
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id])
+
+  @@index([creadaEn])
+  @@map("consultas_agente")
+}

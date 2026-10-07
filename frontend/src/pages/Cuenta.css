@@ -1,0 +1,50 @@
+.cuenta__titulo {
+  font-size: var(--fs-titulo);
+  font-weight: 800;
+  margin-bottom: 18px;
+}
+
+.cuenta__tarjeta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+.cuenta__avatar {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+  background: var(--dorado);
+  color: var(--oscuro);
+  font-weight: 800;
+  font-size: var(--fs-seccion);
+  flex-shrink: 0;
+}
+.cuenta__tarjeta strong {
+  display: block;
+  font-size: var(--fs-seccion);
+  font-weight: 800;
+}
+.cuenta__email {
+  display: block;
+  color: var(--texto-suave);
+  font-size: var(--fs-detalle);
+  margin-top: 2px;
+}
+.cuenta__rol {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: var(--fs-detalle);
+  font-weight: 700;
+  color: var(--fg-en-stock);
+  background: var(--bg-en-stock);
+  padding: 3px 10px;
+  border-radius: var(--radio-pill);
+}
+
+.cuenta__salir {
+  margin-top: 4px;
+}

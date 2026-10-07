@@ -1,0 +1,104 @@
+.shell {
+  min-height: 100%;
+  max-width: var(--max-movil);
+  margin: 0 auto;
+  position: relative;
+  background: var(--crema);
+}
+
+.shell__contenido {
+  padding: 20px 18px calc(var(--nav-alto) + 24px);
+}
+
+.shell__interior {
+  width: 100%;
+}
+
+/* --- Barra de navegación inferior (móvil) --- */
+.navbar {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: var(--max-movil);
+  height: var(--nav-alto);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0 10px calc(env(safe-area-inset-bottom, 0px));
+  background: var(--superficie);
+  border-top: 1px solid var(--borde);
+  box-shadow: 0 -4px 20px rgba(46, 37, 40, 0.05);
+  z-index: 50;
+}
+
+.navbar__item,
+.navbar__central {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  color: var(--texto-suave);
+  background: none;
+}
+
+.navbar__item--activo {
+  color: var(--salvia-oscuro);
+}
+
+.navbar__label {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Botón central elevado "Cargar" */
+.navbar__central {
+  position: relative;
+  color: var(--texto-suave);
+}
+.navbar__fab {
+  position: absolute;
+  top: -34px;
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 20px;
+  background: var(--salvia-oscuro);
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(78, 106, 75, 0.4);
+}
+.navbar__central .navbar__label {
+  margin-top: 30px;
+}
+
+/* =============================================================
+   Escritorio: aparece el menú lateral, se oculta la barra inferior
+   y el contenido ocupa el ancho disponible.
+   ============================================================= */
+@media (min-width: 900px) {
+  .shell {
+    display: flex;
+    max-width: none;
+    align-items: flex-start;
+  }
+
+  .navbar {
+    display: none;
+  }
+
+  .shell__contenido {
+    flex: 1;
+    min-width: 0;
+    min-height: 100vh;
+    padding: 32px 40px;
+  }
+
+  /* Ancho de lectura cómodo para el contenido de cada pantalla. */
+  .shell__interior {
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+}

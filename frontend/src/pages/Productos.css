@@ -1,0 +1,120 @@
+.productos__titulo {
+  font-size: var(--fs-titulo);
+  font-weight: 800;
+  margin-bottom: 16px;
+}
+.productos__titulo span {
+  color: var(--texto-suave);
+  font-size: var(--fs-seccion);
+  font-weight: 700;
+}
+
+.productos__buscar {
+  margin-bottom: 14px;
+}
+
+/* --- Chips de filtro --- */
+.chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-bottom: 16px;
+  scrollbar-width: none;
+}
+.chips::-webkit-scrollbar {
+  display: none;
+}
+.chip {
+  flex-shrink: 0;
+  padding: 9px 16px;
+  border-radius: var(--radio-pill);
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  font-weight: 700;
+  font-size: var(--fs-texto);
+  color: var(--oscuro);
+}
+.chip--activo {
+  background: var(--oscuro);
+  color: var(--crema);
+  border-color: var(--oscuro);
+}
+
+/* --- Lista de productos --- */
+.lista {
+  padding: 4px 16px;
+}
+.lista__estado {
+  padding: 24px 0;
+  text-align: center;
+  color: var(--texto-suave);
+}
+.producto {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--borde);
+}
+.producto:last-child {
+  border-bottom: none;
+}
+.producto__icono {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--bg-en-stock);
+  flex-shrink: 0;
+}
+.producto__datos {
+  flex: 1;
+  min-width: 0;
+}
+.producto__datos strong {
+  display: block;
+  font-size: var(--fs-producto);
+  font-weight: 700;
+}
+.producto__datos span {
+  font-size: var(--fs-detalle);
+  color: var(--texto-suave);
+}
+.producto__stock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+.producto__cant {
+  font-size: 20px;
+  font-weight: 800;
+}
+.producto__cant small {
+  font-size: var(--fs-detalle);
+  font-weight: 600;
+  color: var(--texto-suave);
+  margin-left: 2px;
+}
+.producto__cant--cero {
+  color: var(--rojo);
+}
+
+/* =============================================================
+   Escritorio
+   ============================================================= */
+@media (min-width: 900px) {
+  .productos .topbar {
+    display: none;
+  }
+  .productos__titulo {
+    font-size: 32px;
+  }
+  /* Buscador y chips alineados y con ancho acotado. */
+  .productos__buscar {
+    max-width: 560px;
+  }
+  .lista {
+    max-width: 900px;
+  }
+}

@@ -1,0 +1,260 @@
+/* --- Barra superior (compartida por pantallas móviles) --- */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+.topbar__marca {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.topbar__logo {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: var(--salvia-oscuro);
+  color: #fff;
+}
+.topbar__marca strong {
+  display: block;
+  font-size: var(--fs-seccion);
+  font-weight: 800;
+}
+.topbar__sub {
+  font-size: var(--fs-detalle);
+  color: var(--texto-suave);
+}
+.topbar__accion {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  color: var(--oscuro);
+}
+.topbar__punto {
+  position: absolute;
+  top: 9px;
+  right: 11px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--rojo);
+}
+.topbar__acciones {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.topbar__avatar {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: var(--dorado);
+  color: var(--oscuro);
+  font-weight: 800;
+  font-size: var(--fs-texto);
+}
+
+.inicio__saludo {
+  font-size: var(--fs-titulo);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.inicio__bajada {
+  color: var(--texto-suave);
+  margin-top: 4px;
+  margin-bottom: 18px;
+}
+
+/* --- Tarjeta de carga --- */
+.cargar-card {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  background: var(--oscuro);
+  color: var(--crema);
+  border-radius: var(--radio);
+  padding: 20px;
+  margin-bottom: 18px;
+}
+.cargar-card h2 {
+  font-size: var(--fs-seccion);
+  font-weight: 800;
+}
+.cargar-card p {
+  margin-top: 6px;
+  font-size: var(--fs-detalle);
+  color: #c9bfae;
+  max-width: 230px;
+}
+.cargar-card__cam {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: var(--salvia);
+  color: var(--oscuro);
+}
+
+/* --- Indicadores --- */
+.indicadores {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.indicador {
+  border-radius: var(--radio);
+  padding: 14px 16px;
+}
+.indicador__label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-detalle);
+  font-weight: 700;
+}
+.indicador strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 28px;
+  font-weight: 800;
+}
+.indicador--verde {
+  background: var(--bg-en-stock);
+  color: var(--fg-en-stock);
+}
+.indicador--dorado {
+  background: var(--bg-stock-bajo);
+  color: var(--fg-stock-bajo);
+}
+.indicador--rojo {
+  background: var(--bg-sin-stock);
+  color: var(--fg-sin-stock);
+}
+.indicador--azul {
+  background: var(--bg-ia);
+  color: var(--fg-ia);
+}
+.indicador strong {
+  color: var(--oscuro);
+}
+
+/* --- Secciones --- */
+.seccion__titulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.seccion__titulo h3 {
+  font-size: var(--fs-seccion);
+  font-weight: 800;
+}
+.seccion__link {
+  color: var(--salvia-oscuro);
+  font-weight: 700;
+  font-size: var(--fs-texto);
+}
+
+/* --- Para reponer --- */
+.reponer {
+  padding: 4px 16px;
+}
+.reponer__vacio {
+  padding: 18px 0;
+  color: var(--texto-suave);
+  text-align: center;
+}
+.reponer__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--borde);
+}
+.reponer__item:last-child {
+  border-bottom: none;
+}
+.reponer__icono {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--bg-en-stock);
+  flex-shrink: 0;
+}
+.reponer__datos {
+  flex: 1;
+  min-width: 0;
+}
+.reponer__datos strong {
+  display: block;
+  font-size: var(--fs-producto);
+  font-weight: 700;
+}
+.reponer__datos span {
+  font-size: var(--fs-detalle);
+  color: var(--texto-suave);
+}
+.reponer__ratio {
+  font-size: var(--fs-detalle);
+  font-weight: 700;
+  color: var(--fg-stock-bajo);
+  background: var(--bg-stock-bajo);
+  padding: 4px 10px;
+  border-radius: var(--radio-pill);
+}
+
+/* =============================================================
+   Escritorio
+   ============================================================= */
+@media (min-width: 900px) {
+  /* La identidad vive en el menú lateral: ocultamos la barra superior. */
+  .inicio .topbar {
+    display: none;
+  }
+
+  .inicio__saludo {
+    font-size: 32px;
+  }
+  .inicio__bajada {
+    margin-bottom: 26px;
+  }
+
+  /* La tarjeta de carga no debe ocupar todo el ancho en escritorio. */
+  .cargar-card {
+    max-width: 520px;
+  }
+
+  /* Indicadores en una sola fila. */
+  .indicadores {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+  .indicador {
+    padding: 18px 20px;
+  }
+  .indicador strong {
+    font-size: 32px;
+  }
+
+  /* Para reponer con ancho acotado y legible. */
+  .reponer {
+    max-width: 640px;
+  }
+}

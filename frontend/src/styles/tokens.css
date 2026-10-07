@@ -1,0 +1,52 @@
+/* =============================================================
+   Remitto – Sistema de diseño
+   Paleta, tipografía y escalas tomadas de la Guía de estilo
+   (Remitto_Maquetacion). Fuente: Plus Jakarta Sans (500–800).
+   ============================================================= */
+:root {
+  /* --- Paleta base --- */
+  --crema: #f2e9d8; /* Fondo general de todas las pantallas */
+  --oscuro: #2e2528; /* Textos, títulos y menú lateral de la web */
+  --salvia: #a7b6a0; /* Estados positivos y tarjetas de resumen */
+  --salvia-oscuro: #4e6a4b; /* Botones principales y navegación activa */
+  --dorado: #d4b56a; /* Advertencias y líneas para revisar */
+  --rojo: #a60321; /* Sin stock, errores y acciones que borran */
+  --azul: #8298a3; /* Todo lo que hace la Inteligencia Artificial */
+
+  /* --- Superficies derivadas --- */
+  --crema-claro: #f8f3e9;
+  --superficie: #fbf7ee; /* tarjetas sobre el fondo crema */
+  --borde: #e6dcc8;
+  --texto-suave: #8a8078;
+
+  /* --- Fondos pastel de badges / tarjetas de estado --- */
+  --bg-en-stock: #dff0e0;
+  --fg-en-stock: #3f6a3d;
+  --bg-stock-bajo: #f3e7c4;
+  --fg-stock-bajo: #8a6d1e;
+  --bg-sin-stock: #f7dde2;
+  --fg-sin-stock: #a60321;
+  --bg-ia: #dde6ec;
+  --fg-ia: #4f6773;
+
+  /* --- Tipografía --- */
+  --fuente: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Escala de la guía (tamaño / peso) */
+  --fs-marca: 44px;
+  --fs-titulo: 27px;
+  --fs-seccion: 17px;
+  --fs-producto: 15px;
+  --fs-texto: 14px;
+  --fs-detalle: 12.5px;
+
+  /* --- Formas --- */
+  --radio: 14px;
+  --radio-sm: 10px;
+  --radio-pill: 999px;
+  --sombra: 0 1px 2px rgba(46, 37, 40, 0.06), 0 6px 20px rgba(46, 37, 40, 0.05);
+
+  /* --- Layout --- */
+  --nav-alto: 76px;
+  --max-movil: 480px;
+}

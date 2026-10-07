@@ -1,0 +1,46 @@
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext.jsx';
+import { IconoSalir } from '../components/iconos.jsx';
+import './Cuenta.css';
+
+function iniciales(nombre = '') {
+  return nombre
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0])
+    .join('')
+    .toUpperCase();
+}
+
+export default function Cuenta() {
+  const { usuario, cerrarSesion } = useAuth();
+  const navegar = useNavigate();
+
+  function salir() {
+    cerrarSesion();
+    navegar('/login', { replace: true });
+  }
+
+  return (
+    <div className="cuenta">
+      <h1 className="cuenta__titulo">Cuenta</h1>
+
+      <div className="card cuenta__tarjeta">
+        <span className="cuenta__avatar">{iniciales(usuario?.nombre)}</span>
+        <div>
+          <strong>{usuario?.nombre}</strong>
+          <span className="cuenta__email">{usuario?.email}</span>
+          <span className="cuenta__rol">
+            {usuario?.rol === 'PROPIETARIO' ? 'Propietario' : 'Empleado'}
+          </span>
+        </div>
+      </div>
+
+      <button className="btn btn--peligro btn--bloque cuenta__salir" onClick={salir}>
+        <IconoSalir size={20} />
+        Cerrar sesión
+      </button>
+    </div>
+  );
+}

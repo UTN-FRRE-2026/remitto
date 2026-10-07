@@ -1,0 +1,62 @@
+.login {
+  min-height: 100%;
+  max-width: var(--max-movil);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Encabezado oscuro con borde dentado (remito) */
+.login__marca {
+  background: var(--oscuro);
+  color: var(--crema);
+  padding: 56px 28px 48px;
+  position: relative;
+  -webkit-mask: radial-gradient(10px at 10px 100%, transparent 98%, #000) repeat-x bottom left / 20px 20px;
+  mask: radial-gradient(10px at 10px 100%, transparent 98%, #000) repeat-x bottom left / 20px 20px;
+}
+.login__logo {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+  background: var(--salvia);
+  color: var(--oscuro);
+  margin-bottom: 22px;
+}
+.login__titulo {
+  font-size: var(--fs-marca);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.login__claim {
+  margin-top: 8px;
+  color: #c9bfae;
+  font-size: var(--fs-seccion);
+  line-height: 1.35;
+}
+
+.login__form {
+  padding: 30px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.login__h2 {
+  font-size: 21px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+.login__ojo {
+  color: var(--texto-suave);
+  display: grid;
+  place-items: center;
+}
+.login__olvide {
+  color: var(--salvia-oscuro);
+  font-weight: 700;
+  font-size: var(--fs-texto);
+  align-self: center;
+  padding: 4px;
+}

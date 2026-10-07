@@ -1,0 +1,176 @@
+@import './tokens.css';
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: var(--fuente);
+  font-size: var(--fs-texto);
+  font-weight: 500;
+  color: var(--oscuro);
+  background: var(--crema);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+input,
+select {
+  font-family: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.15;
+}
+
+/* --- Botones --- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: var(--fs-texto);
+  padding: 14px 20px;
+  border-radius: var(--radio);
+  transition: filter 0.15s ease, transform 0.05s ease;
+}
+.btn:active {
+  transform: translateY(1px);
+}
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.btn--primario {
+  background: var(--salvia-oscuro);
+  color: #fff;
+}
+.btn--primario:hover:not(:disabled) {
+  filter: brightness(1.07);
+}
+.btn--secundario {
+  background: var(--superficie);
+  color: var(--oscuro);
+  border: 1px solid var(--borde);
+}
+.btn--peligro {
+  background: #fff;
+  color: var(--rojo);
+  border: 1px solid #e9c3cb;
+}
+.btn--bloque {
+  width: 100%;
+}
+
+/* --- Badges de estado de stock --- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--fs-detalle);
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--radio-pill);
+  white-space: nowrap;
+}
+.badge--en-stock {
+  background: var(--bg-en-stock);
+  color: var(--fg-en-stock);
+}
+.badge--stock-bajo {
+  background: var(--bg-stock-bajo);
+  color: var(--fg-stock-bajo);
+}
+.badge--sin-stock {
+  background: var(--bg-sin-stock);
+  color: var(--fg-sin-stock);
+}
+.badge--ia {
+  background: var(--bg-ia);
+  color: var(--fg-ia);
+}
+
+/* --- Tarjetas --- */
+.card {
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+}
+
+/* --- Campos --- */
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.campo label {
+  font-size: var(--fs-detalle);
+  font-weight: 700;
+  color: var(--texto-suave);
+}
+.input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--crema-claro);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 13px 15px;
+}
+.input input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: var(--fs-texto);
+  color: var(--oscuro);
+}
+.input input::placeholder {
+  color: var(--texto-suave);
+}
+.input:focus-within {
+  border-color: var(--salvia-oscuro);
+}
+
+/* --- Utilidades --- */
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: girar 0.7s linear infinite;
+}
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.error-texto {
+  color: var(--rojo);
+  font-size: var(--fs-texto);
+}
