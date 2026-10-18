@@ -80,6 +80,29 @@ npm run dev                    # PWA en http://localhost:5173
 
 El dev server redirige `/api` al backend (ver `vite.config.js`).
 
+### Comprobantes subidos (HU8)
+
+Los archivos se guardan en `backend/uploads/comprobantes/` con un nombre
+generado por el servidor (Git solo versiona `backend/uploads/.gitkeep`).
+No se publican como estáticos: se descargan con sesión en
+`GET /api/comprobantes/:id/archivo`. Formatos admitidos: JPG, PNG, WEBP,
+HEIC/HEIF y PDF; tamaño máximo `ARCHIVO_MAX_MB` (10 MB por defecto).
+
+### Backend en Docker (opcional)
+
+El servicio `backend` usa el perfil `app`, así que `docker compose up -d`
+no lo levanta. Monta `backend/uploads` del host en `/app/uploads`: el
+backend local y el contenedor usan la misma base **y los mismos archivos**.
+
+```bash
+# con la base migrada; si npm run dev ocupa el :4000, usar otro puerto
+BACKEND_PORT=4001 docker compose --profile app up -d --build backend
+docker compose --profile app stop backend
+```
+
+En PowerShell: `$env:BACKEND_PORT='4001'; docker compose --profile app up -d --build backend`.
+Para usar otra carpeta del host, definir `UPLOADS_HOST_DIR` en el `.env` de la raíz.
+
 ### Usuarios de prueba (seed)
 
 | Rol | Correo | Contraseña |
@@ -103,6 +126,8 @@ El dev server redirige `/api` al backend (ver `vite.config.js`).
 | `GET` | `/api/productos` · `?q=&estado=&categoriaId=` | autenticado |
 | `GET` | `/api/productos/resumen` | autenticado |
 | `POST/PATCH/DELETE` | `/api/productos/:id` | propietario |
+| `POST` | `/api/comprobantes` (multipart: `archivo`, `proveedorId`, `tipo?`) | autenticado |
+| `GET` | `/api/comprobantes/:id` · `/api/comprobantes/:id/archivo` | autenticado |
 
 ---
 

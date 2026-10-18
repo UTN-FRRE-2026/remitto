@@ -12,7 +12,7 @@ build/
 frontend/dev-dist/
 
 # Archivos subidos (comprobantes)
-backend/uploads/
+backend/uploads/*
 !backend/uploads/.gitkeep
 
 # Logs
