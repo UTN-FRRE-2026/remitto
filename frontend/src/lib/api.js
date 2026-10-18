@@ -14,27 +14,47 @@ export function getToken() {
   return token;
 }
 
+async function lanzarError(res) {
+  const datos = await res.json().catch(() => ({}));
+  const err = new Error(datos.error || 'Ocurrió un error');
+  err.status = res.status;
+  err.detalles = datos.detalles;
+  throw err;
+}
+
 async function request(metodo, ruta, cuerpo) {
+  // FormData (archivos): el navegador arma el Content-Type con el boundary.
+  const esFormData = cuerpo instanceof FormData;
   const headers = {};
-  if (cuerpo !== undefined) headers['Content-Type'] = 'application/json';
+  if (cuerpo !== undefined && !esFormData) headers['Content-Type'] = 'application/json';
   if (token) headers.Authorization = `Bearer ${token}`;
 
-  const res = await fetch(BASE + ruta, {
-    method: metodo,
-    headers,
-    body: cuerpo !== undefined ? JSON.stringify(cuerpo) : undefined,
-  });
-
-  if (res.status === 204) return null;
-
-  const datos = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    const err = new Error(datos.error || 'Ocurrió un error');
-    err.status = res.status;
-    err.detalles = datos.detalles;
+  let res;
+  try {
+    res = await fetch(BASE + ruta, {
+      method: metodo,
+      headers,
+      body: cuerpo === undefined || esFormData ? cuerpo : JSON.stringify(cuerpo),
+    });
+  } catch {
+    const err = new Error('No se pudo conectar con el servidor. Revisá tu conexión.');
+    err.status = 0;
     throw err;
   }
-  return datos;
+
+  if (res.status === 204) return null;
+  if (!res.ok) await lanzarError(res);
+  return res.json().catch(() => ({}));
+}
+
+// Descarga autenticada (p. ej. el archivo de un comprobante): un <img src>
+// no puede mandar el header Authorization, por eso se pide como blob.
+async function blob(ruta) {
+  const res = await fetch(BASE + ruta, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!res.ok) await lanzarError(res);
+  return res.blob();
 }
 
 export const api = {
@@ -42,4 +62,6 @@ export const api = {
   post: (ruta, cuerpo) => request('POST', ruta, cuerpo),
   patch: (ruta, cuerpo) => request('PATCH', ruta, cuerpo),
   del: (ruta) => request('DELETE', ruta),
+  upload: (ruta, formData) => request('POST', ruta, formData),
+  blob,
 };

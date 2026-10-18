@@ -5,6 +5,7 @@ import Login from './pages/Login.jsx';
 import Inicio from './pages/Inicio.jsx';
 import Productos from './pages/Productos.jsx';
 import Cuenta from './pages/Cuenta.jsx';
+import CargarComprobante from './pages/CargarComprobante.jsx';
 import EnConstruccion from './pages/EnConstruccion.jsx';
 
 // Protege las rutas privadas: sin sesión redirige al login.
@@ -38,18 +39,7 @@ export default function App() {
           <Route path="/" element={<Privado><Inicio /></Privado>} />
           <Route path="/productos" element={<Privado><Productos /></Privado>} />
           <Route path="/cuenta" element={<Privado><Cuenta /></Privado>} />
-          <Route
-            path="/cargar"
-            element={
-              <Privado>
-                <EnConstruccion
-                  titulo="Cargar un remito"
-                  descripcion="Vas a poder sacarle una foto al remito y que la IA registre la mercadería por vos."
-                  hu="HU8 y HU9 (Sprint 1)"
-                />
-              </Privado>
-            }
-          />
+          <Route path="/cargar" element={<Privado><CargarComprobante /></Privado>} />
           <Route
             path="/salidas"
             element={

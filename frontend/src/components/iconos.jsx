@@ -41,6 +41,32 @@ export const IconoCamara = (p) => (
   </svg>
 );
 
+export const IconoImagen = (p) => (
+  <svg {...base} {...p}>
+    <rect x="3" y="3" width="18" height="18" rx="2.5" />
+    <circle cx="9" cy="9" r="2" />
+    <path d="m21 15-3.5-3.5L7 21" />
+  </svg>
+);
+
+export const IconoVolver = (p) => (
+  <svg {...base} {...p}>
+    <path d="M15 5 8 12l7 7" />
+  </svg>
+);
+
+export const IconoDesplegar = (p) => (
+  <svg {...base} {...p}>
+    <path d="m6 9 6 6 6-6" />
+  </svg>
+);
+
+export const IconoCheck = (p) => (
+  <svg {...base} {...p}>
+    <path d="m5 12.5 4.5 4.5L19 7.5" />
+  </svg>
+);
+
 export const IconoSalidas = (p) => (
   <svg {...base} {...p}>
     <circle cx="9" cy="20" r="1.3" />

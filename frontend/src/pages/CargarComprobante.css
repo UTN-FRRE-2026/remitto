@@ -1,0 +1,307 @@
+/* M3 · Cargar remito: pantalla oscura tipo cámara (ver maquetación). */
+.cargar {
+  --camara: #231c1e;
+  --camara-suave: rgba(242, 233, 216, 0.12);
+  --camara-texto-suave: rgba(242, 233, 216, 0.6);
+
+  /* Ocupa todo el ancho y alto disponibles dentro del shell (móvil). */
+  margin: -20px -18px calc(-1 * (var(--nav-alto) + 24px));
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 14px 20px calc(var(--nav-alto) + 28px);
+  background: var(--camara);
+  color: var(--crema);
+}
+
+.cargar__oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* --- Barra superior: volver + proveedor --- */
+.cargar__barra {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.cargar__circulo {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--camara-suave);
+  color: var(--crema);
+}
+.cargar__circulo--vacio {
+  background: none;
+}
+.cargar__proveedor {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  max-width: 100%;
+  background: var(--crema);
+  color: var(--oscuro);
+  border-radius: var(--radio-pill);
+}
+.cargar__proveedor select {
+  appearance: none;
+  min-width: 0;
+  max-width: 260px;
+  padding: 9px 36px 9px 16px;
+  border: none;
+  background: transparent;
+  font-size: var(--fs-texto);
+  font-weight: 700;
+  color: inherit;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+.cargar__proveedor select:disabled {
+  cursor: default;
+}
+.cargar__proveedor svg {
+  position: absolute;
+  right: 14px;
+  pointer-events: none;
+}
+.cargar__proveedor:focus-within {
+  outline: 2px solid var(--salvia);
+  outline-offset: 2px;
+}
+
+/* --- Marco con esquinas salvia --- */
+.cargar__marco {
+  position: relative;
+  height: min(476px, 50vh);
+  aspect-ratio: 338 / 476;
+  max-width: 100%;
+  margin: 26px auto 0;
+  background: radial-gradient(ellipse at center, #3a3134 0%, var(--camara) 75%);
+}
+.cargar__esquina {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border: solid var(--salvia);
+}
+.cargar__esquina--si {
+  top: 0;
+  left: 0;
+  border-width: 4px 0 0 4px;
+  border-radius: 14px 0 0 0;
+}
+.cargar__esquina--sd {
+  top: 0;
+  right: 0;
+  border-width: 4px 4px 0 0;
+  border-radius: 0 14px 0 0;
+}
+.cargar__esquina--ii {
+  bottom: 0;
+  left: 0;
+  border-width: 0 0 4px 4px;
+  border-radius: 0 0 0 14px;
+}
+.cargar__esquina--id {
+  bottom: 0;
+  right: 0;
+  border-width: 0 4px 4px 0;
+  border-radius: 0 0 14px 0;
+}
+.cargar__previa {
+  position: absolute;
+  inset: 12px;
+  width: calc(100% - 24px);
+  height: calc(100% - 24px);
+  object-fit: contain;
+}
+.cargar__vacio {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--camara-texto-suave);
+  font-weight: 700;
+}
+
+.cargar__ayuda {
+  margin-top: 18px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.cargar__subayuda {
+  margin-top: 4px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--camara-texto-suave);
+}
+
+.cargar__error {
+  margin: 14px auto 0;
+  max-width: 380px;
+  padding: 10px 14px;
+  border-radius: var(--radio-sm);
+  background: var(--bg-sin-stock);
+  color: var(--fg-sin-stock);
+  font-weight: 600;
+  text-align: center;
+}
+
+/* --- Controles: galería, disparador, PDF --- */
+.cargar__controles {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  max-width: 380px;
+  margin: 28px auto 0;
+}
+.cargar__opcion {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(242, 233, 216, 0.8);
+}
+.cargar__opcion-icono {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: var(--camara-suave);
+  color: var(--crema);
+}
+.cargar__disparador {
+  display: grid;
+  place-items: center;
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  border: 4px solid var(--crema);
+}
+.cargar__disparador span {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: var(--crema);
+  transition: transform 0.1s ease;
+}
+.cargar__disparador:active span {
+  transform: scale(0.92);
+}
+
+/* --- Envío --- */
+.cargar__acciones {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  max-width: 380px;
+  margin: 22px auto 0;
+}
+.cargar__nota {
+  font-size: var(--fs-detalle);
+  color: var(--camara-texto-suave);
+}
+.cargar__cambiar {
+  padding: 8px;
+  font-weight: 700;
+  color: var(--crema);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.cargar__cambiar:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* --- Confirmación --- */
+.cargar__listo {
+  max-width: 380px;
+  margin: 48px auto 0;
+  text-align: center;
+}
+.cargar__listo-icono {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 18px;
+  border-radius: 20px;
+  background: var(--salvia);
+  color: var(--oscuro);
+}
+.cargar__listo h1 {
+  font-size: var(--fs-titulo);
+  font-weight: 800;
+}
+.cargar__listo > p {
+  margin-top: 8px;
+  color: var(--camara-texto-suave);
+}
+.cargar__listo > p strong {
+  color: var(--crema);
+}
+.cargar__datos {
+  margin-top: 22px;
+  padding: 6px 16px;
+  border-radius: var(--radio);
+  background: var(--camara-suave);
+  text-align: left;
+}
+.cargar__datos div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid rgba(242, 233, 216, 0.1);
+}
+.cargar__datos div:last-child {
+  border-bottom: none;
+}
+.cargar__datos dt {
+  color: var(--camara-texto-suave);
+}
+.cargar__datos dd {
+  font-weight: 700;
+  text-align: right;
+}
+.cargar__pendiente {
+  background: var(--bg-stock-bajo);
+  color: var(--fg-stock-bajo);
+}
+.cargar__listo .btn--secundario {
+  background: transparent;
+  color: var(--crema);
+  border-color: rgba(242, 233, 216, 0.3);
+}
+
+/* =============================================================
+   Escritorio: la "cámara" se muestra como un panel centrado.
+   ============================================================= */
+@media (min-width: 900px) {
+  .cargar {
+    max-width: 560px;
+    min-height: 0;
+    margin: 0 auto;
+    padding: 24px 28px 36px;
+    border-radius: 24px;
+  }
+}
