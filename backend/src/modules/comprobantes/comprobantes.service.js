@@ -7,6 +7,20 @@ import { iaDisponible } from '../../ia/extractor.js';
 import { normalizarNumero } from '../../ia/normalizar.js';
 import { validarArchivo, guardarArchivo, eliminarArchivo, rutaAbsoluta } from './comprobantes.archivos.js';
 import { OBJETIVO_RNF2_MS } from './comprobantes.procesamiento.js';
+import { incluirDetalle, validar } from './comprobantes.revision.js';
+
+// HU10: valida los datos para confirmar. El aviso de duplicado usa el número
+// definitivo si ya se corrigió; si no, el que leyó la IA.
+export function validarRevision(id) {
+  return validar(id, (c) => {
+    const definitivo = normalizarNumero(c.numero);
+    if (!definitivo) return buscarPosiblesDuplicados(c);
+    return buscarPosiblesDuplicados({
+      ...c,
+      respuestaIa: { normalizada: { cabecera: { numeroNormalizado: definitivo } } },
+    });
+  });
+}
 
 const incluir = {
   proveedor: { select: { id: true, razonSocial: true } },
@@ -51,7 +65,7 @@ export async function crear({ proveedorId, tipo }, archivo, usuarioId) {
 export async function obtener(id) {
   const comprobante = await prisma.comprobante.findUnique({
     where: { id },
-    include: { ...incluir, detalles: { orderBy: { nroLinea: 'asc' } } },
+    include: { ...incluir, detalles: { include: incluirDetalle, orderBy: { nroLinea: 'asc' } } },
   });
   if (!comprobante) throw ApiError.noEncontrado('Comprobante no encontrado');
   // El detalle técnico del proveedor queda solo en el servidor (base y log).

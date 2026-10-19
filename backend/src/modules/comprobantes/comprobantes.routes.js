@@ -2,7 +2,15 @@ import { Router } from 'express';
 import { asyncHandler } from '../../lib/errors.js';
 import { validar } from '../../middlewares/validar.js';
 import { autenticar } from '../../middlewares/auth.js';
-import { crearComprobanteSchema, idParamSchema } from './comprobantes.schema.js';
+import {
+  crearComprobanteSchema,
+  idParamSchema,
+  detalleParamSchema,
+  actualizarDetalleSchema,
+  agregarDetalleSchema,
+  actualizarCabeceraSchema,
+} from './comprobantes.schema.js';
+import * as revision from './comprobantes.revision.js';
 import { recibirArchivo } from './comprobantes.upload.js';
 import * as comprobantes from './comprobantes.service.js';
 import * as procesamiento from './comprobantes.procesamiento.js';
@@ -35,6 +43,39 @@ router.post('/:id/procesar', validar(idParamSchema, 'params'), asyncHandler(asyn
 
 router.get('/:id/estado', validar(idParamSchema, 'params'), asyncHandler(async (req, res) => {
   res.json(await comprobantes.estadoProcesamiento(req.params.id));
+}));
+
+// HU10: revisión (propietario y empleado). Guarda borradores; no confirma.
+router.patch(
+  '/:id/cabecera',
+  validar(idParamSchema, 'params'),
+  validar(actualizarCabeceraSchema),
+  asyncHandler(async (req, res) => {
+    res.json(await revision.actualizarCabecera(req.params.id, req.body));
+  }),
+);
+
+router.patch(
+  '/:id/detalles/:detalleId',
+  validar(detalleParamSchema, 'params'),
+  validar(actualizarDetalleSchema),
+  asyncHandler(async (req, res) => {
+    res.json(await revision.actualizarDetalle(req.params.id, req.params.detalleId, req.body));
+  }),
+);
+
+router.post(
+  '/:id/detalles',
+  validar(idParamSchema, 'params'),
+  validar(agregarDetalleSchema),
+  asyncHandler(async (req, res) => {
+    res.status(201).json(await revision.agregarDetalle(req.params.id, req.body));
+  }),
+);
+
+// Solo evalúa si los datos están completos: no confirma ni toca el stock (HU11).
+router.post('/:id/validar', validar(idParamSchema, 'params'), asyncHandler(async (req, res) => {
+  res.json(await comprobantes.validarRevision(req.params.id));
 }));
 
 // Archivo original, solo con sesión (RNF1): uploads no se publica como estático.

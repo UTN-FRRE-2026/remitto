@@ -254,7 +254,11 @@ export default function LecturaComprobante() {
                 );
               })}
             </div>
-            <p className="lectura__nota">La revisión y la confirmación del ingreso llegan en la próxima etapa.</p>
+            <div className="lectura__acciones">
+              <Link className="btn btn--primario btn--bloque" to={`/comprobantes/${id}/revisar`}>
+                Revisar remito
+              </Link>
+            </div>
           </div>
         )}
 
