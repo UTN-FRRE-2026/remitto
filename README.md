@@ -18,11 +18,11 @@ Arranque del proyecto (Sprint 1 en curso). Ya implementado:
 | **RF1** Usuarios y acceso | HU1 (login), HU2 (roles), HU3 (admin usuarios) | ✅ Backend |
 | **RF2** Catálogo | HU4 (productos), HU5 (categorías), HU6 (proveedores) | ✅ Backend |
 | **RNF4** PWA móvil | HU7 (instalable) | ✅ Base |
-| **RF3** Ingesta de comprobantes | HU8 (carga), HU9 (lectura con IA) | ✅ Backend y pantallas M3/M4 |
-| Frontend | Login, Tablero, Productos, Cargar remito, Lectura con IA | ✅ Vistas base |
+| **RF3** Ingesta de comprobantes | HU8 (carga), HU9 (lectura con IA), HU10 (revisión) | ✅ Backend y pantallas M3/M4/M5 |
+| Frontend | Login, Tablero, Productos, Cargar remito, Lectura con IA, Revisar remito | ✅ Vistas base |
 
-Pendiente del flujo de ingreso: **HU10** (revisar y confirmar el comprobante) y
-**HU11** (entradas de stock). El resto del backlog (salidas, integración,
+Pendiente del flujo de ingreso: **HU11** (confirmar el ingreso y generar las
+entradas de stock). El resto del backlog (salidas, integración,
 alertas, agente, reportes) se incorpora en las historias siguientes.
 
 ---
@@ -119,6 +119,31 @@ procesa solo: los comprobantes anteriores se leen tocando "Leer con IA".
   respuesta original se conserva en `respuesta_ia`.
 - Pruebas sin red: `npm test` (unitarias) y backend con `IA_SIMULACION=ok`.
 
+### Revisión del comprobante (HU10)
+
+Desde M4, "Revisar remito" abre M5/D2 (`/comprobantes/:id/revisar`): el archivo
+original junto a las líneas leídas, para corregir antes de ingresar.
+
+- Por línea: asociar un producto del catálogo (propietario y empleado), crear
+  uno nuevo (solo el propietario, vía `POST /api/productos`), corregir cantidad
+  y precio, descartar o restaurar. También se agregan líneas a mano.
+- Cabecera: número definitivo, fecha, tipo y total impreso. El número no se
+  repite por proveedor y tipo (`@@unique`): si ya existe responde 409.
+- Las correcciones se guardan como borrador al salir de cada campo. Lo leído por
+  la IA (columnas `*Extraido` y `respuesta_ia`) nunca se modifica.
+- **"Validar datos"** informa si falta algo (producto, cantidad > 0, número,
+  al menos una línea) y muestra avisos (sin precio, sin fecha, total distinto,
+  posible duplicado). Si está todo, muestra "Datos completos. La confirmación
+  del ingreso estará disponible en la próxima entrega". **No marca el
+  comprobante como CONFIRMADO ni modifica el stock.**
+
+**Pendiente para HU11:** endpoint de confirmación en una sola transacción
+(re-validar, `EN_REVISION → CONFIRMADO` de forma idempotente, líneas
+`CONFIRMADO`, `MovimientoStock` de entrada con bloqueo `FOR UPDATE`,
+`PrecioCompra` para las líneas con precio, `confirmadoPor`/`confirmadoEn`),
+CHECK de RNF5 para líneas confirmadas, el botón "Confirmar ingreso" y la
+corrección del seed (stock = suma de movimientos).
+
 #### Iniciar el backend con la lectura real habilitada
 
 La clave se toma de `backend/.env`. Una variable `IA_API_KEY` definida en la
@@ -156,7 +181,7 @@ En Docker, el servicio `backend` toma `IA_API_KEY` de `backend/.env` (`env_file`
 - El modelo puede devolver `"unidad": ""` en filas sin dato; se normaliza a `null`.
 - Capa gratuita: cuotas bajas por minuto y por día; el contenido enviado puede
   usarse para mejorar los productos de Google.
-- No hay asociación automática al catálogo (HU15) ni edición/confirmación (HU10).
+- No hay asociación automática al catálogo (HU15). La confirmación del ingreso es HU11.
 
 ### Backend en Docker (opcional)
 
@@ -200,6 +225,8 @@ Para usar otra carpeta del host, definir `UPLOADS_HOST_DIR` en el `.env` de la r
 | `GET` | `/api/comprobantes/:id` · `/api/comprobantes/:id/archivo` | autenticado |
 | `POST` | `/api/comprobantes/:id/procesar` (202; lectura con IA) | autenticado |
 | `GET` | `/api/comprobantes/:id/estado` (progreso de la lectura) | autenticado |
+| `PATCH` | `/api/comprobantes/:id/cabecera` · `/api/comprobantes/:id/detalles/:detalleId` (borrador de revisión) | autenticado |
+| `POST` | `/api/comprobantes/:id/detalles` (línea manual) · `/api/comprobantes/:id/validar` (no confirma) | autenticado |
 
 ---
 

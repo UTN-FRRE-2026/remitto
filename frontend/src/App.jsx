@@ -7,6 +7,7 @@ import Productos from './pages/Productos.jsx';
 import Cuenta from './pages/Cuenta.jsx';
 import CargarComprobante from './pages/CargarComprobante.jsx';
 import LecturaComprobante from './pages/LecturaComprobante.jsx';
+import RevisarComprobante from './pages/RevisarComprobante.jsx';
 import EnConstruccion from './pages/EnConstruccion.jsx';
 
 // Protege las rutas privadas: sin sesión redirige al login.
@@ -42,6 +43,7 @@ export default function App() {
           <Route path="/cuenta" element={<Privado><Cuenta /></Privado>} />
           <Route path="/cargar" element={<Privado><CargarComprobante /></Privado>} />
           <Route path="/comprobantes/:id/lectura" element={<Privado><LecturaComprobante /></Privado>} />
+          <Route path="/comprobantes/:id/revisar" element={<Privado><RevisarComprobante /></Privado>} />
           <Route
             path="/salidas"
             element={
