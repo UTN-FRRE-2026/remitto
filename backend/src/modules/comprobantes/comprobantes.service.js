@@ -1,7 +1,12 @@
 import fs from 'node:fs/promises';
+import { env } from '../../config/env.js';
 import { prisma } from '../../lib/prisma.js';
 import { ApiError } from '../../lib/errors.js';
+import { leerError } from '../../ia/errores.js';
+import { iaDisponible } from '../../ia/extractor.js';
+import { normalizarNumero } from '../../ia/normalizar.js';
 import { validarArchivo, guardarArchivo, eliminarArchivo, rutaAbsoluta } from './comprobantes.archivos.js';
+import { OBJETIVO_RNF2_MS } from './comprobantes.procesamiento.js';
 
 const incluir = {
   proveedor: { select: { id: true, razonSocial: true } },
@@ -49,7 +54,102 @@ export async function obtener(id) {
     include: { ...incluir, detalles: { orderBy: { nroLinea: 'asc' } } },
   });
   if (!comprobante) throw ApiError.noEncontrado('Comprobante no encontrado');
-  return comprobante;
+  // El detalle técnico del proveedor queda solo en el servidor (base y log).
+  const { respuestaIa } = comprobante;
+  return {
+    ...comprobante,
+    respuestaIa: respuestaIa?.error ? { ...respuestaIa, error: { codigo: respuestaIa.error.codigo } } : respuestaIa,
+    error: leerError(comprobante.errorProcesamiento),
+    posibleDuplicado: await buscarPosiblesDuplicados(comprobante),
+  };
+}
+
+// HU9: el número leído por la IA que coincide con otro comprobante del mismo
+// proveedor se señala (no bloquea): se corrige en la revisión y la unicidad
+// del número definitivo se exige al confirmar (HU10).
+export async function buscarPosiblesDuplicados({ id, proveedorId, respuestaIa }) {
+  const numero = respuestaIa?.normalizada?.cabecera?.numeroNormalizado;
+  if (!numero) return [];
+  const base = { proveedorId, id: { not: id }, estado: { not: 'ANULADO' } };
+  const [porLectura, conNumero] = await Promise.all([
+    prisma.comprobante.findMany({
+      where: { ...base, respuestaIa: { path: ['normalizada', 'cabecera', 'numeroNormalizado'], equals: numero } },
+      select: { id: true, estado: true },
+    }),
+    prisma.comprobante.findMany({
+      where: { ...base, numero: { not: null } },
+      select: { id: true, estado: true, numero: true },
+    }),
+  ]);
+  const encontrados = new Map(porLectura.map((c) => [c.id, { id: c.id, estado: c.estado }]));
+  for (const c of conNumero) {
+    if (normalizarNumero(c.numero) === numero) encontrados.set(c.id, { id: c.id, estado: c.estado });
+  }
+  return [...encontrados.values()].sort((a, b) => a.id - b.id);
+}
+
+// HU9: estado liviano para la pantalla M4 (se consulta periódicamente).
+export async function estadoProcesamiento(id) {
+  const c = await prisma.comprobante.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      proveedorId: true,
+      estado: true,
+      errorProcesamiento: true,
+      iaIntentos: true,
+      iaSolicitadoEn: true,
+      procesandoDesde: true,
+      requiereRevision: true,
+      respuestaIa: true,
+      _count: { select: { detalles: true } },
+    },
+  });
+  if (!c) throw ApiError.noEncontrado('Comprobante no encontrado');
+
+  const procesando = c.estado === 'PROCESANDO';
+  const ahora = Date.now();
+  // Mientras procesa, los tiempos se calculan en vivo; después, los de la última ejecución.
+  const ejecucion = procesando ? null : c.respuestaIa?.ejecucion ?? null;
+  let tiempos = null;
+  if (procesando && c.iaSolicitadoEn) {
+    const solicitado = c.iaSolicitadoEn.getTime();
+    const iniciado = c.procesandoDesde?.getTime();
+    tiempos = {
+      esperaColaMs: (iniciado ?? ahora) - solicitado,
+      ejecucionMs: iniciado ? ahora - iniciado : null,
+      totalMs: ahora - solicitado,
+      enCurso: true,
+    };
+  } else if (ejecucion) {
+    tiempos = {
+      esperaColaMs: ejecucion.esperaColaMs,
+      ejecucionMs: ejecucion.ejecucionMs,
+      totalMs: ejecucion.totalMs,
+      enCurso: false,
+    };
+  }
+
+  const disponible = iaDisponible();
+  return {
+    id: c.id,
+    estado: c.estado,
+    fase: procesando ? (c.procesandoDesde ? 'LEYENDO' : 'EN_COLA') : c.estado,
+    error: leerError(c.errorProcesamiento),
+    intentos: c.iaIntentos,
+    maxIntentos: env.ia.maxIntentos,
+    iaDisponible: disponible,
+    puedeLeer: disponible && ['PENDIENTE', 'ERROR'].includes(c.estado) && c.iaIntentos < env.ia.maxIntentos,
+    tiempos,
+    objetivoMs: OBJETIVO_RNF2_MS,
+    rnf2: ejecucion?.rnf2 ?? null,
+    presupuestoMs: ejecucion?.presupuestoMs ?? env.ia.presupuestoMs,
+    presupuestoAgotado: Boolean(ejecucion?.presupuestoAgotado),
+    llamadas: ejecucion?.llamadas ?? [],
+    lineas: c._count.detalles,
+    requiereRevision: c.requiereRevision,
+    posibleDuplicado: c.estado === 'EN_REVISION' ? await buscarPosiblesDuplicados(c) : [],
+  };
 }
 
 // Datos para servir el archivo original por la ruta autenticada.

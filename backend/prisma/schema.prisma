@@ -250,10 +250,24 @@ model Comprobante {
   /// true si la IA detecta texto manuscrito o baja calidad:
   /// se exige confirmar todas las líneas una por una.
   requiereRevision   Boolean           @default(false) @map("requiere_revision")
-  /// JSON devuelto por el modelo, ya validado contra el esquema.
+  /// Lectura de la IA: texto original, JSON tal como llegó, versión
+  /// normalizada, motivos de revisión y métricas de la última ejecución.
   respuestaIa        Json?             @map("respuesta_ia")
   modeloIa           String?           @map("modelo_ia")
   errorProcesamiento String?           @map("error_procesamiento")
+
+  // --- Procesamiento con IA (HU9) ---
+  /// Llamadas reales al modelo; se suma ANTES de cada envío (cuota).
+  iaIntentos      Int       @default(0) @map("ia_intentos")
+  /// Dueño del trabajo vigente: toda escritura del trabajo lo exige.
+  iaTrabajoId     String?   @map("ia_trabajo_id")
+  /// Momento en que se pidió el procesamiento (mide la espera en cola).
+  iaSolicitadoEn  DateTime? @map("ia_solicitado_en")
+  /// Inicio de la ejecución; NULL mientras el trabajo espera en la cola.
+  procesandoDesde DateTime? @map("procesando_desde")
+  /// Vigencia renovada por el latido del proceso dueño. Si vence, el
+  /// trabajo se considera abandonado (ERROR INTERRUMPIDO).
+  iaVigenteHasta  DateTime? @map("ia_vigente_hasta")
 
   cargadoPorId    Int       @map("cargado_por_id")
   confirmadoPorId Int?      @map("confirmado_por_id")

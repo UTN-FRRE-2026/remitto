@@ -111,6 +111,11 @@ export async function guardarArchivo(buffer, formato) {
   return clave;
 }
 
+// HU9: contenido del archivo para enviarlo a la IA.
+export function leerArchivo(clave) {
+  return fs.readFile(rutaAbsoluta(clave));
+}
+
 export async function eliminarArchivo(clave) {
   try {
     await fs.unlink(rutaAbsoluta(clave));

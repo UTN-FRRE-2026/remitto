@@ -32,6 +32,22 @@ export const env = {
   // HU8: archivos de comprobantes. No se publican como estáticos (RNF1).
   uploadsDir: path.resolve(raizBackend, process.env.UPLOADS_DIR ?? 'uploads'),
   archivoMaxMb: numeroPositivo('ARCHIVO_MAX_MB', 10),
+
+  // HU9: lectura de comprobantes con IA. La clave reside solo en el servidor (RNF1)
+  // y nunca se registra; si falta, la lectura queda deshabilitada sin romper el arranque.
+  ia: {
+    apiKey: (process.env.IA_API_KEY ?? '').trim() || null,
+    modelo: (process.env.IA_MODELO ?? '').trim() || 'gemini-3.8-flash',
+    nivelRazonamiento: (process.env.IA_NIVEL_RAZONAMIENTO ?? '').trim() || 'low',
+    // Tope de cada ejecución (llamadas + esperas entre reintentos). RNF2: 30 s.
+    presupuestoMs: numeroPositivo('IA_PRESUPUESTO_MS', 30000),
+    // Llamadas reales permitidas por comprobante, sumando automáticas y manuales.
+    maxIntentos: numeroPositivo('IA_MAX_INTENTOS', 3),
+    // Vigencia del trabajo; el latido la renueva cada tercio de este plazo.
+    vigenciaMs: numeroPositivo('IA_VIGENCIA_MS', 45000),
+    // Escenario simulado para pruebas sin red. Nunca se usa en producción.
+    simulacion: (process.env.IA_SIMULACION ?? '').trim() || null,
+  },
 };
 
 export const esProduccion = env.nodeEnv === 'production';

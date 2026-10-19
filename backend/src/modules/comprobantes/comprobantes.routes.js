@@ -5,6 +5,7 @@ import { autenticar } from '../../middlewares/auth.js';
 import { crearComprobanteSchema, idParamSchema } from './comprobantes.schema.js';
 import { recibirArchivo } from './comprobantes.upload.js';
 import * as comprobantes from './comprobantes.service.js';
+import * as procesamiento from './comprobantes.procesamiento.js';
 
 const router = Router();
 
@@ -23,6 +24,17 @@ router.post(
 
 router.get('/:id', validar(idParamSchema, 'params'), asyncHandler(async (req, res) => {
   res.json(await comprobantes.obtener(req.params.id));
+}));
+
+// HU9: pide la lectura con IA. Responde 202 enseguida; el progreso se
+// consulta en GET /:id/estado. Solo desde PENDIENTE o ERROR, con intentos.
+router.post('/:id/procesar', validar(idParamSchema, 'params'), asyncHandler(async (req, res) => {
+  await procesamiento.solicitar(req.params.id);
+  res.status(202).json(await comprobantes.estadoProcesamiento(req.params.id));
+}));
+
+router.get('/:id/estado', validar(idParamSchema, 'params'), asyncHandler(async (req, res) => {
+  res.json(await comprobantes.estadoProcesamiento(req.params.id));
 }));
 
 // Archivo original, solo con sesión (RNF1): uploads no se publica como estático.
