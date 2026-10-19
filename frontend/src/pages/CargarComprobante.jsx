@@ -7,7 +7,6 @@ import {
   IconoComprobantes,
   IconoVolver,
   IconoDesplegar,
-  IconoCheck,
 } from '../components/iconos.jsx';
 import './CargarComprobante.css';
 
@@ -35,7 +34,6 @@ export default function CargarComprobante() {
   const [vistaPrevia, setVistaPrevia] = useState(null);
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState('');
-  const [comprobante, setComprobante] = useState(null);
 
   // Bloquea un segundo envío antes de que React vuelva a renderizar.
   const enviandoRef = useRef(false);
@@ -90,34 +88,15 @@ export default function CargarComprobante() {
     datos.append('proveedorId', proveedorId);
     datos.append('archivo', archivo);
     try {
-      setComprobante(await api.upload('/comprobantes', datos));
+      const comprobante = await api.upload('/comprobantes', datos);
+      // HU9: la pantalla M4 inicia la lectura con IA de este comprobante.
+      navegar(`/comprobantes/${comprobante.id}/lectura`, { state: { iniciar: true } });
     } catch (err) {
       setError(err.message);
     } finally {
       enviandoRef.current = false;
       setEnviando(false);
     }
-  }
-
-  async function verArchivo() {
-    // La pestaña se abre antes del await para que el navegador no la bloquee.
-    const ventana = window.open('', '_blank');
-    try {
-      const contenido = await api.blob(`/comprobantes/${comprobante.id}/archivo`);
-      const url = URL.createObjectURL(contenido);
-      if (ventana) ventana.location.href = url;
-      else window.location.href = url;
-      setTimeout(() => URL.revokeObjectURL(url), 60_000);
-    } catch (err) {
-      ventana?.close();
-      setError(err.message);
-    }
-  }
-
-  function cargarOtro() {
-    setComprobante(null);
-    setArchivo(null);
-    setError('');
   }
 
   const sinProveedores = proveedores !== null && proveedores.length === 0;
@@ -136,7 +115,7 @@ export default function CargarComprobante() {
               setProveedorId(e.target.value);
               setError('');
             }}
-            disabled={enviando || Boolean(comprobante) || !proveedores?.length}
+            disabled={enviando || !proveedores?.length}
           >
             <option value="">{proveedores === null ? 'Cargando…' : 'Elegí el proveedor'}</option>
             {proveedores?.map((p) => (
@@ -150,52 +129,7 @@ export default function CargarComprobante() {
         <span className="cargar__circulo cargar__circulo--vacio" aria-hidden />
       </header>
 
-      {comprobante ? (
-        <section className="cargar__listo" aria-live="polite">
-          <span className="cargar__listo-icono">
-            <IconoCheck size={28} />
-          </span>
-          <h1>Remito cargado</h1>
-          <p>
-            Quedó <strong>pendiente</strong> de procesamiento. Podés seguir cargando otros
-            comprobantes.
-          </p>
-          <dl className="cargar__datos">
-            <div>
-              <dt>Proveedor</dt>
-              <dd>{comprobante.proveedor?.razonSocial}</dd>
-            </div>
-            <div>
-              <dt>Comprobante</dt>
-              <dd>#{comprobante.id}</dd>
-            </div>
-            <div>
-              <dt>Archivo</dt>
-              <dd>{comprobante.origenArchivo === 'PDF' ? 'PDF' : 'Foto'}</dd>
-            </div>
-            <div>
-              <dt>Estado</dt>
-              <dd>
-                <span className="badge cargar__pendiente">Pendiente</span>
-              </dd>
-            </div>
-          </dl>
-          {error && (
-            <p className="cargar__error" role="alert">
-              {error}
-            </p>
-          )}
-          <div className="cargar__acciones">
-            <button className="btn btn--primario btn--bloque" onClick={cargarOtro}>
-              Cargar otro remito
-            </button>
-            <button className="btn btn--secundario btn--bloque" onClick={verArchivo}>
-              Ver archivo
-            </button>
-          </div>
-        </section>
-      ) : (
-        <>
+      <>
           <div className="cargar__marco">
             <span className="cargar__esquina cargar__esquina--si" />
             <span className="cargar__esquina cargar__esquina--sd" />
@@ -278,8 +212,7 @@ export default function CargarComprobante() {
           <input ref={camaraRef} type="file" accept="image/*" capture="environment" hidden onChange={elegir} />
           <input ref={galeriaRef} type="file" accept="image/*" hidden onChange={elegir} />
           <input ref={pdfRef} type="file" accept="application/pdf,.pdf" hidden onChange={elegir} />
-        </>
-      )}
+      </>
     </div>
   );
 }

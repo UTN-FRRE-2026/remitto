@@ -231,68 +231,6 @@
   cursor: not-allowed;
 }
 
-/* --- Confirmación --- */
-.cargar__listo {
-  max-width: 380px;
-  margin: 48px auto 0;
-  text-align: center;
-}
-.cargar__listo-icono {
-  display: grid;
-  place-items: center;
-  width: 64px;
-  height: 64px;
-  margin: 0 auto 18px;
-  border-radius: 20px;
-  background: var(--salvia);
-  color: var(--oscuro);
-}
-.cargar__listo h1 {
-  font-size: var(--fs-titulo);
-  font-weight: 800;
-}
-.cargar__listo > p {
-  margin-top: 8px;
-  color: var(--camara-texto-suave);
-}
-.cargar__listo > p strong {
-  color: var(--crema);
-}
-.cargar__datos {
-  margin-top: 22px;
-  padding: 6px 16px;
-  border-radius: var(--radio);
-  background: var(--camara-suave);
-  text-align: left;
-}
-.cargar__datos div {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  padding: 11px 0;
-  border-bottom: 1px solid rgba(242, 233, 216, 0.1);
-}
-.cargar__datos div:last-child {
-  border-bottom: none;
-}
-.cargar__datos dt {
-  color: var(--camara-texto-suave);
-}
-.cargar__datos dd {
-  font-weight: 700;
-  text-align: right;
-}
-.cargar__pendiente {
-  background: var(--bg-stock-bajo);
-  color: var(--fg-stock-bajo);
-}
-.cargar__listo .btn--secundario {
-  background: transparent;
-  color: var(--crema);
-  border-color: rgba(242, 233, 216, 0.3);
-}
-
 /* =============================================================
    Escritorio: la "cámara" se muestra como un panel centrado.
    ============================================================= */
