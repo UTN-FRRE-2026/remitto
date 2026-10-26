@@ -20,6 +20,8 @@ COPY prisma ./prisma
 RUN npm ci --no-audit --no-fund && node_modules/.bin/prisma generate
 
 COPY src ./src
+# Scripts de mantenimiento (p. ej. `npm run reset-intentos`) para la terminal de Coolify.
+COPY scripts ./scripts
 
 RUN mkdir -p uploads && chown -R node:node uploads
 USER node
