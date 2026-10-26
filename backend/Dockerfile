@@ -26,4 +26,7 @@ USER node
 
 ENV PORT=4000 UPLOADS_DIR=/app/uploads
 EXPOSE 4000
-CMD ["node", "src/server.js"]
+# Aplica las migraciones pendientes antes de levantar la API (no borra datos
+# ni corre el seed). `exec` deja a node como proceso principal para que
+# reciba SIGTERM y haga el cierre ordenado de server.js.
+CMD ["sh", "-c", "node_modules/.bin/prisma migrate deploy && exec node src/server.js"]
