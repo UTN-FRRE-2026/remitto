@@ -46,7 +46,7 @@ services:
   # Backend en contenedor (opcional, perfil "app"). No se levanta con
   # `docker compose up -d`; se usa para probar la imagen de la API:
   #   docker compose --profile app up -d --build backend
-  # Requiere la base migrada (`npx prisma migrate deploy` desde backend/).
+  # Al arrancar aplica las migraciones pendientes (`prisma migrate deploy`).
   # Toma JWT_SECRET y el resto de backend/.env; la URL de la base apunta
   # al servicio db de la red interna. Si el backend local (npm run dev)
   # está corriendo en :4000, levantarlo con BACKEND_PORT=4001.

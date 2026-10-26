@@ -198,6 +198,48 @@ docker compose --profile app stop backend
 En PowerShell: `$env:BACKEND_PORT='4001'; docker compose --profile app up -d --build backend`.
 Para usar otra carpeta del host, definir `UPLOADS_HOST_DIR` en el `.env` de la raíz.
 
+### Despliegue en producción (Coolify)
+
+`docker-compose.prod.yml` levanta la base, el backend y el frontend. Solo el
+frontend recibe tráfico: nginx (`frontend/nginx.conf`) sirve la PWA y reenvía
+`/api` al backend por la red interna, así que no hace falta CORS entre dominios
+ni publicar el puerto de la API. El backend aplica las migraciones al arrancar
+(`prisma migrate deploy`); el seed no corre solo.
+
+Requisitos: un VPS con Coolify, un dominio con un registro DNS `A` hacia la IP
+del VPS (la PWA solo se instala con HTTPS) y acceso de Coolify al repositorio.
+
+1. En Coolify: **New Resource** → el repositorio → Build Pack **Docker Compose**
+   → archivo `docker-compose.prod.yml`.
+2. Variables de entorno:
+
+   | Variable | Valor |
+   |---|---|
+   | `POSTGRES_PASSWORD` | `openssl rand -hex 24` (solo letras y números: va dentro de `DATABASE_URL`) |
+   | `JWT_SECRET` | `openssl rand -hex 48` |
+   | `CORS_ORIGIN` | `https://<dominio>` |
+   | `IA_API_KEY` | clave de Gemini (sin clave, la lectura con IA queda deshabilitada) |
+
+3. Asignar el dominio al servicio **frontend** (puerto 80) y desplegar.
+4. Primer usuario: desde la terminal del contenedor `backend` en Coolify,
+   `npm run seed`. **Crea los usuarios de prueba con la contraseña
+   `remitto123`**: cambiarla enseguida con `PATCH /api/usuarios/:id`
+   (`{ "password": "..." }`, sesión de propietario); todavía no hay pantalla.
+
+Datos persistentes en volúmenes: `remitto_pgdata` (base) y `remitto_uploads`
+(comprobantes). Coolify no los respalda solo: hay que programar copias de
+seguridad de los dos. Dejar una sola instancia del backend, porque los
+archivos viven en el disco de ese servidor.
+
+Prueba local de la imagen de producción (el puerto se publica con un archivo
+extra, porque en Coolify lo maneja su proxy):
+
+```bash
+# override.yml:  services: { frontend: { ports: ["8088:80"] } }
+POSTGRES_PASSWORD=prueba123 JWT_SECRET=prueba CORS_ORIGIN=http://localhost:8088 \
+  docker compose -p remitto_prueba -f docker-compose.prod.yml -f override.yml up -d --build
+```
+
 ### Usuarios de prueba (seed)
 
 | Rol | Correo | Contraseña |

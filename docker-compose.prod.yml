@@ -1,0 +1,78 @@
+# =============================================================
+#  Remitto – despliegue de producción (Coolify u otro servidor).
+#  Levanta la base, la API y la PWA. Solo el frontend recibe
+#  tráfico de afuera: Coolify le asigna el dominio y el HTTPS, y
+#  nginx reenvía /api al backend por la red interna.
+#
+#  Variables obligatorias (en Coolify: pestaña Environment Variables):
+#    POSTGRES_PASSWORD  solo letras y números (va dentro de DATABASE_URL);
+#                       generar con: openssl rand -hex 24
+#    JWT_SECRET         generar con: openssl rand -hex 48
+#    CORS_ORIGIN        https://<dominio del frontend>
+#  Opcionales: POSTGRES_USER, POSTGRES_DB, JWT_EXPIRES_IN,
+#    ARCHIVO_MAX_MB, IA_API_KEY (sin clave la lectura con IA queda
+#    deshabilitada), IA_MODELO.
+#
+#  Prueba local:
+#    docker compose -f docker-compose.prod.yml up -d --build
+#  (sin Coolify no hay puerto publicado; ver README.)
+# =============================================================
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-remitto}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-remitto}
+    volumes:
+      - remitto_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-remitto} -d ${POSTGRES_DB:-remitto}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-remitto}:${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-remitto}?schema=public
+      NODE_ENV: production
+      PORT: 4000
+      # Sin esta variable el backend usaría un secreto de desarrollo conocido.
+      JWT_SECRET: ${JWT_SECRET:?Falta JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-12h}
+      CORS_ORIGIN: ${CORS_ORIGIN:?Falta CORS_ORIGIN}
+      UPLOADS_DIR: /app/uploads
+      # Si se sube, ajustar client_max_body_size en frontend/nginx.conf.
+      ARCHIVO_MAX_MB: ${ARCHIVO_MAX_MB:-10}
+      IA_API_KEY: ${IA_API_KEY:-}
+      IA_MODELO: ${IA_MODELO:-gemini-3.8-flash}
+    volumes:
+      # HU8: los comprobantes subidos sobreviven a cada nuevo despliegue.
+      - remitto_uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:4000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      # Margen para `prisma migrate deploy` en el primer arranque.
+      start_period: 30s
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    expose:
+      - "80"
+
+volumes:
+  remitto_pgdata:
+  remitto_uploads:
