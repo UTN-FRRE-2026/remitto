@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api.js';
+import { comprimirImagen } from '../lib/imagenes.js';
 import {
   IconoRemitto,
   IconoImagen,
@@ -84,10 +85,10 @@ export default function CargarComprobante() {
     setEnviando(true);
     setError('');
 
-    const datos = new FormData();
-    datos.append('proveedorId', proveedorId);
-    datos.append('archivo', archivo);
     try {
+      const datos = new FormData();
+      datos.append('proveedorId', proveedorId);
+      datos.append('archivo', await comprimirImagen(archivo));
       const comprobante = await api.upload('/comprobantes', datos);
       // HU9: la pantalla M4 inicia la lectura con IA de este comprobante.
       navegar(`/comprobantes/${comprobante.id}/lectura`, { state: { iniciar: true } });
