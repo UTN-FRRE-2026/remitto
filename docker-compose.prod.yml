@@ -72,6 +72,13 @@ services:
         condition: service_healthy
     expose:
       - "80"
+    healthcheck:
+      # Solo comprueba nginx (no /api), así un reinicio del backend no lo
+      # marca como caído. 127.0.0.1 y no localhost: nginx no escucha en IPv6.
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
 volumes:
   remitto_pgdata:
