@@ -336,8 +336,10 @@ model Salida {
 
   usuarioId          Int? @map("usuario_id")
   claveIntegracionId Int? @map("clave_integracion_id")
-  /// Id de la operación en el sistema externo (ticket, venta).
-  /// Garantiza idempotencia: si el POS reenvía, no se descuenta dos veces.
+  /// INTEGRACION: id de la operación en el sistema externo (ticket, venta).
+  /// CARRITO: id de operación que genera la app (HU13).
+  /// Garantiza idempotencia: un reenvío no descuenta dos veces. Para el
+  /// carrito la unicidad es por usuario (índice parcial en la migración SQL).
   referenciaExterna  String?   @map("referencia_externa")
   /// Momento en que ocurrió la venta según el sistema externo.
   fechaExterna       DateTime? @map("fecha_externa")

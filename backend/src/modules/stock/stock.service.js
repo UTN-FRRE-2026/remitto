@@ -18,7 +18,17 @@ async function bloquearProducto(tx, productoId) {
 
 export async function registrarMovimiento(
   tx,
-  { productoId, tipo, motivo, cantidad, usuarioId = null, observacion = null, detalleComprobanteId = null, fecha },
+  {
+    productoId,
+    tipo,
+    motivo,
+    cantidad,
+    usuarioId = null,
+    observacion = null,
+    detalleComprobanteId = null,
+    salidaId = null,
+    fecha,
+  },
 ) {
   const delta = new Prisma.Decimal(cantidad);
   const stockAnterior = await bloquearProducto(tx, productoId);
@@ -39,6 +49,7 @@ export async function registrarMovimiento(
       observacion,
       usuarioId,
       detalleComprobanteId,
+      salidaId,
       ...(fecha ? { fecha } : {}),
     },
   });
