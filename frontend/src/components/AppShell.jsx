@@ -5,17 +5,19 @@ import {
   IconoProductos,
   IconoCamara,
   IconoSalidas,
-  IconoAsistente,
+  IconoMovimientos,
 } from './iconos.jsx';
 import './AppShell.css';
 
 // Ítems de la barra inferior (móvil). "Cargar" es el botón central elevado.
+// Entran 5: con 6, las etiquetas se pisan en pantallas de 360 px. El
+// Asistente (HU25) queda en el menú lateral hasta que se implemente.
 const items = [
   { to: '/', fin: true, label: 'Inicio', Icono: IconoInicio },
   { to: '/productos', label: 'Productos', Icono: IconoProductos },
   { to: '/cargar', label: 'Cargar', Icono: IconoCamara, central: true },
   { to: '/salidas', label: 'Salidas', Icono: IconoSalidas },
-  { to: '/asistente', label: 'Asistente', Icono: IconoAsistente },
+  { to: '/movimientos', label: 'Movimientos', Icono: IconoMovimientos },
 ];
 
 export default function AppShell({ children }) {

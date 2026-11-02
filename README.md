@@ -11,7 +11,12 @@ automática de comprobantes de compra mediante Inteligencia Artificial.
 
 ## Estado actual
 
-Arranque del proyecto (Sprint 1 en curso). Ya implementado:
+Sprint 1 en curso. Están implementadas las historias HU1 a HU13 y la
+aplicación está desplegada en producción con Coolify, a partir de `main`.
+Del Sprint 1 falta la pantalla de administración de usuarios (HU3, hoy solo
+backend). La próxima historia es el recuento de stock (HU14).
+
+Ya implementado:
 
 | Requerimiento | Historias | Estado |
 |---|---|---|
@@ -23,7 +28,9 @@ Arranque del proyecto (Sprint 1 en curso). Ya implementado:
 | **Salidas** | HU13 (carrito de salida) | ✅ Backend y pantalla Nueva salida |
 | Frontend | Login, Tablero, Productos, Cargar remito, Lectura con IA, Revisar remito, Movimientos, Nueva salida | ✅ Vistas base |
 
-El flujo de ingreso (cargar → leer con IA → revisar → confirmar) está completo.
+Están completos el flujo de ingreso (cargar → leer con IA → revisar →
+confirmar) y el de salida (carrito → confirmar). Cada movimiento queda en el
+historial de Movimientos.
 El resto del backlog (recuento, integración, alertas, agente, reportes) se incorpora en las historias siguientes.
 
 ---
