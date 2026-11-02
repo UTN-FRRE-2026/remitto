@@ -9,6 +9,7 @@ import CargarComprobante from './pages/CargarComprobante.jsx';
 import LecturaComprobante from './pages/LecturaComprobante.jsx';
 import RevisarComprobante from './pages/RevisarComprobante.jsx';
 import Movimientos from './pages/Movimientos.jsx';
+import Salidas from './pages/Salidas.jsx';
 import EnConstruccion from './pages/EnConstruccion.jsx';
 
 // Protege las rutas privadas: sin sesión redirige al login.
@@ -45,18 +46,7 @@ export default function App() {
           <Route path="/cargar" element={<Privado><CargarComprobante /></Privado>} />
           <Route path="/comprobantes/:id/lectura" element={<Privado><LecturaComprobante /></Privado>} />
           <Route path="/comprobantes/:id/revisar" element={<Privado><RevisarComprobante /></Privado>} />
-          <Route
-            path="/salidas"
-            element={
-              <Privado>
-                <EnConstruccion
-                  titulo="Nueva salida"
-                  descripcion="Carrito para descontar varios productos en una sola operación."
-                  hu="HU13 (Sprint 1)"
-                />
-              </Privado>
-            }
-          />
+          <Route path="/salidas" element={<Privado><Salidas /></Privado>} />
           <Route
             path="/asistente"
             element={

@@ -20,10 +20,11 @@ Arranque del proyecto (Sprint 1 en curso). Ya implementado:
 | **RNF4** PWA móvil | HU7 (instalable) | ✅ Base |
 | **RF3** Ingesta de comprobantes | HU8 (carga), HU9 (lectura con IA), HU10 (revisión), HU11 (entradas de stock) | ✅ Backend y pantallas M3/M4/M5 |
 | **Existencias** | HU12 (movimientos y existencias) | ✅ Backend y pantalla Movimientos |
-| Frontend | Login, Tablero, Productos, Cargar remito, Lectura con IA, Revisar remito, Movimientos | ✅ Vistas base |
+| **Salidas** | HU13 (carrito de salida) | ✅ Backend y pantalla Nueva salida |
+| Frontend | Login, Tablero, Productos, Cargar remito, Lectura con IA, Revisar remito, Movimientos, Nueva salida | ✅ Vistas base |
 
 El flujo de ingreso (cargar → leer con IA → revisar → confirmar) está completo.
-El resto del backlog (salidas, integración, alertas, agente, reportes) se incorpora en las historias siguientes.
+El resto del backlog (recuento, integración, alertas, agente, reportes) se incorpora en las historias siguientes.
 
 ---
 
@@ -220,6 +221,30 @@ el ajuste.
   `npm run conciliar-stock -- --aplicar`.
 - Es solo lectura: el stock sigue cambiando únicamente en `stock.service.js`.
 
+### Salidas de stock con carrito (HU13)
+
+La pantalla **Nueva salida** (`/salidas`, propietario y empleado) descuenta
+varios productos en una sola operación: se buscan por nombre o código (un
+lector de códigos que manda Enter los agrega directo), se ajustan las
+cantidades y se elige el motivo (venta, consumo interno, rotura, vencimiento
+u otro, que exige una observación).
+
+`POST /api/salidas` hace todo en **una sola transacción**: bloquea los
+productos, vuelve a validar y crea la `Salida` (origen `CARRITO`) con un
+`MovimientoStock` SALIDA/motivo por producto. Si una línea no se puede
+descontar, no se descuenta ninguna y responde 400 con el problema de cada
+producto.
+
+- No se saca más de lo que hay: el stock de una salida del carrito nunca
+  queda negativo, ni con varias cajas vendiendo lo mismo a la vez.
+- Unidades y paquetes no se fraccionan. Un producto va una sola vez por salida.
+- La app manda un `idOperacion` por carrito. Si el pedido se reenvía (red
+  lenta, doble toque), responde 200 con `"repetida": true` y no descuenta de
+  nuevo (índice único parcial `uq_salida_carrito_operacion`).
+- El carrito se guarda como borrador en la pestaña (`sessionStorage`) hasta
+  confirmarlo.
+- Las salidas aparecen en **Movimientos** (HU12).
+
 ### Backend en Docker (opcional)
 
 El servicio `backend` usa el perfil `app`, así que `docker compose up -d`
@@ -309,6 +334,8 @@ POSTGRES_PASSWORD=prueba123 JWT_SECRET=prueba CORS_ORIGIN=http://localhost:8088 
 | `POST` | `/api/comprobantes/:id/confirmar` (ingreso al stock; repetirlo da 409) | autenticado |
 | `GET` | `/api/movimientos` · `?productoId=&tipo=&desde=&hasta=&pagina=&limite=` | autenticado |
 | `GET` | `/api/movimientos/conciliacion` (productos con stock descuadrado) | propietario |
+| `POST` | `/api/salidas` (carrito; 201, o 200 con `repetida` si se reenvía) | autenticado |
+| `GET` | `/api/salidas` · `?limite=` · `/api/salidas/:id` | autenticado |
 
 ---
 
