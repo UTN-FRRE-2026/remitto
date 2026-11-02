@@ -5,6 +5,7 @@ import categoriasRoutes from './modules/categorias/categorias.routes.js';
 import proveedoresRoutes from './modules/proveedores/proveedores.routes.js';
 import productosRoutes from './modules/productos/productos.routes.js';
 import comprobantesRoutes from './modules/comprobantes/comprobantes.routes.js';
+import movimientosRoutes from './modules/movimientos/movimientos.routes.js';
 
 const router = Router();
 
@@ -16,5 +17,6 @@ router.use('/categorias', categoriasRoutes);
 router.use('/proveedores', proveedoresRoutes);
 router.use('/productos', productosRoutes);
 router.use('/comprobantes', comprobantesRoutes);
+router.use('/movimientos', movimientosRoutes);
 
 export default router;

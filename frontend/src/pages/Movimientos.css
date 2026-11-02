@@ -1,0 +1,320 @@
+/* HU12 · Movimientos. Los chips (.chip) y .lista__estado vienen de Productos.css. */
+.movimientos__titulo {
+  font-size: var(--fs-titulo);
+  font-weight: 800;
+  margin-bottom: 16px;
+}
+
+/* --- Buscador de producto --- */
+.movimientos__buscador {
+  margin-bottom: 14px;
+}
+.movimientos__resultados {
+  list-style: none;
+  margin-top: 4px;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-sm);
+  background: var(--superficie);
+  overflow: hidden;
+}
+.movimientos__resultados li {
+  border-bottom: 1px solid var(--borde);
+}
+.movimientos__resultados li:last-child {
+  border-bottom: none;
+}
+.movimientos__resultados button {
+  width: 100%;
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--oscuro);
+}
+.movimientos__resultados button:hover {
+  background: var(--crema-claro);
+}
+.movimientos__resultados small,
+.movimientos__nota {
+  color: var(--texto-suave);
+  font-size: var(--fs-detalle);
+}
+.movimientos__nota {
+  padding: 10px 14px;
+}
+
+/* --- Fechas --- */
+.movimientos__fechas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.movimientos__fechas .campo {
+  flex: 1 1 140px;
+}
+.movimientos__fechas .campo span {
+  font-size: var(--fs-detalle);
+  font-weight: 700;
+  color: var(--texto-suave);
+}
+.movimientos__fechas input {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-sm);
+  background: var(--crema-claro);
+  color: var(--oscuro);
+  font-size: var(--fs-texto);
+}
+.movimientos__fechas input:focus {
+  outline: none;
+  border-color: var(--salvia-oscuro);
+}
+.movimientos__limpiar {
+  padding: 10px 4px;
+  font-weight: 700;
+  color: var(--salvia-oscuro);
+}
+
+.movimientos__error {
+  margin-bottom: 12px;
+}
+
+/* --- Lista agrupada por día --- */
+.movimientos__lista {
+  padding: 4px 16px;
+}
+.movimientos__dia h2 {
+  padding: 14px 0 4px;
+  font-size: var(--fs-detalle);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--texto-suave);
+}
+.movimientos__dia + .movimientos__dia {
+  border-top: 1px solid var(--borde);
+}
+.movimientos__mas {
+  margin-top: 14px;
+}
+
+.mov {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+}
+.mov + .mov {
+  border-top: 1px dashed var(--borde);
+}
+.mov__icono {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  flex-shrink: 0;
+}
+.mov__icono--entrada {
+  background: var(--bg-en-stock);
+  color: var(--fg-en-stock);
+}
+.mov__icono--salida {
+  background: var(--bg-sin-stock);
+  color: var(--fg-sin-stock);
+}
+.mov__icono--ajuste {
+  background: var(--bg-stock-bajo);
+  color: var(--fg-stock-bajo);
+}
+.mov__datos {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.mov__producto {
+  align-self: flex-start;
+  max-width: 100%;
+  text-align: left;
+  font-size: var(--fs-producto);
+  font-weight: 700;
+  color: var(--oscuro);
+  overflow-wrap: anywhere;
+}
+.mov__producto:hover {
+  text-decoration: underline;
+}
+.mov__motivo {
+  font-size: var(--fs-texto);
+  overflow-wrap: anywhere;
+}
+.mov__enlace {
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--salvia-oscuro);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.mov__meta {
+  font-size: var(--fs-detalle);
+  color: var(--texto-suave);
+}
+.mov__cantidades {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.mov__cant {
+  font-size: 18px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.mov__cant small {
+  font-size: var(--fs-detalle);
+  font-weight: 600;
+  color: var(--texto-suave);
+}
+.mov__cant--entrada {
+  color: var(--fg-en-stock);
+}
+.mov__cant--salida {
+  color: var(--rojo);
+}
+.mov__cant--ajuste {
+  color: var(--fg-stock-bajo);
+}
+.mov__stock {
+  font-size: var(--fs-detalle);
+  color: var(--texto-suave);
+  white-space: nowrap;
+}
+.mov__stock b {
+  color: var(--oscuro);
+}
+
+/* --- Ficha del producto filtrado --- */
+.ficha {
+  padding: 16px;
+  margin-bottom: 14px;
+}
+.ficha__cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+.ficha__cabecera h2 {
+  font-size: var(--fs-seccion);
+  font-weight: 800;
+}
+.ficha__cabecera span {
+  font-size: var(--fs-detalle);
+  color: var(--texto-suave);
+}
+.ficha__quitar {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  border-radius: var(--radio-pill);
+  border: 1px solid var(--borde);
+  font-weight: 700;
+  font-size: var(--fs-detalle);
+  color: var(--oscuro);
+}
+.ficha__stock {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0;
+}
+.ficha__stock strong {
+  font-size: 28px;
+  font-weight: 800;
+}
+.ficha__stock small {
+  font-size: var(--fs-texto);
+  color: var(--texto-suave);
+}
+.ficha__totales {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.ficha__totales div {
+  padding: 8px 10px;
+  border-radius: var(--radio-sm);
+  background: var(--crema-claro);
+}
+.ficha__totales dt {
+  font-size: var(--fs-detalle);
+  color: var(--texto-suave);
+  font-weight: 700;
+}
+.ficha__totales dd {
+  font-size: var(--fs-producto);
+  font-weight: 800;
+}
+.ficha__control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  font-size: var(--fs-detalle);
+  font-weight: 700;
+}
+.ficha__control--ok {
+  color: var(--fg-en-stock);
+}
+.ficha__control--error {
+  color: var(--rojo);
+}
+
+/* --- Conciliación (propietario) --- */
+.conciliacion {
+  margin-bottom: 14px;
+  font-size: var(--fs-detalle);
+}
+.conciliacion--ok {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  color: var(--fg-en-stock);
+}
+.conciliacion--error {
+  padding: 12px 14px;
+  border-radius: var(--radio);
+  background: var(--bg-sin-stock);
+  color: var(--fg-sin-stock);
+}
+.conciliacion--error ul {
+  margin-top: 6px;
+  padding-left: 18px;
+}
+.conciliacion--error button {
+  font-weight: 700;
+  color: inherit;
+  text-decoration: underline;
+}
+
+@media (min-width: 900px) {
+  .movimientos__titulo {
+    font-size: 32px;
+  }
+  .movimientos__buscador,
+  .movimientos__fechas {
+    max-width: 560px;
+  }
+  .movimientos__lista,
+  .ficha,
+  .conciliacion,
+  .movimientos__mas {
+    max-width: 900px;
+  }
+}

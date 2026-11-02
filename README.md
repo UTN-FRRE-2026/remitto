@@ -19,11 +19,11 @@ Arranque del proyecto (Sprint 1 en curso). Ya implementado:
 | **RF2** Catálogo | HU4 (productos), HU5 (categorías), HU6 (proveedores) | ✅ Backend |
 | **RNF4** PWA móvil | HU7 (instalable) | ✅ Base |
 | **RF3** Ingesta de comprobantes | HU8 (carga), HU9 (lectura con IA), HU10 (revisión), HU11 (entradas de stock) | ✅ Backend y pantallas M3/M4/M5 |
-| Frontend | Login, Tablero, Productos, Cargar remito, Lectura con IA, Revisar remito | ✅ Vistas base |
+| **Existencias** | HU12 (movimientos y existencias) | ✅ Backend y pantalla Movimientos |
+| Frontend | Login, Tablero, Productos, Cargar remito, Lectura con IA, Revisar remito, Movimientos | ✅ Vistas base |
 
 El flujo de ingreso (cargar → leer con IA → revisar → confirmar) está completo.
-El resto del backlog (existencias, salidas, integración, alertas, agente,
-reportes) se incorpora en las historias siguientes.
+El resto del backlog (salidas, integración, alertas, agente, reportes) se incorpora en las historias siguientes.
 
 ---
 
@@ -202,6 +202,24 @@ En Docker, el servicio `backend` toma `IA_API_KEY` de `backend/.env` (`env_file`
   usarse para mejorar los productos de Google.
 - No hay asociación automática al catálogo (HU15). La confirmación del ingreso es HU11.
 
+### Movimientos y existencias (HU12)
+
+La pantalla **Movimientos** (`/movimientos`, propietario y empleado) muestra el
+historial de entradas, salidas y ajustes, del más reciente al más antiguo y
+agrupado por día. Cada movimiento indica el stock antes y después, quién lo
+registró y su origen: el comprobante (con enlace a su revisión), la salida o
+el ajuste.
+
+- Filtros por producto, tipo (entradas, salidas, ajustes) y rango de fechas
+  (días de Argentina, "hasta" inclusivo). Se guardan en la URL.
+- Tocar un producto en **Productos** abre su historial. La ficha muestra el
+  stock actual, los totales por tipo y si el stock coincide con la suma de
+  sus movimientos (criterio de la HU12).
+- El propietario ve además si algún producto está descuadrado
+  (`GET /api/movimientos/conciliacion`). Se corrige con
+  `npm run conciliar-stock -- --aplicar`.
+- Es solo lectura: el stock sigue cambiando únicamente en `stock.service.js`.
+
 ### Backend en Docker (opcional)
 
 El servicio `backend` usa el perfil `app`, así que `docker compose up -d`
@@ -289,6 +307,8 @@ POSTGRES_PASSWORD=prueba123 JWT_SECRET=prueba CORS_ORIGIN=http://localhost:8088 
 | `PATCH` | `/api/comprobantes/:id/cabecera` · `/api/comprobantes/:id/detalles/:detalleId` (borrador de revisión) | autenticado |
 | `POST` | `/api/comprobantes/:id/detalles` (línea manual) · `/api/comprobantes/:id/validar` (no confirma) | autenticado |
 | `POST` | `/api/comprobantes/:id/confirmar` (ingreso al stock; repetirlo da 409) | autenticado |
+| `GET` | `/api/movimientos` · `?productoId=&tipo=&desde=&hasta=&pagina=&limite=` | autenticado |
+| `GET` | `/api/movimientos/conciliacion` (productos con stock descuadrado) | propietario |
 
 ---
 

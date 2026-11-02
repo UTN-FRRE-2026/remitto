@@ -1,20 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { api } from '../lib/api.js';
 import { IconoRemitto, IconoBuscar, IconoCodigo, IconoMas } from '../components/iconos.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import EstadoBadge from '../components/EstadoBadge.jsx';
+import { unidadCorta } from '../lib/unidades.js';
 import './Productos.css';
-
-const UNIDAD_CORTA = {
-  UNIDAD: 'u.',
-  KILOGRAMO: 'kg',
-  GRAMO: 'g',
-  LITRO: 'l',
-  MILILITRO: 'ml',
-  METRO: 'm',
-  PAQUETE: 'paq.',
-};
 
 export default function Productos() {
   const { esPropietario } = useAuth();
@@ -106,7 +97,8 @@ export default function Productos() {
         )}
         {!cargando &&
           productos.map((p) => (
-            <div key={p.id} className="producto">
+            // HU12: cada producto abre su historial de movimientos.
+            <Link key={p.id} to={`/movimientos?productoId=${p.id}`} className="producto">
               <span className="producto__icono" aria-hidden />
               <div className="producto__datos">
                 <strong>{p.nombre}</strong>
@@ -117,11 +109,11 @@ export default function Productos() {
                   className={`producto__cant ${p.estadoStock === 'SIN_STOCK' ? 'producto__cant--cero' : ''}`}
                 >
                   {p.stockActual}
-                  <small>{UNIDAD_CORTA[p.unidadMedida] ?? 'u.'}</small>
+                  <small>{unidadCorta(p.unidadMedida)}</small>
                 </span>
                 <EstadoBadge estado={p.estadoStock} />
               </div>
-            </div>
+            </Link>
           ))}
       </div>
     </div>
