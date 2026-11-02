@@ -356,6 +356,36 @@
 .revisar__validacion-avisos {
   color: var(--fg-stock-bajo);
 }
+.revisar__confirmar {
+  margin-top: 10px;
+}
+.revisar__confirmado {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: var(--radio-sm);
+  font-weight: 600;
+  background: var(--bg-en-stock);
+  color: var(--fg-en-stock);
+}
+.revisar__ingreso {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.revisar__ingreso ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.revisar__ingreso li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: var(--fs-texto);
+}
 .revisar__pie {
   font-size: var(--fs-detalle);
   color: var(--texto-suave);

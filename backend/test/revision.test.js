@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluarRevision } from '../src/modules/comprobantes/comprobantes.revision.js';
+import { evaluarRevision, fechaVigencia, lineasAIngresar } from '../src/modules/comprobantes/comprobantes.revision.js';
 import {
   actualizarDetalleSchema,
   agregarDetalleSchema,
@@ -123,4 +123,30 @@ test('esquema de cabecera: fecha válida, número vacío como null', () => {
   assert.equal(actualizarCabeceraSchema.parse({ fechaEmision: '2026-10-15' }).fechaEmision, '2026-10-15');
   assert.equal(actualizarCabeceraSchema.parse({ numero: '   ' }).numero, null);
   assert.equal(actualizarCabeceraSchema.safeParse({ tipo: 'TICKET' }).success, false);
+});
+
+// HU11: confirmación del ingreso.
+test('fecha de vigencia del precio: la de emisión o el día de hoy en Argentina', () => {
+  const emision = new Date('2026-10-01T00:00:00Z');
+  assert.equal(fechaVigencia(emision), emision);
+  // 01:30 UTC del 2 de noviembre todavía es 1 de noviembre en Argentina (UTC-3).
+  assert.equal(fechaVigencia(null, new Date('2026-11-02T01:30:00Z')).toISOString(), '2026-11-01T00:00:00.000Z');
+  assert.equal(fechaVigencia(null, new Date('2026-11-02T03:30:00Z')).toISOString(), '2026-11-02T00:00:00.000Z');
+});
+
+test('líneas a ingresar: sin descartadas y ordenadas por producto para bloquear siempre igual', () => {
+  const r = lineasAIngresar([
+    linea({ nroLinea: 1, productoId: 7 }),
+    linea({ nroLinea: 2, productoId: 3, estado: 'DESCARTADO' }),
+    linea({ nroLinea: 3, productoId: 2 }),
+    linea({ nroLinea: 4, productoId: 7 }),
+  ]);
+  assert.deepEqual(
+    r.map((d) => [d.nroLinea, d.productoId]),
+    [
+      [3, 2],
+      [1, 7],
+      [4, 7],
+    ],
+  );
 });

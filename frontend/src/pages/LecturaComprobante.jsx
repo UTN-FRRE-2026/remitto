@@ -99,11 +99,14 @@ export default function LecturaComprobante() {
   const leyendo = fase === 'EN_COLA' || fase === 'LEYENDO';
   const listo = estado?.estado === 'EN_REVISION';
   const fallo = estado?.estado === 'ERROR';
+  const confirmado = estado?.estado === 'CONFIRMADO';
+  const leido = listo || confirmado;
   const t = estado?.tiempos;
 
   let titulo = 'Lectura con IA';
   if (leyendo) titulo = fase === 'EN_COLA' ? 'Tu remito está en espera' : 'Estamos leyendo tu remito';
   else if (listo) titulo = 'Listo para revisar';
+  else if (confirmado) titulo = 'Ingreso confirmado';
   else if (fallo) titulo = 'No pudimos leer el remito';
 
   const normalizada = comprobante?.respuestaIa?.normalizada;
@@ -138,7 +141,7 @@ export default function LecturaComprobante() {
         <ol className="lectura__pasos">
           <Paso hecho titulo="Archivo recibido" detalle={comprobante?.proveedor?.razonSocial} />
           <Paso
-            hecho={listo}
+            hecho={leido}
             activo={leyendo}
             error={fallo}
             titulo="Leyendo los ítems"
@@ -147,14 +150,14 @@ export default function LecturaComprobante() {
                 ? `En espera hace ${segundos(t?.esperaColaMs)}`
                 : fase === 'LEYENDO'
                   ? `Leyendo hace ${segundos(t?.ejecucionMs)}`
-                  : listo
+                  : leido
                     ? `${estado.lineas} ${estado.lineas === 1 ? 'línea detectada' : 'líneas detectadas'}`
                     : fallo
                       ? estado.error?.mensaje
                       : 'Todavía no se leyó'
             }
           />
-          <Paso hecho={listo} titulo="Listo para revisar" />
+          <Paso hecho={leido} titulo="Listo para revisar" />
         </ol>
 
         {t && (
@@ -262,7 +265,15 @@ export default function LecturaComprobante() {
           </div>
         )}
 
-        <p className="lectura__pie">Nada entra a tu stock hasta que lo confirmes.</p>
+        {confirmado && (
+          <div className="lectura__acciones">
+            <Link className="btn btn--primario btn--bloque" to={`/comprobantes/${id}/revisar`}>
+              Ver ingreso confirmado
+            </Link>
+          </div>
+        )}
+
+        {!confirmado && <p className="lectura__pie">Nada entra a tu stock hasta que lo confirmes.</p>}
       </section>
     </div>
   );

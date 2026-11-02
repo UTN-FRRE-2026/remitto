@@ -16,13 +16,13 @@ const UNIDADES = [
   ['METRO', 'Metro'],
   ['PAQUETE', 'Paquete'],
 ];
-export const MENSAJE_COMPLETO = 'Datos completos. La confirmación del ingreso estará disponible en la próxima entrega';
 
 const mensajeDeError = (err) => err.detalles?.map?.((d) => d.mensaje).join(' ') || err.message;
 const formatoInvalido = 'Número no válido. Usá coma para los decimales, por ejemplo 1,5.';
 
 // M5 / D2 · Revisar remito (HU10). Las correcciones se guardan como borrador;
-// "Validar datos" solo informa si está completo. La confirmación es HU11.
+// "Validar datos" informa si está completo y, si lo está, habilita
+// "Confirmar ingreso" (HU11), que suma al stock en una sola operación.
 export default function RevisarComprobante() {
   const { id } = useParams();
   const { esPropietario } = useAuth();
@@ -32,6 +32,8 @@ export default function RevisarComprobante() {
   const [validacion, setValidacion] = useState(null);
   const [validando, setValidando] = useState(false);
   const [agregando, setAgregando] = useState(false);
+  const [confirmando, setConfirmando] = useState(false);
+  const [confirmacion, setConfirmacion] = useState(null);
   const pendientes = useRef(new Set());
 
   // Cada guardado se registra para que "Validar datos" espere a que termine.
@@ -42,9 +44,13 @@ export default function RevisarComprobante() {
     return promesa;
   }, []);
 
+  const recargar = useCallback(
+    () => api.get(`/comprobantes/${id}`).then(setComprobante).catch((err) => setError(err.message)),
+    [id],
+  );
   useEffect(() => {
-    api.get(`/comprobantes/${id}`).then(setComprobante).catch((err) => setError(err.message));
-  }, [id]);
+    recargar();
+  }, [recargar]);
 
   useEffect(() => {
     if (!comprobante || !PREVISUALIZABLES.includes(comprobante.archivoMime)) return undefined;
@@ -103,6 +109,31 @@ export default function RevisarComprobante() {
     }
   }
 
+  // HU11: el backend vuelve a validar todo dentro de la transacción. Un 409
+  // (ya confirmado en otra pestaña, número repetido) recarga el comprobante.
+  async function confirmarIngreso() {
+    setConfirmando(true);
+    setError('');
+    try {
+      await Promise.allSettled([...pendientes.current]);
+      setConfirmacion(await api.post(`/comprobantes/${id}/confirmar`));
+      setValidacion(null);
+      await recargar();
+    } catch (err) {
+      if (err.status === 400 && err.detalles?.length) {
+        setValidacion({ completo: false, problemas: err.detalles, avisos: [] });
+      } else {
+        setError(mensajeDeError(err));
+        if (err.status === 409) {
+          setValidacion(null);
+          await recargar();
+        }
+      }
+    } finally {
+      setConfirmando(false);
+    }
+  }
+
   if (!comprobante) {
     return <div className="revisar revisar--cargando">{error || 'Cargando…'}</div>;
   }
@@ -131,10 +162,18 @@ export default function RevisarComprobante() {
         </div>
       </header>
 
-      {!editable && (
-        <p className="revisar__aviso">
-          Este comprobante no está en revisión (estado: {comprobante.estado}). Se muestra solo para consulta.
+      {comprobante.estado === 'CONFIRMADO' ? (
+        <p className="revisar__confirmado" role="status">
+          <IconoCheck size={18} /> Ingreso confirmado
+          {comprobante.confirmadoEn ? ` el ${new Date(comprobante.confirmadoEn).toLocaleString('es-AR')}` : ''}
+          {comprobante.confirmadoPor ? ` por ${comprobante.confirmadoPor.nombre}` : ''}. El stock ya se actualizó.
         </p>
+      ) : (
+        !editable && (
+          <p className="revisar__aviso">
+            Este comprobante no está en revisión (estado: {comprobante.estado}). Se muestra solo para consulta.
+          </p>
+        )
       )}
       {error && (
         <p className="revisar__error" role="alert">
@@ -217,20 +256,28 @@ export default function RevisarComprobante() {
               {validando ? 'Validando…' : 'Validar datos'}
             </button>
           )}
-          {validacion && <ResultadoValidacion validacion={validacion} />}
-          <p className="revisar__pie">Nada entra a tu stock hasta que se confirme el ingreso.</p>
+          {validacion && (
+            <ResultadoValidacion
+              validacion={validacion}
+              puedeConfirmar={editable}
+              confirmando={confirmando}
+              onConfirmar={confirmarIngreso}
+            />
+          )}
+          {confirmacion && <ResumenIngreso confirmacion={confirmacion} />}
+          {editable && <p className="revisar__pie">Nada entra a tu stock hasta que se confirme el ingreso.</p>}
         </section>
       </div>
     </div>
   );
 }
 
-function ResultadoValidacion({ validacion }) {
+function ResultadoValidacion({ validacion, puedeConfirmar, confirmando, onConfirmar }) {
   return (
     <div className={`revisar__validacion ${validacion.completo ? 'revisar__validacion--ok' : ''}`} role="status">
       {validacion.completo ? (
         <p className="revisar__validacion-titulo">
-          <IconoCheck size={18} /> {MENSAJE_COMPLETO}
+          <IconoCheck size={18} /> Datos completos. Revisá los avisos y confirmá el ingreso.
         </p>
       ) : (
         <>
@@ -249,6 +296,32 @@ function ResultadoValidacion({ validacion }) {
           ))}
         </ul>
       )}
+      {validacion.completo && puedeConfirmar && (
+        <button className="btn btn--primario btn--bloque revisar__confirmar" onClick={onConfirmar} disabled={confirmando}>
+          {confirmando ? 'Confirmando…' : `Confirmar ingreso (${mostrarNumero(validacion.resumen.unidades)} unidades)`}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function ResumenIngreso({ confirmacion }) {
+  return (
+    <div className="revisar__ingreso card">
+      <h2 className="revisar__subtitulo">Stock actualizado</h2>
+      <ul>
+        {confirmacion.lineas.map((l) => (
+          <li key={l.nroLinea}>
+            <span>{l.producto.nombre}</span>
+            <span>
+              {mostrarNumero(l.stockAnterior)} + {mostrarNumero(l.cantidad)} → <strong>{mostrarNumero(l.stockNuevo)}</strong>
+            </span>
+          </li>
+        ))}
+      </ul>
+      <Link className="btn btn--secundario btn--bloque" to="/productos">
+        Ver productos
+      </Link>
     </div>
   );
 }
