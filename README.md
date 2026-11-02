@@ -18,12 +18,12 @@ Arranque del proyecto (Sprint 1 en curso). Ya implementado:
 | **RF1** Usuarios y acceso | HU1 (login), HU2 (roles), HU3 (admin usuarios) | ✅ Backend |
 | **RF2** Catálogo | HU4 (productos), HU5 (categorías), HU6 (proveedores) | ✅ Backend |
 | **RNF4** PWA móvil | HU7 (instalable) | ✅ Base |
-| **RF3** Ingesta de comprobantes | HU8 (carga), HU9 (lectura con IA), HU10 (revisión) | ✅ Backend y pantallas M3/M4/M5 |
+| **RF3** Ingesta de comprobantes | HU8 (carga), HU9 (lectura con IA), HU10 (revisión), HU11 (entradas de stock) | ✅ Backend y pantallas M3/M4/M5 |
 | Frontend | Login, Tablero, Productos, Cargar remito, Lectura con IA, Revisar remito | ✅ Vistas base |
 
-Pendiente del flujo de ingreso: **HU11** (confirmar el ingreso y generar las
-entradas de stock). El resto del backlog (salidas, integración,
-alertas, agente, reportes) se incorpora en las historias siguientes.
+El flujo de ingreso (cargar → leer con IA → revisar → confirmar) está completo.
+El resto del backlog (existencias, salidas, integración, alertas, agente,
+reportes) se incorpora en las historias siguientes.
 
 ---
 
@@ -108,7 +108,7 @@ procesa solo: los comprobantes anteriores se leen tocando "Leer con IA".
   su vigencia (`IA_VIGENCIA_MS`) y se pueden reintentar.
 - Lo leído se guarda sin inventar datos: lo ilegible queda en `null`, no se
   convierten bultos a unidades y las dudas quedan como motivos de revisión.
-  La edición y la confirmación llegan con HU10.
+  La edición es de HU10 y la confirmación, de HU11.
 - **Esquema de respuesta versión 3** (`backend/src/ia/esquemaComprobante.js`):
   JSON Schema con tipos simples (Gemini rechazó con 400 las uniones con `null`,
   `additionalProperties` y `maxItems`). La cantidad se pide solo como texto
@@ -133,16 +133,35 @@ original junto a las líneas leídas, para corregir antes de ingresar.
   la IA (columnas `*Extraido` y `respuesta_ia`) nunca se modifica.
 - **"Validar datos"** informa si falta algo (producto, cantidad > 0, número,
   al menos una línea) y muestra avisos (sin precio, sin fecha, total distinto,
-  posible duplicado). Si está todo, muestra "Datos completos. La confirmación
-  del ingreso estará disponible en la próxima entrega". **No marca el
-  comprobante como CONFIRMADO ni modifica el stock.**
+  posible duplicado). No modifica nada; si está todo, habilita "Confirmar ingreso".
 
-**Pendiente para HU11:** endpoint de confirmación en una sola transacción
-(re-validar, `EN_REVISION → CONFIRMADO` de forma idempotente, líneas
-`CONFIRMADO`, `MovimientoStock` de entrada con bloqueo `FOR UPDATE`,
-`PrecioCompra` para las líneas con precio, `confirmadoPor`/`confirmadoEn`),
-CHECK de RNF5 para líneas confirmadas, el botón "Confirmar ingreso" y la
-corrección del seed (stock = suma de movimientos).
+### Confirmación del ingreso y entradas de stock (HU11)
+
+"Confirmar ingreso" (`POST /api/comprobantes/:id/confirmar`, propietario y
+empleado) hace todo en **una sola transacción**; si algo falla, no cambia
+ningún stock:
+
+1. `EN_REVISION → CONFIRMADO` con `confirmadoPor`/`confirmadoEn`. Confirmar de
+   nuevo (doble clic, otra pestaña, dos pedidos a la vez) responde 409 y no
+   suma nada.
+2. Vuelve a validar con lo guardado (las mismas reglas de "Validar datos").
+3. Rechaza con 409 un remito ya ingresado: otro comprobante confirmado del
+   mismo proveedor y tipo con el mismo número normalizado.
+4. Por cada línea no descartada: línea `CONFIRMADO`, `MovimientoStock`
+   ENTRADA/COMPRA (con `stock_anterior`) y, si tiene precio, `PrecioCompra`
+   con fecha de vigencia = fecha de emisión o, si falta, la de hoy.
+
+El stock solo cambia a través de `backend/src/modules/stock/stock.service.js`
+(`registrarMovimiento`, que bloquea el producto con `FOR UPDATE`), así
+`stock_actual` = suma de los movimientos. La base lo refuerza con CHECK: una
+línea confirmada tiene producto y cantidad > 0, el precio no es negativo y un
+comprobante confirmado tiene número, usuario y fecha de confirmación.
+
+**Bases cargadas con el seed anterior** (stock sin movimientos):
+`npm run conciliar-stock` lista los productos descuadrados y
+`npm run conciliar-stock -- --aplicar` registra un AJUSTE/RECUENTO por la
+diferencia, sin cambiar el stock. Repetirlo no duplica ajustes. El seed actual
+ya carga el stock inicial como movimientos.
 
 #### Iniciar el backend con la lectura real habilitada
 
@@ -269,6 +288,7 @@ POSTGRES_PASSWORD=prueba123 JWT_SECRET=prueba CORS_ORIGIN=http://localhost:8088 
 | `GET` | `/api/comprobantes/:id/estado` (progreso de la lectura) | autenticado |
 | `PATCH` | `/api/comprobantes/:id/cabecera` · `/api/comprobantes/:id/detalles/:detalleId` (borrador de revisión) | autenticado |
 | `POST` | `/api/comprobantes/:id/detalles` (línea manual) · `/api/comprobantes/:id/validar` (no confirma) | autenticado |
+| `POST` | `/api/comprobantes/:id/confirmar` (ingreso al stock; repetirlo da 409) | autenticado |
 
 ---
 

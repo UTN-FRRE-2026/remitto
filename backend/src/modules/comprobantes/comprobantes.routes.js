@@ -45,7 +45,8 @@ router.get('/:id/estado', validar(idParamSchema, 'params'), asyncHandler(async (
   res.json(await comprobantes.estadoProcesamiento(req.params.id));
 }));
 
-// HU10: revisión (propietario y empleado). Guarda borradores; no confirma.
+// HU10: revisión (propietario y empleado). Guarda borradores; la
+// confirmación del ingreso es POST /:id/confirmar (HU11).
 router.patch(
   '/:id/cabecera',
   validar(idParamSchema, 'params'),
@@ -73,9 +74,15 @@ router.post(
   }),
 );
 
-// Solo evalúa si los datos están completos: no confirma ni toca el stock (HU11).
+// Solo evalúa si los datos están completos: no confirma ni toca el stock.
 router.post('/:id/validar', validar(idParamSchema, 'params'), asyncHandler(async (req, res) => {
   res.json(await comprobantes.validarRevision(req.params.id));
+}));
+
+// HU11: confirma el ingreso (propietario y empleado). Una sola transacción:
+// CONFIRMADO, movimientos de entrada y precios de compra. Repetirlo da 409.
+router.post('/:id/confirmar', validar(idParamSchema, 'params'), asyncHandler(async (req, res) => {
+  res.json(await revision.confirmar(req.params.id, req.usuario.id));
 }));
 
 // Archivo original, solo con sesión (RNF1): uploads no se publica como estático.

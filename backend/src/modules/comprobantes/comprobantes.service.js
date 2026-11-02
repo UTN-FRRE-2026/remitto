@@ -25,6 +25,7 @@ export function validarRevision(id) {
 const incluir = {
   proveedor: { select: { id: true, razonSocial: true } },
   cargadoPor: { select: { id: true, nombre: true } },
+  confirmadoPor: { select: { id: true, nombre: true } },
 };
 
 // HU8: registra el comprobante en PENDIENTE. Si falla el alta en la base,

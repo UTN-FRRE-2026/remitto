@@ -13,6 +13,7 @@
     "prisma:studio": "prisma studio",
     "seed": "node prisma/seed.js",
     "reset-intentos": "node scripts/reset-intentos.js",
+    "conciliar-stock": "node scripts/conciliar-stock.js",
     "db:reset": "prisma migrate reset --force"
   },
   "prisma": {

@@ -8,8 +8,10 @@
 //    npm run reset-intentos -- --all   resetea todos los que están en ERROR
 //    npm run reset-intentos            muestra el estado actual y la ayuda
 //
-//  Por seguridad NO toca comprobantes ya EN_REVISION o CONFIRMADO
-//  (eso descartaría una lectura buena). Usá --force para forzarlos igual.
+//  Por seguridad NO toca comprobantes ya EN_REVISION (eso descartaría una
+//  lectura buena). Usá --force para forzarlos igual.
+//  Un comprobante CONFIRMADO no se resetea nunca, ni con --force: ya generó
+//  movimientos de stock y releerlo permitiría ingresarlo de nuevo (HU11).
 // =============================================================
 import { PrismaClient } from '@prisma/client';
 
@@ -27,7 +29,8 @@ const DATOS_RESET = {
   iaVigenteHasta: null,
 };
 
-const PROTEGIDOS = ['EN_REVISION', 'CONFIRMADO'];
+const PROTEGIDOS = ['EN_REVISION'];
+const INTOCABLES = ['CONFIRMADO'];
 
 async function listarEstado() {
   const todos = await prisma.comprobante.findMany({
@@ -85,7 +88,9 @@ async function main() {
   // Protege lecturas ya buenas salvo --force.
   const aResetear = [];
   for (const c of objetivos) {
-    if (PROTEGIDOS.includes(c.estado) && !force) {
+    if (INTOCABLES.includes(c.estado)) {
+      console.warn(`⚠️  #${c.id} está ${c.estado} (ya ingresó al stock); se omite siempre, también con --force.`);
+    } else if (PROTEGIDOS.includes(c.estado) && !force) {
       console.warn(`⚠️  #${c.id} está ${c.estado}; se omite (usá --force para resetearlo igual).`);
     } else {
       aResetear.push(c.id);
@@ -97,8 +102,10 @@ async function main() {
     return;
   }
 
+  // La condición de estado también va en el UPDATE, por si se confirmó
+  // mientras tanto.
   const { count } = await prisma.comprobante.updateMany({
-    where: { id: { in: aResetear } },
+    where: { id: { in: aResetear }, estado: { notIn: INTOCABLES } },
     data: DATOS_RESET,
   });
   console.log(`✅ ${count} comprobante(s) reseteado(s) a PENDIENTE: ${aResetear.join(', ')}`);

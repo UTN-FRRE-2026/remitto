@@ -5,6 +5,7 @@
 // =============================================================
 import bcrypt from 'bcryptjs';
 import { PrismaClient } from '@prisma/client';
+import { registrarMovimiento } from '../src/modules/stock/stock.service.js';
 
 const prisma = new PrismaClient();
 
@@ -73,12 +74,27 @@ async function main() {
     { nombre: 'Pan lactal grande', categoria: 'Almacén', stockActual: 0, stockMinimo: 6, stockDeseado: 18 },
   ];
 
+  // HU11: el stock inicial entra como movimiento (AJUSTE / RECUENTO), así
+  // stock = SUMA(movimientos) desde el principio. Solo al crear el producto:
+  // volver a correr el seed no duplica movimientos.
   for (const prod of productos) {
-    const { categoria, ...resto } = prod;
+    const { categoria, stockActual, ...resto } = prod;
     const yaExiste = await prisma.producto.findFirst({ where: { nombre: resto.nombre } });
     if (!yaExiste) {
-      await prisma.producto.create({
-        data: { ...resto, categoriaId: categorias[categoria] },
+      await prisma.$transaction(async (tx) => {
+        const creado = await tx.producto.create({
+          data: { ...resto, stockActual: 0, categoriaId: categorias[categoria] },
+        });
+        if (stockActual > 0) {
+          await registrarMovimiento(tx, {
+            productoId: creado.id,
+            tipo: 'AJUSTE',
+            motivo: 'RECUENTO',
+            cantidad: stockActual,
+            usuarioId: propietario.id,
+            observacion: 'Stock inicial (datos de ejemplo)',
+          });
+        }
       });
     }
   }

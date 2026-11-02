@@ -1,18 +1,25 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
 import { ApiError } from '../../lib/errors.js';
+import { normalizarNumero } from '../../ia/normalizar.js';
+import { registrarMovimiento } from '../stock/stock.service.js';
 
 // HU10: revisión del comprobante leído por la IA (estado EN_REVISION).
 // - Las correcciones se guardan como borrador en las columnas confirmables
 //   (productoId, cantidad, precioUnitario, estado de la línea) y en la
 //   cabecera. Las columnas *Extraido (lo que leyó la IA) nunca se modifican.
 // - "Validar datos" solo evalúa: no cambia el estado del comprobante ni el
-//   stock. La confirmación del ingreso (CONFIRMADO + movimientos) es HU11.
+//   stock.
+// HU11: "Confirmar ingreso" pasa el comprobante a CONFIRMADO y genera los
+// movimientos de stock y precios de compra en una sola transacción.
 
 const mensajeNoEditable = 'Solo se puede revisar un comprobante leído que todavía no fue confirmado.';
+const mensajeYaConfirmado = 'Este ingreso ya fue confirmado. No se volvió a sumar al stock.';
 
+// Bloquea el comprobante (FOR UPDATE) hasta el fin de la transacción: una
+// edición que llega mientras se confirma espera y después recibe 409.
 async function enRevision(tx, id) {
-  const c = await tx.comprobante.findUnique({ where: { id }, select: { id: true, estado: true } });
+  const [c] = await tx.$queryRaw`SELECT id, estado::text AS estado FROM comprobantes WHERE id = ${id} FOR UPDATE`;
   if (!c) throw ApiError.noEncontrado('Comprobante no encontrado');
   if (c.estado !== 'EN_REVISION') throw ApiError.conflicto(mensajeNoEditable);
   return c;
@@ -171,4 +178,110 @@ export async function validar(id, buscarDuplicados) {
   if (!c) throw ApiError.noEncontrado('Comprobante no encontrado');
   const duplicados = await buscarDuplicados(c);
   return evaluarRevision(c, { duplicados });
+}
+
+// Fecha del precio de compra: la de emisión del comprobante o, si no se
+// cargó, el día de hoy en Argentina (columna DATE, sin hora).
+export function fechaVigencia(fechaEmision, ahora = new Date()) {
+  if (fechaEmision) return fechaEmision;
+  const dia = ahora.toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' });
+  return new Date(`${dia}T00:00:00Z`);
+}
+
+// Líneas que generan movimiento, ordenadas por producto: las transacciones
+// bloquean los productos siempre en el mismo orden y no se traban entre sí.
+export function lineasAIngresar(detalles) {
+  return detalles
+    .filter((d) => d.estado !== 'DESCARTADO')
+    .sort((a, b) => a.productoId - b.productoId || a.nroLinea - b.nroLinea);
+}
+
+// HU11: el mismo remito no se ingresa dos veces. Compara el número
+// normalizado con los comprobantes ya confirmados del proveedor.
+async function numeroYaIngresado(tx, c) {
+  const numero = normalizarNumero(c.numero);
+  const confirmados = await tx.comprobante.findMany({
+    where: { proveedorId: c.proveedorId, tipo: c.tipo, estado: 'CONFIRMADO', id: { not: c.id }, numero: { not: null } },
+    select: { id: true, numero: true },
+  });
+  return confirmados.find((otro) => normalizarNumero(otro.numero) === numero) ?? null;
+}
+
+export async function confirmar(id, usuarioId) {
+  try {
+    return await prisma.$transaction(
+      async (tx) => {
+        // Pasar a CONFIRMADO primero toma el bloqueo de la fila: un segundo
+        // pedido (doble clic, otra pestaña) espera y encuentra 0 filas.
+        const confirmadoEn = new Date();
+        const r = await tx.comprobante.updateMany({
+          where: { id, estado: 'EN_REVISION' },
+          data: { estado: 'CONFIRMADO', confirmadoPorId: usuarioId, confirmadoEn },
+        });
+        if (r.count === 0) {
+          const actual = await tx.comprobante.findUnique({ where: { id }, select: { estado: true } });
+          if (!actual) throw ApiError.noEncontrado('Comprobante no encontrado');
+          throw ApiError.conflicto(actual.estado === 'CONFIRMADO' ? mensajeYaConfirmado : mensajeNoEditable);
+        }
+
+        const c = await tx.comprobante.findUnique({
+          where: { id },
+          include: { detalles: { include: incluirDetalle, orderBy: { nroLinea: 'asc' } } },
+        });
+        // Se vuelve a validar con lo guardado: el frontend puede estar desactualizado.
+        const evaluacion = evaluarRevision({ ...c, estado: 'EN_REVISION' });
+        if (!evaluacion.completo) throw ApiError.invalido('Faltan datos para confirmar el ingreso.', evaluacion.problemas);
+
+        // Serializa las confirmaciones del mismo proveedor para que dos copias
+        // del mismo remito no se confirmen a la vez.
+        await tx.$queryRaw`SELECT id FROM proveedores WHERE id = ${c.proveedorId} FOR UPDATE`;
+        const repetido = await numeroYaIngresado(tx, c);
+        if (repetido) {
+          throw ApiError.conflicto(
+            `Este remito ya se ingresó: el comprobante #${repetido.id} de este proveedor tiene el número ${repetido.numero}.`,
+          );
+        }
+
+        const vigencia = fechaVigencia(c.fechaEmision);
+        const lineas = [];
+        for (const d of lineasAIngresar(c.detalles)) {
+          await tx.detalleComprobante.update({ where: { id: d.id }, data: { estado: 'CONFIRMADO' } });
+          const { stockAnterior, stockNuevo } = await registrarMovimiento(tx, {
+            productoId: d.productoId,
+            tipo: 'ENTRADA',
+            motivo: 'COMPRA',
+            cantidad: d.cantidad,
+            usuarioId,
+            detalleComprobanteId: d.id,
+            observacion: `Comprobante #${id}`,
+          });
+          if (d.precioUnitario != null) {
+            await tx.precioCompra.create({
+              data: {
+                productoId: d.productoId,
+                proveedorId: c.proveedorId,
+                precioUnitario: d.precioUnitario,
+                fechaVigencia: vigencia,
+                detalleComprobanteId: d.id,
+              },
+            });
+          }
+          lineas.push({
+            nroLinea: d.nroLinea,
+            producto: { id: d.productoId, nombre: d.producto.nombre },
+            cantidad: d.cantidad,
+            stockAnterior,
+            stockNuevo,
+          });
+        }
+        lineas.sort((a, b) => a.nroLinea - b.nroLinea);
+        return { id, estado: 'CONFIRMADO', confirmadoEn, lineas, resumen: evaluacion.resumen, avisos: evaluacion.avisos };
+      },
+      { timeout: 20_000 },
+    );
+  } catch (err) {
+    // Segunda barrera de la base: número repetido o línea ya ingresada.
+    if (esUnico(err)) throw ApiError.conflicto('El comprobante o alguna de sus líneas ya fue ingresado.');
+    throw err;
+  }
 }
