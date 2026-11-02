@@ -8,6 +8,7 @@ import Cuenta from './pages/Cuenta.jsx';
 import CargarComprobante from './pages/CargarComprobante.jsx';
 import LecturaComprobante from './pages/LecturaComprobante.jsx';
 import RevisarComprobante from './pages/RevisarComprobante.jsx';
+import Movimientos from './pages/Movimientos.jsx';
 import EnConstruccion from './pages/EnConstruccion.jsx';
 
 // Protege las rutas privadas: sin sesión redirige al login.
@@ -80,18 +81,7 @@ export default function App() {
               </Privado>
             }
           />
-          <Route
-            path="/movimientos"
-            element={
-              <Privado>
-                <EnConstruccion
-                  titulo="Movimientos"
-                  descripcion="Entradas, salidas y ajustes de stock de cada producto."
-                  hu="HU12 (Sprint 1)"
-                />
-              </Privado>
-            }
-          />
+          <Route path="/movimientos" element={<Privado><Movimientos /></Privado>} />
           <Route
             path="/precios"
             element={
