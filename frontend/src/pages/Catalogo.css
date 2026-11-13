@@ -1,0 +1,163 @@
+/* HU4 · HU6 · Formularios y listados del catálogo (productos y proveedores). */
+.catalogo__cabecera {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.catalogo__volver {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  color: var(--oscuro);
+}
+.catalogo__titulo {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--fs-titulo);
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+.catalogo__titulo span {
+  color: var(--texto-suave);
+  font-size: var(--fs-seccion);
+  font-weight: 700;
+}
+.catalogo__nuevo {
+  flex-shrink: 0;
+  padding: 10px 16px;
+}
+.catalogo__estado {
+  padding: 24px 0;
+  text-align: center;
+  color: var(--texto-suave);
+}
+
+/* --- Formulario --- */
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 16px;
+  max-width: 640px;
+}
+.formulario__fila {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.formulario .input select,
+.formulario .input textarea {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-family: inherit;
+  font-size: var(--fs-texto);
+  color: var(--oscuro);
+}
+.formulario .input textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+.formulario__ayuda {
+  font-size: var(--fs-detalle);
+  color: var(--texto-suave);
+}
+.formulario__error-campo {
+  font-size: var(--fs-detalle);
+  color: var(--rojo);
+}
+.formulario__dato {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radio);
+  background: var(--crema-claro);
+  font-size: var(--fs-texto);
+}
+.formulario__dato a {
+  font-weight: 700;
+  color: var(--salvia-oscuro);
+}
+.formulario__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.formulario__acciones .btn {
+  flex: 1 1 160px;
+}
+
+/* --- Activar / desactivar --- */
+.catalogo__estado-registro {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 16px;
+  max-width: 640px;
+}
+.catalogo__estado-registro p {
+  font-size: var(--fs-detalle);
+  color: var(--texto-suave);
+}
+.badge--inactivo {
+  background: var(--borde);
+  color: var(--texto-suave);
+}
+.catalogo__aviso {
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border-radius: var(--radio);
+  background: var(--bg-en-stock);
+  color: var(--fg-en-stock);
+  font-weight: 700;
+}
+
+/* --- Listado de proveedores --- */
+.proveedor {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--borde);
+}
+.proveedor:last-child {
+  border-bottom: none;
+}
+.proveedor__datos {
+  flex: 1;
+  min-width: 0;
+}
+.proveedor__datos strong {
+  display: block;
+  font-size: var(--fs-producto);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.proveedor__datos span {
+  display: block;
+  font-size: var(--fs-detalle);
+  color: var(--texto-suave);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 380px) {
+  .formulario__fila {
+    grid-template-columns: 1fr;
+  }
+}
+@media (min-width: 900px) {
+  .catalogo__titulo {
+    font-size: 32px;
+  }
+}

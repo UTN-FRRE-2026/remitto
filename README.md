@@ -13,21 +13,22 @@ automática de comprobantes de compra mediante Inteligencia Artificial.
 
 Sprint 1 en curso. Están implementadas las historias HU1 a HU14 y la
 aplicación está desplegada en producción con Coolify, a partir de `main`.
-Del Sprint 1 faltan las pantallas de administración de usuarios (HU3) y del
-catálogo (HU4 a HU6), que hoy tienen solo backend.
+Del Sprint 1 faltan las pantallas de administración de usuarios (HU3) y de
+categorías (HU5), que hoy tienen solo backend.
 
 Ya implementado:
 
 | Requerimiento | Historias | Estado |
 |---|---|---|
 | **RF1** Usuarios y acceso | HU1 (login), HU2 (roles), HU3 (admin usuarios) | ✅ Backend |
-| **RF2** Catálogo | HU4 (productos), HU5 (categorías), HU6 (proveedores) | ✅ Backend |
+| **RF2** Catálogo | HU4 (productos), HU6 (proveedores) | ✅ Backend y pantallas |
+| | HU5 (categorías) | ✅ Backend |
 | **RNF4** PWA móvil | HU7 (instalable) | ✅ Base |
 | **RF3** Ingesta de comprobantes | HU8 (carga), HU9 (lectura con IA), HU10 (revisión), HU11 (entradas de stock), HU15 (asociación automática) | ✅ Backend y pantallas M3/M4/M5 |
 | **Existencias** | HU12 (movimientos y existencias) | ✅ Backend y pantalla Movimientos |
 | **Salidas** | HU13 (carrito de salida) | ✅ Backend y pantalla Nueva salida |
 | **Recuento** | HU14 (ajuste por recuento) | ✅ Backend y pantalla Recuento |
-| Frontend | Login, Tablero, Productos, Cargar remito, Lectura con IA, Revisar remito, Movimientos, Nueva salida, Recuento | ✅ Vistas base |
+| Frontend | Login, Tablero, Productos (alta y edición), Proveedores, Cargar remito, Lectura con IA, Revisar remito, Movimientos, Nueva salida, Recuento | ✅ Vistas base |
 
 Están completos el flujo de ingreso (cargar → leer con IA → revisar →
 confirmar), el de salida (carrito → confirmar) y el recuento (contar →
@@ -327,6 +328,31 @@ vuelve a validar y, por cada producto con diferencia, registra un
   enteros. Los productos desactivados no se ajustan.
 - Los ajustes aparecen en **Movimientos** con el motivo «Recuento» y la
   observación cargada. El borrador se guarda en la pestaña (`sessionStorage`).
+
+### Catálogo: productos y proveedores (HU4 y HU6)
+
+Solo el propietario administra el catálogo; el backend rechaza los pedidos del
+empleado (403) y el frontend no le muestra estas pantallas.
+
+- **Productos** (`/productos`): el + de la barra superior (celular) o «Nuevo
+  producto» (escritorio) abre el alta; el lápiz de cada fila, la edición
+  (`/productos/:id/editar`). Tocar el producto sigue abriendo sus movimientos.
+  El formulario carga nombre, código de barras, categoría, unidad, stock
+  mínimo, stock deseado y descripción. El stock actual no se edita: cambia solo
+  con entradas, salidas y recuentos.
+- **Proveedores** (`/proveedores`): en escritorio, en «Configuración» del menú
+  lateral; en el celular, desde **Cuenta**. Listado con búsqueda y filtros
+  Activos / Desactivados / Todos, alta y edición.
+- No se eliminan: se desactivan y se pueden reactivar. Un producto desactivado
+  no aparece en las búsquedas, las salidas ni los recuentos (el chip
+  «Desactivados» los muestra); un proveedor desactivado no aparece al cargar
+  un comprobante.
+- El código de barras y el CUIT no se repiten (409 con un mensaje claro). El
+  CUIT se acepta con o sin guiones y se guarda sin ellos. Un campo opcional
+  vacío se guarda como `null`, así que dos productos sin código (o dos
+  proveedores sin CUIT) no chocan, y vaciarlo en la edición borra el dato.
+- La unidad de medida no se puede cambiar si el producto ya tiene movimientos
+  (cambiaría el sentido del historial). Una categoría inexistente da 400.
 
 ### Backend en Docker (opcional)
 

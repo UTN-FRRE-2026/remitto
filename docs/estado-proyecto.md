@@ -4,8 +4,8 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 
 ## Referencia verificada (13/11/2026)
 
-- `origin/main` en `cbff962` (merge del PR #9, HU14). Todas las ramas remotas anteriores están integradas.
-- **Trabajo local, sin commit ni PR:** HU15 en la rama `feature/HU15-asociacion-catalogo`, creada desde `cbff962`.
+- `origin/main` en `233cb12` (merge del PR #10, HU15). Todas las ramas remotas anteriores están integradas.
+- **Publicado, pendiente de integrar:** HU4 y HU6 (pantallas de productos y proveedores) en la rama `feature/HU4-HU6-catalogo`, creada desde `233cb12`, con PR abierto a `main`.
 - **Trabajo en pausa, sin commit:** HU21 (claves de integración) quedó guardada solo en la copia local de Maxi: un stash de Git sobre la rama `feature/HU21-claves-integracion` y un patch equivalente en `retomar/HU21-en-progreso.patch`, fuera del repositorio, con las instrucciones para recuperarla. Tiene el backend con sus pruebas y la pantalla sin terminar. No está en `origin`.
 - No se consultaron PR abiertos ni Issues: la CLI `gh` no estaba disponible.
 
@@ -23,6 +23,7 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 | Movimientos en la barra inferior móvil | [PR #7](https://github.com/UTN-FRRE-2026/remitto/pull/7) |
 | Documentación compartida (`CLAUDE.md`, plan, maqueta, esta nota) | [PR #8](https://github.com/UTN-FRRE-2026/remitto/pull/8) |
 | HU14 ajuste por recuento | [PR #9](https://github.com/UTN-FRRE-2026/remitto/pull/9) |
+| HU15 asociación automática al catálogo | [PR #10](https://github.com/UTN-FRRE-2026/remitto/pull/10) |
 
 HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa que se haya comprobado ahora cada criterio de aceptación.
 
@@ -30,14 +31,25 @@ HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa qu
 
 | Estado observado | Historias |
 | --- | --- |
-| Backend y pantalla | HU1 inicio de sesión, HU2 roles (rutas protegidas y menú según rol), HU8 a HU14 |
-| Implementada en rama local | HU15 asociación automática al catálogo (propuesta y confianza en la revisión) |
+| Backend y pantalla | HU1 inicio de sesión, HU2 roles (rutas protegidas y menú según rol; faltan pruebas de permisos), HU8 a HU15 |
+| Implementada en rama con PR abierto | HU4 productos y HU6 proveedores (alta, edición, desactivación y reactivación) |
 | En pausa (stash) | HU21 claves de integración |
 | Base existente | HU7 PWA (`vite-plugin-pwa`); instalación en Android no comprobada |
-| Solo backend | HU3 usuarios (la pantalla es `EnConstruccion`); HU4 a HU6 catálogo: hay listado de productos y alta rápida desde la revisión, pero no pantallas para administrar productos, categorías ni proveedores |
+| Solo backend | HU3 usuarios (la pantalla es `EnConstruccion`) y HU5 categorías (sin pantalla; el formulario de producto solo las elige) |
 | Sin implementar | HU16 a HU20 y HU22 a HU31. `/comprobantes`, `/asistente`, `/precios` e `/integraciones` son `EnConstruccion`; `simulador/` solo tiene un README |
 
-## Validación de HU15 (13/11/2026, trabajo local)
+## Validación de HU4 y HU6 (13/11/2026, rama `feature/HU4-HU6-catalogo`)
+
+- `npm test` en `backend/`: 128 pruebas correctas (9 nuevas en `test/catalogo.test.js`). `npm run build` correcto.
+- Punta a punta contra una base descartable (contenedor PostgreSQL temporal con migraciones y seed, eliminado al terminar): 25 controles correctos de API (altas, duplicados de código y CUIT, campos vacíos como null, categoría inexistente, permisos 401/403, edición sin tocar el stock, cambio de unidad bloqueado con movimientos, desactivación, búsquedas y reactivación).
+- Recorrido en navegador sin interfaz (Chromium headless) con propietario en celular (360 px) y escritorio, y con empleado: alta, error de número y de código repetido, edición, desactivación y filtro, alta de proveedor con CUIT inválido y válido, accesos desde Cuenta y menú lateral, y redirección del empleado. Sin desplazamiento horizontal.
+- **Pendiente:** probarlo en un celular real.
+
+## Revisión de HU14 y HU15 (13/11/2026, sobre `main`)
+
+Sin hallazgos graves en HU14. En HU15 la asociación propone como confiables (≥ 0,8) variantes de otro producto («sin palo» → «con palo», «light» → común, descripciones de una palabra) y no reconoce números sin unidad ni conversiones ml/l y g/kg; conviene ajustarla antes de probar con remitos reales. En ambas, las pruebas cubren solo funciones puras.
+
+## Validación de HU15 (13/11/2026, integrada en el PR #10)
 
 - `npm test` en `backend/`: 119 pruebas correctas (11 nuevas en `test/asociacion.test.js`). `npm run build` del frontend correcto.
 - **Empate entre candidatos** (señalado en la revisión): con dos productos activos igual de compatibles y sin código de barras que los distinga, la primera versión dejaba la confianza en 0,8, que se mostraba como alta. Se corrigió: un empate queda limitado a 0,79 y siempre se destaca. Hay una prueba unitaria del caso. Los controles de punta a punta y el recorrido de pantalla se hicieron antes de este ajuste, que solo cambia el valor de confianza en los empates.

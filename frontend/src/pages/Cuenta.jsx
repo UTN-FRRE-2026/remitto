@@ -1,6 +1,6 @@
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import { IconoSalir } from '../components/iconos.jsx';
+import { IconoSalir, IconoProveedores } from '../components/iconos.jsx';
 import './Cuenta.css';
 
 function iniciales(nombre = '') {
@@ -14,7 +14,7 @@ function iniciales(nombre = '') {
 }
 
 export default function Cuenta() {
-  const { usuario, cerrarSesion } = useAuth();
+  const { usuario, esPropietario, cerrarSesion } = useAuth();
   const navegar = useNavigate();
 
   function salir() {
@@ -36,6 +36,17 @@ export default function Cuenta() {
           </span>
         </div>
       </div>
+
+      {/* En el celular no hay menú lateral: la administración se abre desde acá. */}
+      {esPropietario && (
+        <nav className="card cuenta__admin" aria-label="Administración">
+          <p className="cuenta__admin-titulo">Administración</p>
+          <Link to="/proveedores" className="cuenta__admin-item">
+            <IconoProveedores size={20} />
+            Proveedores
+          </Link>
+        </nav>
+      )}
 
       <button className="btn btn--peligro btn--bloque cuenta__salir" onClick={salir}>
         <IconoSalir size={20} />
