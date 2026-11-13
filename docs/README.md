@@ -2,6 +2,7 @@
 
 | Archivo | Uso |
 | --- | --- |
+| [Primera entrega del TPI](entrega-tpi.md) | Consigna de la profesora para el 16/11/2026, puntaje y estado de cada entregable |
 | [Estado y continuidad](estado-proyecto.md) | Última fotografía verificada, avance por historia y pendientes |
 | [Plan de trabajo](plan-de-trabajo.md) | Alcance, RF/RNF, arquitectura propuesta, proceso y las 31 HU con tareas y criterios de aceptación |
 | [Guía de maquetación](maquetacion.md) | Sistema visual y mapa de pantallas |
