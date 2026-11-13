@@ -13,6 +13,7 @@ import {
   IconoIntegraciones,
   IconoUsuarios,
   IconoProveedores,
+  IconoCategorias,
   IconoSalir,
 } from './iconos.jsx';
 import './Sidebar.css';
@@ -32,6 +33,7 @@ const principales = [
 // Sección de configuración, solo visible para el propietario.
 const configuracion = [
   { to: '/proveedores', label: 'Proveedores', Icono: IconoProveedores },
+  { to: '/categorias', label: 'Categorías', Icono: IconoCategorias },
   { to: '/integraciones', label: 'Integraciones', Icono: IconoIntegraciones },
   { to: '/usuarios', label: 'Usuarios', Icono: IconoUsuarios },
 ];

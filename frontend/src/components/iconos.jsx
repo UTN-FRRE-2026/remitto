@@ -204,6 +204,14 @@ export const IconoProveedores = (p) => (
   </svg>
 );
 
+export const IconoCategorias = (p) => (
+  // Etiqueta: categorías del catálogo (HU5).
+  <svg {...base} {...p}>
+    <path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9-9-9Z" />
+    <circle cx="8" cy="8" r="1.5" />
+  </svg>
+);
+
 export const IconoEditar = (p) => (
   <svg {...base} {...p}>
     <path d="M4 20h4L19 9l-4-4L4 16v4Z" />

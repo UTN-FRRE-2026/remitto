@@ -166,3 +166,29 @@
     max-width: 900px;
   }
 }
+
+/* HU5: filtro por categoría, debajo del buscador para que se vea aplicado. */
+.productos__categoria {
+  margin-bottom: 14px;
+  padding: 10px 15px;
+}
+.productos__categoria select {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-family: inherit;
+  font-size: var(--fs-texto);
+  font-weight: 700;
+  color: var(--oscuro);
+  cursor: pointer;
+}
+.productos__categoria--activa {
+  border-color: var(--salvia-oscuro);
+}
+@media (min-width: 900px) {
+  .productos__categoria {
+    max-width: 560px;
+  }
+}
