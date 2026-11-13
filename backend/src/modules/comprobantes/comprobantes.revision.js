@@ -3,6 +3,7 @@ import { prisma } from '../../lib/prisma.js';
 import { ApiError } from '../../lib/errors.js';
 import { normalizarNumero } from '../../ia/normalizar.js';
 import { registrarMovimiento } from '../stock/stock.service.js';
+import { esDudosa } from './comprobantes.asociacion.js';
 
 // HU10: revisión del comprobante leído por la IA (estado EN_REVISION).
 // - Las correcciones se guardan como borrador en las columnas confirmables
@@ -60,19 +61,26 @@ export async function actualizarCabecera(id, datos) {
   });
 }
 
+// Columnas que cambia una edición de la línea (pura). Si la persona elige o
+// quita el producto, la confianza pasa a null: la asociación es suya y ya no
+// se marca como propuesta (HU15). Nada vuelve a proponer sobre esa línea.
+export function cambiosDeDetalle(datos) {
+  const data = {};
+  for (const campo of ['productoId', 'cantidad', 'precioUnitario']) {
+    if (campo in datos) data[campo] = datos[campo];
+  }
+  if ('productoId' in datos) data.confianza = null;
+  if ('descartada' in datos) data.estado = datos.descartada ? 'DESCARTADO' : 'PROPUESTO';
+  return data;
+}
+
 export async function actualizarDetalle(id, detalleId, datos) {
   return prisma.$transaction(async (tx) => {
     await enRevision(tx, id);
     const detalle = await tx.detalleComprobante.findFirst({ where: { id: detalleId, comprobanteId: id } });
     if (!detalle) throw ApiError.noEncontrado('Línea no encontrada en este comprobante');
     if ('productoId' in datos) await productoActivo(tx, datos.productoId);
-
-    const data = {};
-    for (const campo of ['productoId', 'cantidad', 'precioUnitario']) {
-      if (campo in datos) data[campo] = datos[campo];
-    }
-    if ('descartada' in datos) data.estado = datos.descartada ? 'DESCARTADO' : 'PROPUESTO';
-    return tx.detalleComprobante.update({ where: { id: detalleId }, data, include: incluirDetalle });
+    return tx.detalleComprobante.update({ where: { id: detalleId }, data: cambiosDeDetalle(datos), include: incluirDetalle });
   });
 }
 
@@ -129,9 +137,24 @@ export function evaluarRevision(c, { duplicados = [] } = {}) {
     const linea = d.nroLinea;
     const cantidad = num(d.cantidad);
     const precio = num(d.precioUnitario);
-    if (!d.productoId) problemas.push({ nroLinea: linea, campo: 'productoId', mensaje: `Línea ${linea}: falta asociar un producto.` });
-    else if (d.producto && !d.producto.activo) {
+    if (!d.productoId) {
+      problemas.push({
+        nroLinea: linea,
+        campo: 'productoId',
+        mensaje:
+          d.confianza != null
+            ? `Línea ${linea}: no hay un producto parecido en el catálogo; asociá uno o dalo de alta.`
+            : `Línea ${linea}: falta asociar un producto.`,
+      });
+    } else if (d.producto && !d.producto.activo) {
       problemas.push({ nroLinea: linea, campo: 'productoId', mensaje: `Línea ${linea}: el producto está desactivado.` });
+    } else if (esDudosa(d)) {
+      // HU15: no impide confirmar, pero pide mirar la propuesta.
+      avisos.push({
+        nroLinea: linea,
+        campo: 'productoId',
+        mensaje: `Línea ${linea}: revisá el producto propuesto (confianza ${Math.round(num(d.confianza) * 100)} %).`,
+      });
     }
     if (cantidad == null || !(cantidad > 0)) {
       problemas.push({ nroLinea: linea, campo: 'cantidad', mensaje: `Línea ${linea}: falta la cantidad (debe ser mayor a 0).` });

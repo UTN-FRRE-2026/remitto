@@ -23,7 +23,7 @@ Ya implementado:
 | **RF1** Usuarios y acceso | HU1 (login), HU2 (roles), HU3 (admin usuarios) | ✅ Backend |
 | **RF2** Catálogo | HU4 (productos), HU5 (categorías), HU6 (proveedores) | ✅ Backend |
 | **RNF4** PWA móvil | HU7 (instalable) | ✅ Base |
-| **RF3** Ingesta de comprobantes | HU8 (carga), HU9 (lectura con IA), HU10 (revisión), HU11 (entradas de stock) | ✅ Backend y pantallas M3/M4/M5 |
+| **RF3** Ingesta de comprobantes | HU8 (carga), HU9 (lectura con IA), HU10 (revisión), HU11 (entradas de stock), HU15 (asociación automática) | ✅ Backend y pantallas M3/M4/M5 |
 | **Existencias** | HU12 (movimientos y existencias) | ✅ Backend y pantalla Movimientos |
 | **Salidas** | HU13 (carrito de salida) | ✅ Backend y pantalla Nueva salida |
 | **Recuento** | HU14 (ajuste por recuento) | ✅ Backend y pantalla Recuento |
@@ -212,7 +212,43 @@ En Docker, el servicio `backend` toma `IA_API_KEY` de `backend/.env` (`env_file`
 - El modelo puede devolver `"unidad": ""` en filas sin dato; se normaliza a `null`.
 - Capa gratuita: cuotas bajas por minuto y por día; el contenido enviado puede
   usarse para mejorar los productos de Google.
-- No hay asociación automática al catálogo (HU15). La confirmación del ingreso es HU11.
+- La asociación automática al catálogo (HU15) se calibró con las descripciones de
+  la simulación y el catálogo del seed; falta probarla con remitos reales.
+
+### Asociación automática al catálogo (HU15)
+
+Al terminar la lectura, cada línea llega con un **producto propuesto y su
+confianza** (0 a 1, columna `confianza`), calculados en
+`backend/src/modules/comprobantes/comprobantes.asociacion.js` contra los
+productos activos:
+
+1. Si el código impreso coincide con un código de barras del catálogo (8 o
+   más dígitos), la confianza es 1.
+2. Si no, se compara la descripción con el nombre de cada producto, palabra por
+   palabra: se normalizan mayúsculas, acentos, `C/` y `S/` y las medidas
+   (`500ML` = `500 ml`, `1.5L` = `1,5 l`, `CC` = `ml`). Una palabra igual vale 1;
+   una abreviatura («gall» → «galletitas»), 0,9; un error de tipeo leve, hasta
+   0,9. Pesa 70 % cuánto de lo leído explica el producto y 30 % cuánto del
+   nombre aparece en lo leído.
+3. Si las medidas no coinciden (500 ml contra 2,25 l), el puntaje se divide
+   por 2. Si otro producto queda casi empatado (diferencia menor a 0,05), la
+   asociación es ambigua: la confianza se limita a 0,79, siempre por debajo
+   del umbral, aunque los dos coincidan perfecto.
+
+Umbrales: desde **0,8** la propuesta es confiable; entre 0,5 y 0,8 se propone
+pero la línea se **destaca** («Revisar · 74 %») y «Validar datos» lo avisa sin
+impedir confirmar; por debajo de 0,5 no se propone producto (confianza 0) y
+se **propone el alta** con el nombre leído (al propietario se le abre el
+formulario; el empleado puede buscar otro producto).
+
+- La persona puede cambiar cualquier asociación («Cambiar», o «Es correcto» en
+  una dudosa). Al elegir o quitar un producto la confianza pasa a `null`
+  («Asociado»): la elección es suya y nada vuelve a proponer sobre esa línea.
+  La propuesta se calcula una sola vez, al leer; un comprobante en revisión no
+  se puede volver a leer.
+- El stock sigue entrando solo con «Confirmar ingreso» (HU11).
+- Los comprobantes leídos antes de HU15 no tienen propuestas. Las equivalencias
+  aprendidas por proveedor son de HU16.
 
 ### Movimientos y existencias (HU12)
 
