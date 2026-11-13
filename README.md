@@ -33,11 +33,14 @@ confirmar) y el de salida (carrito → confirmar). Cada movimiento queda en el
 historial de Movimientos.
 El resto del backlog (recuento, integración, alertas, agente, reportes) se incorpora en las historias siguientes.
 
+Documentación del proyecto en [`docs/`](docs/README.md): [estado y continuidad](docs/estado-proyecto.md),
+[plan de trabajo con las HU](docs/plan-de-trabajo.md) y [guía de maquetación](docs/maquetacion.md).
+
 ---
 
 ## Arquitectura
 
-Cliente-servidor en capas (ver Plan de Trabajo):
+Cliente-servidor en capas (ver [Plan de trabajo](docs/plan-de-trabajo.md#arquitectura-de-software)):
 
 ```
 frontend/   PWA en React (Vite) · instalable · mobile-first
@@ -349,14 +352,6 @@ POSTGRES_PASSWORD=prueba123 JWT_SECRET=prueba CORS_ORIGIN=http://localhost:8088 
 ## Sistema de diseño
 
 Definido en `frontend/src/styles/tokens.css` a partir de la Guía de estilo
-de la maqueta. Tipografía **Plus Jakarta Sans**. Paleta:
-
-| Color | Hex | Uso |
-|---|---|---|
-| Crema | `#F2E9D8` | Fondo general |
-| Oscuro | `#2E2528` | Textos y menú lateral |
-| Verde salvia | `#A7B6A0` | Estados positivos |
-| Verde salvia oscuro | `#4E6A4B` | Botones y navegación activa |
-| Dorado | `#D4B56A` | Advertencias / para revisar |
-| Rojo | `#A60321` | Sin stock, errores |
-| Azul grisáceo | `#8298A3` | Inteligencia Artificial |
+de la maqueta. Tipografía **Plus Jakarta Sans**. La paleta, la escala
+tipográfica y el mapa de pantallas están en la
+[guía de maquetación](docs/maquetacion.md).
