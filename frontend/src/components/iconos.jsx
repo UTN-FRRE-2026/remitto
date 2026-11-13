@@ -193,3 +193,20 @@ export const IconoRecuento = (p) => (
     <path d="m9 13.5 2 2 4-4.5" />
   </svg>
 );
+
+export const IconoProveedores = (p) => (
+  // Camión de reparto: proveedores (HU6).
+  <svg {...base} {...p}>
+    <path d="M3 6h11v10H3z" />
+    <path d="M14 10h4l3 3v3h-7" />
+    <circle cx="7" cy="18" r="1.8" />
+    <circle cx="17" cy="18" r="1.8" />
+  </svg>
+);
+
+export const IconoEditar = (p) => (
+  <svg {...base} {...p}>
+    <path d="M4 20h4L19 9l-4-4L4 16v4Z" />
+    <path d="m13.5 6.5 4 4" />
+  </svg>
+);

@@ -1,5 +1,17 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
 import { ApiError } from '../../lib/errors.js';
+
+// Traduce las restricciones de la base a mensajes que la pantalla puede mostrar.
+export function traducirErrorProducto(err) {
+  if (err instanceof Prisma.PrismaClientKnownRequestError) {
+    // El único campo único de productos es el código de barras (HU4).
+    if (err.code === 'P2002') return ApiError.conflicto('Ya existe un producto con ese código de barras.');
+    // La única clave foránea que se informa al crear o modificar es la categoría.
+    if (err.code === 'P2003') return ApiError.invalido('La categoría elegida no existe.');
+  }
+  return err;
+}
 
 // Deriva el estado de stock a partir de las existencias y el mínimo.
 export function estadoStock(stockActual, stockMinimo) {
@@ -61,21 +73,46 @@ export async function obtener(id) {
 }
 
 export async function crear(datos) {
-  const producto = await prisma.producto.create({
-    data: datos,
-    include: { categoria: true },
-  });
-  return mapear(producto);
+  try {
+    const producto = await prisma.producto.create({
+      data: datos,
+      include: { categoria: true },
+    });
+    return mapear(producto);
+  } catch (err) {
+    throw traducirErrorProducto(err);
+  }
 }
 
 export async function actualizar(id, datos) {
-  await obtener(id);
-  const producto = await prisma.producto.update({
-    where: { id },
-    data: datos,
-    include: { categoria: true },
+  const actual = await obtener(id);
+  try {
+    if (datos.unidadMedida && datos.unidadMedida !== actual.unidadMedida) {
+      return mapear(await cambiarUnidad(id, datos));
+    }
+    const producto = await prisma.producto.update({
+      where: { id },
+      data: datos,
+      include: { categoria: true },
+    });
+    return mapear(producto);
+  } catch (err) {
+    throw traducirErrorProducto(err);
+  }
+}
+
+// La unidad solo se cambia si el producto no tiene movimientos: con historial,
+// cambiarla alteraría el sentido de las cantidades ya registradas. Se bloquea
+// la fila (como registrarMovimiento) para que no entre un movimiento en medio.
+async function cambiarUnidad(id, datos) {
+  return prisma.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT id FROM productos WHERE id = ${id} FOR UPDATE`;
+    const movimientos = await tx.movimientoStock.count({ where: { productoId: id } });
+    if (movimientos > 0) {
+      throw ApiError.invalido('No se puede cambiar la unidad de un producto que ya tiene movimientos.');
+    }
+    return tx.producto.update({ where: { id }, data: datos, include: { categoria: true } });
   });
-  return mapear(producto);
 }
 
 // HU4: un producto con movimientos no se elimina, se desactiva.

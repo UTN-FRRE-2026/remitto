@@ -2,20 +2,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api } from '../lib/api.js';
 import { leerNumero, mostrarNumero, pesos } from '../lib/numeros.js';
+import { UNIDADES } from '../lib/unidades.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { IconoVolver, IconoBuscar, IconoMas, IconoCheck, IconoComprobantes } from '../components/iconos.jsx';
 import './RevisarComprobante.css';
 
 const PREVISUALIZABLES = ['image/jpeg', 'image/png', 'image/webp'];
-const UNIDADES = [
-  ['UNIDAD', 'Unidad'],
-  ['KILOGRAMO', 'Kilogramo'],
-  ['GRAMO', 'Gramo'],
-  ['LITRO', 'Litro'],
-  ['MILILITRO', 'Mililitro'],
-  ['METRO', 'Metro'],
-  ['PAQUETE', 'Paquete'],
-];
 
 // HU15: estado de la asociación propuesta. La confianza es null cuando la
 // eligió la persona (o nunca hubo propuesta) y 0 cuando no hubo coincidencia.

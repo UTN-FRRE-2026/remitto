@@ -65,3 +65,7 @@ export const api = {
   upload: (ruta, formData) => request('POST', ruta, formData),
   blob,
 };
+
+// Texto para mostrar de un error de la API: los detalles de validación por
+// campo, si los hay, o el mensaje general.
+export const mensajeDeError = (err) => err.detalles?.map?.((d) => d.mensaje).join(' ') || err.message;

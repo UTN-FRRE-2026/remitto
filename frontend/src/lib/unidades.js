@@ -10,3 +10,14 @@ export const UNIDAD_CORTA = {
 };
 
 export const unidadCorta = (unidad) => UNIDAD_CORTA[unidad] ?? 'u.';
+
+// Opciones de unidad de medida para los formularios (valor del backend, texto).
+export const UNIDADES = [
+  ['UNIDAD', 'Unidad'],
+  ['KILOGRAMO', 'Kilogramo'],
+  ['GRAMO', 'Gramo'],
+  ['LITRO', 'Litro'],
+  ['MILILITRO', 'Mililitro'],
+  ['METRO', 'Metro'],
+  ['PAQUETE', 'Paquete'],
+];

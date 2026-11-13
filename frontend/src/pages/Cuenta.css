@@ -48,3 +48,25 @@
 .cuenta__salir {
   margin-top: 4px;
 }
+
+/* Accesos de administración del propietario (HU4 · HU6). */
+.cuenta__admin {
+  padding: 8px 16px;
+  margin-bottom: 20px;
+}
+.cuenta__admin-titulo {
+  padding: 10px 0 4px;
+  font-size: var(--fs-detalle);
+  font-weight: 700;
+  color: var(--texto-suave);
+}
+.cuenta__admin-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  font-weight: 700;
+}
+.cuenta__admin-item + .cuenta__admin-item {
+  border-top: 1px solid var(--borde);
+}

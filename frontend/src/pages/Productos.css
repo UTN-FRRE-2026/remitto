@@ -17,6 +17,16 @@
   padding: 8px 14px;
   font-size: var(--fs-detalle);
 }
+.productos__acciones {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+/* En el celular el alta se abre con el + de la barra superior. Selector
+   compuesto para no depender del orden de carga respecto de .btn. */
+.productos__acciones .productos__nuevo {
+  display: none;
+}
 .productos__titulo span {
   color: var(--texto-suave);
   font-size: var(--fs-seccion);
@@ -74,6 +84,27 @@
 .producto:last-child {
   border-bottom: none;
 }
+.producto__enlace {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+.producto__editar {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--borde);
+  color: var(--texto-suave);
+}
+.producto__editar:hover {
+  color: var(--salvia-oscuro);
+  border-color: var(--salvia-oscuro);
+}
 .producto__icono {
   width: 44px;
   height: 44px;
@@ -120,6 +151,9 @@
 @media (min-width: 900px) {
   .productos .topbar {
     display: none;
+  }
+  .productos__acciones .productos__nuevo {
+    display: inline-flex;
   }
   .productos__titulo {
     font-size: 32px;

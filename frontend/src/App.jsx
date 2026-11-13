@@ -11,6 +11,9 @@ import RevisarComprobante from './pages/RevisarComprobante.jsx';
 import Movimientos from './pages/Movimientos.jsx';
 import Salidas from './pages/Salidas.jsx';
 import Recuento from './pages/Recuento.jsx';
+import ProductoForm from './pages/ProductoForm.jsx';
+import Proveedores from './pages/Proveedores.jsx';
+import ProveedorForm from './pages/ProveedorForm.jsx';
 import EnConstruccion from './pages/EnConstruccion.jsx';
 
 // Protege las rutas privadas: sin sesión redirige al login.
@@ -19,6 +22,13 @@ function Privado({ children }) {
   if (cargando) return <div className="cargando-pantalla">Cargando…</div>;
   if (!usuario) return <Navigate to="/login" replace />;
   return <AppShell>{children}</AppShell>;
+}
+
+// Pantallas de administración (HU2): el empleado vuelve al inicio. El backend
+// rechaza igualmente sus pedidos; esto solo evita mostrarle formularios inútiles.
+function Propietario({ children }) {
+  const { esPropietario } = useAuth();
+  return <Privado>{esPropietario ? children : <Navigate to="/" replace />}</Privado>;
 }
 
 function Publico({ children }) {
@@ -43,6 +53,11 @@ export default function App() {
           />
           <Route path="/" element={<Privado><Inicio /></Privado>} />
           <Route path="/productos" element={<Privado><Productos /></Privado>} />
+          <Route path="/productos/nuevo" element={<Propietario><ProductoForm key="nuevo" /></Propietario>} />
+          <Route path="/productos/:id/editar" element={<Propietario><ProductoForm /></Propietario>} />
+          <Route path="/proveedores" element={<Propietario><Proveedores /></Propietario>} />
+          <Route path="/proveedores/nuevo" element={<Propietario><ProveedorForm key="nuevo" /></Propietario>} />
+          <Route path="/proveedores/:id/editar" element={<Propietario><ProveedorForm /></Propietario>} />
           <Route path="/cuenta" element={<Privado><Cuenta /></Privado>} />
           <Route path="/cargar" element={<Privado><CargarComprobante /></Privado>} />
           <Route path="/comprobantes/:id/lectura" element={<Privado><LecturaComprobante /></Privado>} />
