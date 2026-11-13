@@ -18,6 +18,7 @@ TFI de UTN FRRe (Tecnicatura Universitaria en Programación): PWA de gestión de
 
 ## Documentación
 
+- [docs/entrega-tpi.md](docs/entrega-tpi.md): consigna de la primera entrega (16/11/2026), puntaje y entregables. Tenela en cuenta al priorizar.
 - [docs/estado-proyecto.md](docs/estado-proyecto.md): última fotografía verificada y pendientes. Contrastala con Git y el código.
 - [docs/plan-de-trabajo.md](docs/plan-de-trabajo.md): alcance, RF/RNF y tareas y criterios de cada HU. Leé solo las secciones de la tarea.
 - [docs/maquetacion.md](docs/maquetacion.md): guía visual y mapa de pantallas. El HTML de `docs/referencias/` tiene fuentes e imágenes embebidas: abrilo o buscá en él solo cuando la tarea lo requiera, sin leerlo entero.

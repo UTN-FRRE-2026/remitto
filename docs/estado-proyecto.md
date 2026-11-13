@@ -4,8 +4,8 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 
 ## Referencia verificada (13/11/2026)
 
-- `origin/main` en `bb3a501` (merge del PR #13, HU3). Todas las ramas remotas anteriores están integradas.
-- **Publicado, pendiente de integrar:** ajuste de la asociación de HU15 en la rama `feature/HU15-ajuste-asociacion`, creada desde `bb3a501`, con PR abierto a `main`.
+- `origin/main` en `dd32b4d` (merge del PR #14, ajuste de HU15). Todas las ramas remotas anteriores están integradas.
+- **Primera entrega del TPI: lunes 16/11/2026.** Consigna y entregables en [entrega-tpi.md](entrega-tpi.md).
 - **Trabajo en pausa, sin commit:** HU21 (claves de integración) quedó guardada solo en la copia local de Maxi: un stash de Git sobre la rama `feature/HU21-claves-integracion` y un patch equivalente en `retomar/HU21-en-progreso.patch`, fuera del repositorio, con las instrucciones para recuperarla. Tiene el backend con sus pruebas y la pantalla sin terminar. No está en `origin`.
 - No se consultaron PR abiertos ni Issues: la CLI `gh` no estaba disponible.
 
@@ -27,6 +27,7 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 | HU4 productos y HU6 proveedores (pantallas) | [PR #11](https://github.com/UTN-FRRE-2026/remitto/pull/11) |
 | HU5 categorías (pantalla y filtro en Productos) | [PR #12](https://github.com/UTN-FRRE-2026/remitto/pull/12) |
 | HU3 usuarios (pantalla) y verificación de permisos de HU2 | [PR #13](https://github.com/UTN-FRRE-2026/remitto/pull/13) |
+| Ajuste de la asociación de HU15 | [PR #14](https://github.com/UTN-FRRE-2026/remitto/pull/14) |
 
 HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa que se haya comprobado ahora cada criterio de aceptación.
 
@@ -35,12 +36,11 @@ HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa qu
 | Estado observado | Historias |
 | --- | --- |
 | Backend y pantalla | HU1 a HU6, HU8 a HU15 |
-| Ajuste en rama con PR abierto | HU15: medidas, variantes y abreviaturas en la asociación |
 | En pausa (stash) | HU21 claves de integración |
 | Base existente | HU7 PWA (`vite-plugin-pwa`); instalación en Android no comprobada |
 | Sin implementar | HU16 a HU20 y HU22 a HU31. `/comprobantes`, `/asistente`, `/precios` e `/integraciones` son `EnConstruccion`; `simulador/` solo tiene un README |
 
-## Ajuste de la asociación de HU15 (13/11/2026, rama `feature/HU15-ajuste-asociacion`)
+## Ajuste de la asociación de HU15 (13/11/2026, integrado en el PR #14)
 
 Corrige lo encontrado en la revisión: números sin unidad, conversión ml/l y g/kg, punto de miles, `C.C.` y `1/2 KG`; variantes propuestas como confiables (palabra leída que el producto no tiene o descripción que cubre poco del nombre → tope 0,79); abreviatura en un solo sentido («PAÑALES» ya no se asocia con «Pan»); empates resueltos por menor id; el aviso «Revisar» ya no aparece en comprobantes confirmados; rendimiento aproximadamente 2,5 veces mejor.
 
