@@ -13,6 +13,9 @@ export default function Productos() {
   const [searchParams] = useSearchParams();
   const [filtro, setFiltro] = useState(searchParams.get('estado') || 'TODOS');
   const [busqueda, setBusqueda] = useState('');
+  // HU5: las categorías agrupan los productos en la navegación.
+  const [categoriaId, setCategoriaId] = useState(searchParams.get('categoriaId') || '');
+  const [categorias, setCategorias] = useState([]);
   const [productos, setProductos] = useState([]);
   const [resumen, setResumen] = useState(null);
   const [cargando, setCargando] = useState(true);
@@ -21,6 +24,7 @@ export default function Productos() {
 
   useEffect(() => {
     api.get('/productos/resumen').then(setResumen).catch(() => {});
+    api.get('/categorias').then(setCategorias).catch(() => {});
   }, []);
 
   // Recarga al cambiar el filtro (debounce simple para la búsqueda).
@@ -34,6 +38,7 @@ export default function Productos() {
       if (inactivos) params.set('incluirInactivos', 'true');
       else if (filtro !== 'TODOS') params.set('estado', filtro);
       if (busqueda.trim()) params.set('q', busqueda.trim());
+      if (categoriaId) params.set('categoriaId', categoriaId);
       api
         .get(`/productos?${params.toString()}`)
         .then((lista) => setProductos(inactivos ? lista.filter((p) => !p.activo) : lista))
@@ -41,7 +46,7 @@ export default function Productos() {
         .finally(() => setCargando(false));
     }, 250);
     return () => clearTimeout(t);
-  }, [filtro, busqueda]);
+  }, [filtro, busqueda, categoriaId]);
 
   const chips = useMemo(
     () => [
@@ -101,6 +106,19 @@ export default function Productos() {
         />
         <IconoCodigo size={20} color="var(--texto-suave)" />
       </div>
+
+      {categorias.length > 0 && (
+        <div className={`input productos__categoria ${categoriaId ? 'productos__categoria--activa' : ''}`}>
+          <select value={categoriaId} onChange={(e) => setCategoriaId(e.target.value)} aria-label="Categoría">
+            <option value="">Todas las categorías</option>
+            {categorias.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.nombre}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <div className="chips">
         {chips.map((c) => (

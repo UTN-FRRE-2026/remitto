@@ -161,3 +161,49 @@
     font-size: 32px;
   }
 }
+
+/* --- Categorías (HU5) --- */
+.categoria__nueva {
+  padding: 6px 6px 6px 15px;
+}
+.categoria__nueva input {
+  min-width: 0;
+}
+.categoria__agregar {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  font-size: var(--fs-detalle);
+}
+.categoria__error {
+  margin-bottom: 14px;
+}
+.categoria__productos {
+  font-size: var(--fs-detalle);
+  font-weight: 700;
+  color: var(--salvia-oscuro);
+}
+.categoria__eliminar {
+  flex-shrink: 0;
+  padding: 8px 10px;
+  border-radius: var(--radio-sm);
+  font-size: var(--fs-detalle);
+  font-weight: 700;
+  color: var(--rojo);
+}
+.categoria__eliminar:disabled {
+  opacity: 0.55;
+}
+.categoria__edicion {
+  flex-wrap: wrap;
+}
+.categoria__edicion .input {
+  flex: 1 1 180px;
+  padding: 10px 14px;
+}
+.categoria__acciones {
+  display: flex;
+  gap: 8px;
+}
+.categoria__acciones .btn {
+  padding: 10px 14px;
+}

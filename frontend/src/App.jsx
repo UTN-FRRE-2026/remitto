@@ -13,6 +13,7 @@ import Salidas from './pages/Salidas.jsx';
 import Recuento from './pages/Recuento.jsx';
 import ProductoForm from './pages/ProductoForm.jsx';
 import Proveedores from './pages/Proveedores.jsx';
+import Categorias from './pages/Categorias.jsx';
 import ProveedorForm from './pages/ProveedorForm.jsx';
 import EnConstruccion from './pages/EnConstruccion.jsx';
 
@@ -55,6 +56,7 @@ export default function App() {
           <Route path="/productos" element={<Privado><Productos /></Privado>} />
           <Route path="/productos/nuevo" element={<Propietario><ProductoForm key="nuevo" /></Propietario>} />
           <Route path="/productos/:id/editar" element={<Propietario><ProductoForm /></Propietario>} />
+          <Route path="/categorias" element={<Propietario><Categorias /></Propietario>} />
           <Route path="/proveedores" element={<Propietario><Proveedores /></Propietario>} />
           <Route path="/proveedores/nuevo" element={<Propietario><ProveedorForm key="nuevo" /></Propietario>} />
           <Route path="/proveedores/:id/editar" element={<Propietario><ProveedorForm /></Propietario>} />

@@ -4,8 +4,8 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 
 ## Referencia verificada (13/11/2026)
 
-- `origin/main` en `233cb12` (merge del PR #10, HU15). Todas las ramas remotas anteriores están integradas.
-- **Publicado, pendiente de integrar:** HU4 y HU6 (pantallas de productos y proveedores) en la rama `feature/HU4-HU6-catalogo`, creada desde `233cb12`, con PR abierto a `main`.
+- `origin/main` en `80008a9` (merge del PR #11, HU4 y HU6). Todas las ramas remotas anteriores están integradas.
+- **Commit local, sin publicar ni PR:** HU5 (pantalla de categorías y filtro por categoría en Productos) en la rama `feature/HU5-categorias`, creada desde `80008a9`.
 - **Trabajo en pausa, sin commit:** HU21 (claves de integración) quedó guardada solo en la copia local de Maxi: un stash de Git sobre la rama `feature/HU21-claves-integracion` y un patch equivalente en `retomar/HU21-en-progreso.patch`, fuera del repositorio, con las instrucciones para recuperarla. Tiene el backend con sus pruebas y la pantalla sin terminar. No está en `origin`.
 - No se consultaron PR abiertos ni Issues: la CLI `gh` no estaba disponible.
 
@@ -24,6 +24,7 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 | Documentación compartida (`CLAUDE.md`, plan, maqueta, esta nota) | [PR #8](https://github.com/UTN-FRRE-2026/remitto/pull/8) |
 | HU14 ajuste por recuento | [PR #9](https://github.com/UTN-FRRE-2026/remitto/pull/9) |
 | HU15 asociación automática al catálogo | [PR #10](https://github.com/UTN-FRRE-2026/remitto/pull/10) |
+| HU4 productos y HU6 proveedores (pantallas) | [PR #11](https://github.com/UTN-FRRE-2026/remitto/pull/11) |
 
 HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa que se haya comprobado ahora cada criterio de aceptación.
 
@@ -31,14 +32,20 @@ HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa qu
 
 | Estado observado | Historias |
 | --- | --- |
-| Backend y pantalla | HU1 inicio de sesión, HU2 roles (rutas protegidas y menú según rol; faltan pruebas de permisos), HU8 a HU15 |
-| Implementada en rama con PR abierto | HU4 productos y HU6 proveedores (alta, edición, desactivación y reactivación) |
+| Backend y pantalla | HU1 inicio de sesión, HU2 roles (rutas protegidas y menú según rol; faltan pruebas de permisos), HU4, HU6, HU8 a HU15 |
+| Implementada en rama local | HU5 categorías (alta, renombrado, eliminación y filtro en Productos) |
 | En pausa (stash) | HU21 claves de integración |
 | Base existente | HU7 PWA (`vite-plugin-pwa`); instalación en Android no comprobada |
-| Solo backend | HU3 usuarios (la pantalla es `EnConstruccion`) y HU5 categorías (sin pantalla; el formulario de producto solo las elige) |
+| Solo backend | HU3 usuarios (la pantalla es `EnConstruccion`) |
 | Sin implementar | HU16 a HU20 y HU22 a HU31. `/comprobantes`, `/asistente`, `/precios` e `/integraciones` son `EnConstruccion`; `simulador/` solo tiene un README |
 
-## Validación de HU4 y HU6 (13/11/2026, rama `feature/HU4-HU6-catalogo`)
+## Validación de HU5 (13/11/2026, trabajo local)
+
+- `npm test` en `backend/`: 130 pruebas correctas. `npm run build` correcto.
+- Contra una base descartable (eliminada al terminar): 23 controles de API y de pantalla correctos (nombre repetido sin distinguir mayúsculas, permisos, renombrar, eliminar con productos que quedan sin categoría, filtro en Productos, redirección del empleado, sin desborde a 360 px).
+- La unicidad sin distinguir mayúsculas se controla en el servicio, sin índice en la base: dos altas simultáneas como «Bebidas» y «bebidas» podrían pasar. No se agregó migración por ser un caso improbable.
+
+## Validación de HU4 y HU6 (13/11/2026, integrada en el PR #11)
 
 - `npm test` en `backend/`: 128 pruebas correctas (9 nuevas en `test/catalogo.test.js`). `npm run build` correcto.
 - Punta a punta contra una base descartable (contenedor PostgreSQL temporal con migraciones y seed, eliminado al terminar): 25 controles correctos de API (altas, duplicados de código y CUIT, campos vacíos como null, categoría inexistente, permisos 401/403, edición sin tocar el stock, cambio de unidad bloqueado con movimientos, desactivación, búsquedas y reactivación).

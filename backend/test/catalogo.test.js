@@ -78,3 +78,19 @@ test('proveedor: un CUIT repetido da un 409 con mensaje claro', () => {
   assert.equal(e.status, 409);
   assert.match(e.message, /CUIT/);
 });
+
+// --- HU5 categorías ---
+
+test('categoría: el nombre es obligatorio y se normalizan los espacios', async () => {
+  const { categoriaSchema } = await import('../src/modules/categorias/categorias.schema.js');
+  assert.equal(categoriaSchema.parse({ nombre: '  Almacén   seco ' }).nombre, 'Almacén seco');
+  assert.equal(categoriaSchema.safeParse({ nombre: '   ' }).success, false);
+  assert.equal(categoriaSchema.safeParse({ nombre: 'x'.repeat(61) }).success, false);
+});
+
+test('categoría: un nombre repetido da un 409 con mensaje claro', async () => {
+  const { traducirErrorCategoria } = await import('../src/modules/categorias/categorias.service.js');
+  const e = traducirErrorCategoria(errorPrisma('P2002'));
+  assert.equal(e.status, 409);
+  assert.match(e.message, /categoría con ese nombre/);
+});

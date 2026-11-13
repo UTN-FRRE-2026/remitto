@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import { IconoSalir, IconoProveedores } from '../components/iconos.jsx';
+import { IconoSalir, IconoProveedores, IconoCategorias } from '../components/iconos.jsx';
 import './Cuenta.css';
 
 function iniciales(nombre = '') {
@@ -44,6 +44,10 @@ export default function Cuenta() {
           <Link to="/proveedores" className="cuenta__admin-item">
             <IconoProveedores size={20} />
             Proveedores
+          </Link>
+          <Link to="/categorias" className="cuenta__admin-item">
+            <IconoCategorias size={20} />
+            Categorías
           </Link>
         </nav>
       )}
