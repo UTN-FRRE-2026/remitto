@@ -14,6 +14,8 @@ import Recuento from './pages/Recuento.jsx';
 import ProductoForm from './pages/ProductoForm.jsx';
 import Proveedores from './pages/Proveedores.jsx';
 import Categorias from './pages/Categorias.jsx';
+import Usuarios from './pages/Usuarios.jsx';
+import UsuarioForm from './pages/UsuarioForm.jsx';
 import ProveedorForm from './pages/ProveedorForm.jsx';
 import EnConstruccion from './pages/EnConstruccion.jsx';
 
@@ -115,18 +117,9 @@ export default function App() {
               </Privado>
             }
           />
-          <Route
-            path="/usuarios"
-            element={
-              <Privado>
-                <EnConstruccion
-                  titulo="Usuarios"
-                  descripcion="Alta, modificación y desactivación de quienes operan el sistema."
-                  hu="HU3 (Sprint 1)"
-                />
-              </Privado>
-            }
-          />
+          <Route path="/usuarios" element={<Propietario><Usuarios /></Propietario>} />
+          <Route path="/usuarios/nuevo" element={<Propietario><UsuarioForm key="nuevo" /></Propietario>} />
+          <Route path="/usuarios/:id/editar" element={<Propietario><UsuarioForm /></Propietario>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

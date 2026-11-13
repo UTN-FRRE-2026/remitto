@@ -4,8 +4,8 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 
 ## Referencia verificada (13/11/2026)
 
-- `origin/main` en `80008a9` (merge del PR #11, HU4 y HU6). Todas las ramas remotas anteriores están integradas.
-- **Commit local, sin publicar ni PR:** HU5 (pantalla de categorías y filtro por categoría en Productos) en la rama `feature/HU5-categorias`, creada desde `80008a9`.
+- `origin/main` en `048b676` (merge del PR #12, HU5). Todas las ramas remotas anteriores están integradas.
+- **Publicado, pendiente de integrar:** HU3 (pantalla de usuarios) en la rama `feature/HU3-usuarios`, creada desde `048b676`, con PR abierto a `main`.
 - **Trabajo en pausa, sin commit:** HU21 (claves de integración) quedó guardada solo en la copia local de Maxi: un stash de Git sobre la rama `feature/HU21-claves-integracion` y un patch equivalente en `retomar/HU21-en-progreso.patch`, fuera del repositorio, con las instrucciones para recuperarla. Tiene el backend con sus pruebas y la pantalla sin terminar. No está en `origin`.
 - No se consultaron PR abiertos ni Issues: la CLI `gh` no estaba disponible.
 
@@ -25,6 +25,7 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 | HU14 ajuste por recuento | [PR #9](https://github.com/UTN-FRRE-2026/remitto/pull/9) |
 | HU15 asociación automática al catálogo | [PR #10](https://github.com/UTN-FRRE-2026/remitto/pull/10) |
 | HU4 productos y HU6 proveedores (pantallas) | [PR #11](https://github.com/UTN-FRRE-2026/remitto/pull/11) |
+| HU5 categorías (pantalla y filtro en Productos) | [PR #12](https://github.com/UTN-FRRE-2026/remitto/pull/12) |
 
 HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa que se haya comprobado ahora cada criterio de aceptación.
 
@@ -32,14 +33,19 @@ HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa qu
 
 | Estado observado | Historias |
 | --- | --- |
-| Backend y pantalla | HU1 inicio de sesión, HU2 roles (rutas protegidas y menú según rol; faltan pruebas de permisos), HU4, HU6, HU8 a HU15 |
-| Implementada en rama local | HU5 categorías (alta, renombrado, eliminación y filtro en Productos) |
+| Backend y pantalla | HU1 inicio de sesión, HU2 roles (rutas protegidas y menú según rol), HU4 a HU6, HU8 a HU15 |
+| Implementada en rama con PR abierto | HU3 usuarios (alta, edición, desactivación y reactivación) |
 | En pausa (stash) | HU21 claves de integración |
 | Base existente | HU7 PWA (`vite-plugin-pwa`); instalación en Android no comprobada |
-| Solo backend | HU3 usuarios (la pantalla es `EnConstruccion`) |
 | Sin implementar | HU16 a HU20 y HU22 a HU31. `/comprobantes`, `/asistente`, `/precios` e `/integraciones` son `EnConstruccion`; `simulador/` solo tiene un README |
 
-## Validación de HU5 (13/11/2026, trabajo local)
+## Validación de HU3 y permisos de HU2 (13/11/2026, rama `feature/HU3-usuarios`)
+
+- `npm test` en `backend/`: 134 pruebas correctas (4 nuevas en `test/usuarios.test.js`). `npm run build` correcto.
+- Contra una base descartable (eliminada al terminar): 44 controles de API y de pantalla correctos. Incluyen los permisos de HU2 que el plan pedía probar (401 sin sesión o con token inválido; 403 del empleado en usuarios, altas del catálogo y conciliación; 200 en sus consultas) y HU3: correo único sin distinguir mayúsculas, login con mayúsculas, cambio de contraseña, desactivación que corta una sesión abierta, reactivación y protección del propio propietario.
+- Las pruebas de permisos son de punta a punta (script local, no en `npm test`): `npm test` no usa base de datos y `autenticar` relee el usuario en cada pedido.
+
+## Validación de HU5 (13/11/2026, integrada en el PR #12)
 
 - `npm test` en `backend/`: 130 pruebas correctas. `npm run build` correcto.
 - Contra una base descartable (eliminada al terminar): 23 controles de API y de pantalla correctos (nombre repetido sin distinguir mayúsculas, permisos, renombrar, eliminar con productos que quedan sin categoría, filtro en Productos, redirección del empleado, sin desborde a 360 px).

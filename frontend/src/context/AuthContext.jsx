@@ -33,6 +33,11 @@ export function AuthProvider({ children }) {
     return usuario;
   }
 
+  // Tras editar los propios datos (HU3), refresca el nombre del menú.
+  async function recargarPerfil() {
+    setUsuario(await api.get('/auth/me'));
+  }
+
   function cerrarSesion() {
     setToken(null);
     setUsuario(null);
@@ -41,7 +46,7 @@ export function AuthProvider({ children }) {
   const esPropietario = usuario?.rol === 'PROPIETARIO';
 
   return (
-    <AuthContext.Provider value={{ usuario, cargando, esPropietario, iniciarSesion, cerrarSesion }}>
+    <AuthContext.Provider value={{ usuario, cargando, esPropietario, iniciarSesion, cerrarSesion, recargarPerfil }}>
       {children}
     </AuthContext.Provider>
   );
