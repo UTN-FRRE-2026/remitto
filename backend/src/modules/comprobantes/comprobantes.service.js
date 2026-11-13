@@ -8,6 +8,7 @@ import { normalizarNumero } from '../../ia/normalizar.js';
 import { validarArchivo, guardarArchivo, eliminarArchivo, rutaAbsoluta } from './comprobantes.archivos.js';
 import { OBJETIVO_RNF2_MS } from './comprobantes.procesamiento.js';
 import { incluirDetalle, validar } from './comprobantes.revision.js';
+import { UMBRAL_CONFIANZA } from './comprobantes.asociacion.js';
 
 // HU10: valida los datos para confirmar. El aviso de duplicado usa el número
 // definitivo si ya se corrigió; si no, el que leyó la IA.
@@ -76,6 +77,8 @@ export async function obtener(id) {
     respuestaIa: respuestaIa?.error ? { ...respuestaIa, error: { codigo: respuestaIa.error.codigo } } : respuestaIa,
     error: leerError(comprobante.errorProcesamiento),
     posibleDuplicado: await buscarPosiblesDuplicados(comprobante),
+    // HU15: por debajo de este valor, la propuesta de producto se destaca.
+    umbralConfianza: UMBRAL_CONFIANZA,
   };
 }
 

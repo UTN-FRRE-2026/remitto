@@ -17,6 +17,25 @@ const UNIDADES = [
   ['PAQUETE', 'Paquete'],
 ];
 
+// HU15: estado de la asociación propuesta. La confianza es null cuando la
+// eligió la persona (o nunca hubo propuesta) y 0 cuando no hubo coincidencia.
+function asociacion(d, umbral) {
+  const confianza = d.confianza != null ? Number(d.confianza) : null;
+  const propuesta = Boolean(d.productoId) && confianza != null;
+  return {
+    confianza,
+    propuesta,
+    sinCoincidencia: !d.productoId && confianza === 0,
+    dudosa: d.estado !== 'DESCARTADO' && confianza != null && (!d.productoId || confianza < umbral),
+  };
+}
+const porciento = (x) => `${Math.round(x * 100)} %`;
+// "GAS COLA 2.25L" → "Gas cola 2.25l": sugerencia editable para el alta.
+const sugerirNombre = (texto) => {
+  const t = (texto ?? '').trim().toLowerCase();
+  return t ? t[0].toUpperCase() + t.slice(1) : '';
+};
+
 const mensajeDeError = (err) => err.detalles?.map?.((d) => d.mensaje).join(' ') || err.message;
 const formatoInvalido = 'Número no válido. Usá coma para los decimales, por ejemplo 1,5.';
 
@@ -142,6 +161,8 @@ export default function RevisarComprobante() {
   const normalizada = comprobante.respuestaIa?.normalizada;
   const leidas = new Map((normalizada?.lineas ?? []).map((l) => [l.nroLinea, l]));
   const activas = comprobante.detalles.filter((d) => d.estado !== 'DESCARTADO');
+  const umbral = comprobante.umbralConfianza ?? 0.8;
+  const paraRevisar = comprobante.detalles.filter((d) => asociacion(d, umbral).dudosa).length;
   const unidades = activas.reduce((s, d) => s + (d.cantidad != null ? Number(d.cantidad) : 0), 0);
   const importe = activas.reduce(
     (s, d) => s + (d.cantidad != null && d.precioUnitario != null ? Number(d.cantidad) * Number(d.precioUnitario) : 0),
@@ -215,6 +236,7 @@ export default function RevisarComprobante() {
 
           <h2 className="revisar__subtitulo">
             Líneas <span>{activas.length} a ingresar</span>
+            {editable && paraRevisar > 0 && <span className="revisar__para-revisar">{paraRevisar} para revisar</span>}
           </h2>
           <div className="revisar__lineas">
             {comprobante.detalles.map((d) => (
@@ -225,6 +247,7 @@ export default function RevisarComprobante() {
                 leida={leidas.get(d.nroLinea)}
                 editable={editable}
                 esPropietario={esPropietario}
+                umbral={umbral}
                 registrar={registrar}
                 onCambio={reemplazarLinea}
               />
@@ -402,13 +425,15 @@ function Cabecera({ comprobante, editable, registrar, onGuardado }) {
   );
 }
 
-function Linea({ comprobanteId, detalle: d, leida, editable, esPropietario, registrar, onCambio }) {
+function Linea({ comprobanteId, detalle: d, leida, editable, esPropietario, umbral, registrar, onCambio }) {
+  const a = asociacion(d, umbral);
   const [cantidad, setCantidad] = useState(d.cantidad != null ? mostrarNumero(d.cantidad) : '');
   const [precio, setPrecio] = useState(d.precioUnitario != null ? mostrarNumero(d.precioUnitario, 2) : '');
   const [error, setError] = useState('');
   const [guardando, setGuardando] = useState(false);
   const [eligiendo, setEligiendo] = useState(!d.productoId);
-  const [creando, setCreando] = useState(false);
+  // Sin coincidencia en el catálogo: al propietario se le propone el alta.
+  const [creando, setCreando] = useState(a.sinCoincidencia && esPropietario);
   const descartada = d.estado === 'DESCARTADO';
 
   async function guardar(cambios) {
@@ -445,7 +470,9 @@ function Linea({ comprobanteId, detalle: d, leida, editable, esPropietario, regi
   const motivos = leida?.motivosRevision ?? [];
 
   return (
-    <article className={`revisar__linea card ${descartada ? 'revisar__linea--descartada' : ''}`}>
+    <article
+      className={`revisar__linea card ${descartada ? 'revisar__linea--descartada' : ''} ${editable && a.dudosa ? 'revisar__linea--dudosa' : ''}`}
+    >
       <div className="revisar__linea-cabeza">
         <span className="revisar__nro">{d.nroLinea}</span>
         <div className="revisar__leido">
@@ -484,10 +511,24 @@ function Linea({ comprobanteId, detalle: d, leida, editable, esPropietario, regi
           <div className="revisar__producto">
             {d.producto && !eligiendo ? (
               <div className="revisar__producto-elegido">
-                <span className={`badge ${d.producto.activo ? 'badge--en-stock' : 'badge--sin-stock'}`}>
-                  {d.producto.activo ? 'Asociado' : 'Desactivado'}
-                </span>
+                {!d.producto.activo ? (
+                  <span className="badge badge--sin-stock">Desactivado</span>
+                ) : a.propuesta ? (
+                  <span
+                    className={`badge ${a.dudosa ? 'badge--stock-bajo' : 'badge--ia'}`}
+                    title="Propuesto automáticamente según la descripción leída"
+                  >
+                    {a.dudosa ? 'Revisar' : 'Propuesto'} · {porciento(a.confianza)}
+                  </span>
+                ) : (
+                  <span className="badge badge--en-stock">Asociado</span>
+                )}
                 <strong>{d.producto.nombre}</strong>
+                {editable && a.propuesta && a.dudosa && (
+                  <button className="revisar__enlace" onClick={() => guardar({ productoId: d.productoId })} disabled={guardando}>
+                    Es correcto
+                  </button>
+                )}
                 {editable && (
                   <button className="revisar__enlace" onClick={() => setEligiendo(true)}>
                     Cambiar
@@ -496,6 +537,9 @@ function Linea({ comprobanteId, detalle: d, leida, editable, esPropietario, regi
               </div>
             ) : editable ? (
               <>
+                {a.sinCoincidencia && (
+                  <p className="revisar__sin-coincidencia">No encontramos un producto parecido en el catálogo.</p>
+                )}
                 <BuscadorProducto onElegir={elegirProducto} />
                 {esPropietario && !creando && (
                   <button className="revisar__enlace" onClick={() => setCreando(true)}>
@@ -503,7 +547,7 @@ function Linea({ comprobanteId, detalle: d, leida, editable, esPropietario, regi
                   </button>
                 )}
                 {esPropietario && creando && (
-                  <AltaProducto nombreSugerido={d.descripcionExtraida ?? ''} onCreado={elegirProducto} onCancelar={() => setCreando(false)} />
+                  <AltaProducto nombreSugerido={sugerirNombre(d.descripcionExtraida)} onCreado={elegirProducto} onCancelar={() => setCreando(false)} />
                 )}
                 {!esPropietario && <small className="revisar__nota">Si el producto no existe, pedile al propietario que lo cree.</small>}
                 {d.producto && (

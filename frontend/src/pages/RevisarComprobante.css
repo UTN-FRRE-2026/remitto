@@ -163,6 +163,24 @@
 .revisar__linea--descartada {
   opacity: 0.6;
 }
+/* HU15: propuesta bajo el umbral o sin coincidencia en el catálogo. */
+.revisar__linea.revisar__linea--dudosa {
+  border-color: var(--dorado);
+  box-shadow: inset 4px 0 0 var(--dorado);
+}
+.revisar__para-revisar {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--radio-pill);
+  background: var(--bg-stock-bajo);
+  color: var(--fg-stock-bajo) !important;
+}
+.revisar__sin-coincidencia {
+  margin-bottom: 8px;
+  font-size: var(--fs-detalle);
+  font-weight: 700;
+  color: var(--fg-stock-bajo);
+}
 .revisar__linea-cabeza {
   display: flex;
   align-items: flex-start;

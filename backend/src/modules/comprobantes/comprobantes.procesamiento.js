@@ -6,6 +6,7 @@ import { iaDisponible, llamarModelo, interpretarRespuesta, modeloConfigurado } f
 import { ErrorIa, formatearError } from '../../ia/errores.js';
 import { VERSION_ESQUEMA } from '../../ia/esquemaComprobante.js';
 import { leerArchivo } from './comprobantes.archivos.js';
+import { proponerAsociacion } from './comprobantes.asociacion.js';
 
 // HU9: lectura con IA en segundo plano, sin infraestructura extra.
 //
@@ -225,9 +226,26 @@ function cerrarMetricas(ejecucion, exito) {
 
 const liberar = { iaTrabajoId: null, procesandoDesde: null, iaVigenteHasta: null };
 
+// HU15: propuesta de producto y confianza para cada línea leída. Si falla, las
+// líneas quedan sin propuesta y se asocian a mano: no se pierde la lectura.
+async function proponerAsociaciones(lineas) {
+  if (lineas.length === 0) return [];
+  try {
+    const productos = await prisma.producto.findMany({
+      where: { activo: true },
+      select: { id: true, nombre: true, codigoBarras: true },
+    });
+    return lineas.map((l) => proponerAsociacion(l, productos));
+  } catch (err) {
+    console.warn(`[IA] No se pudieron proponer asociaciones: ${err.message}`);
+    return lineas.map(() => ({ productoId: null, confianza: null }));
+  }
+}
+
 async function finalizarConExito(trabajo, { versionEsquema, original, lectura, normalizada }, modelo, ejecucion) {
   cerrarMetricas(ejecucion, true);
   const { cabecera, lineas } = normalizada;
+  const propuestas = await proponerAsociaciones(lineas);
   try {
     await prisma.$transaction(async (tx) => {
       const r = await tx.comprobante.updateMany({
@@ -250,9 +268,11 @@ async function finalizarConExito(trabajo, { versionEsquema, original, lectura, n
       await tx.detalleComprobante.deleteMany({ where: { comprobanteId: trabajo.id, agregadaManualmente: false } });
       if (lineas.length > 0) {
         await tx.detalleComprobante.createMany({
-          data: lineas.map((l) => ({
+          data: lineas.map((l, i) => ({
             comprobanteId: trabajo.id,
             nroLinea: l.nroLinea,
+            productoId: propuestas[i].productoId,
+            confianza: propuestas[i].confianza,
             codigoExtraido: l.codigo,
             descripcionExtraida: l.descripcion,
             cantidadExtraida: l.cantidadExtraida,
