@@ -2,6 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   palabras,
+  medidasCompatibles,
+  parecidoPalabra,
   similitud,
   proponerAsociacion,
   esDudosa,
@@ -72,8 +74,10 @@ test('empate perfecto: dos productos activos igual de compatibles, sin código d
     [{ id: 1, nombre: 'Agua sin gas 1,5 l' }, { id: 2, nombre: 'AGUA S/GAS 1.5L' }],
   ];
   for (const productos of pares) {
+    // Ante un empate exacto se propone siempre el de menor id, en cualquier orden.
+    assert.equal(proponer('AGUA S/GAS 1.5L', null, [...productos].reverse()).productoId, 1);
     const r = proponer('AGUA S/GAS 1.5L', null, productos);
-    assert.ok([1, 2].includes(r.productoId));
+    assert.equal(r.productoId, 1);
     assert.ok(r.confianza < UMBRAL_CONFIANZA, `empate con confianza ${r.confianza}`);
     assert.equal(esDudosa(r), true);
   }
@@ -135,4 +139,84 @@ test('validación: sin coincidencia en el catálogo impide confirmar y sugiere e
   // Una línea agregada a mano sin producto conserva el mensaje anterior.
   const manual = evaluarRevision(comprobante([linea({ productoId: null, producto: null, confianza: null })]));
   assert.match(manual.problemas[0].mensaje, /falta asociar un producto/);
+});
+
+// --- Ajustes de la revisión del 13/11/2026 ---
+
+const catalogoAmplio = [
+  ...catalogo,
+  ...['Azúcar 1 kg', 'Harina 000 1 kg', 'Harina 0000 1 kg', 'Gaseosa cola 2,25 l', 'Detergente 500 cc'].map((nombre, i) => ({
+    id: 100 + i,
+    nombre,
+    codigoBarras: null,
+  })),
+];
+const proponerAmplio = (d) => proponerAsociacion({ codigo: null, descripcion: d }, catalogoAmplio);
+const nombreAmplio = (id) => catalogoAmplio.find((p) => p.id === id)?.nombre;
+
+test('medidas: conversiones, números sin unidad y formas de escribirlas', () => {
+  assert.deepEqual(palabras('HARINA 1.000 GR'), ['harina', '1000g']); // punto de miles
+  assert.deepEqual(palabras('DETERGENTE 500 C.C.'), ['detergente', '500ml']);
+  assert.deepEqual(palabras('AZUCAR 1/2 KG'), ['azucar', '0.5kg']);
+  assert.equal(medidasCompatibles('1500ml', '1.5l'), true);
+  assert.equal(medidasCompatibles('1000g', '1kg'), true);
+  assert.equal(medidasCompatibles('500', '500ml'), true); // número sin unidad
+  assert.equal(medidasCompatibles('2.25', '2.25l'), true);
+  assert.equal(medidasCompatibles('500ml', '500g'), false); // otra magnitud
+  assert.equal(medidasCompatibles('000', '0000'), false); // la harina 000 no es la 0000
+});
+
+test('medidas: se asocian aunque estén escritas distinto', () => {
+  const casos = [
+    ['GASEOSA COLA 500', 'Gaseosa cola 500 ml'],
+    ['AGUA S/GAS 1500ML', 'Agua sin gas 1,5 l'],
+    ['AZUCAR 1000G', 'Azúcar 1 kg'],
+    ['HARINA 000 1.000 GR', 'Harina 000 1 kg'],
+    ['HARINA 0000 1KG', 'Harina 0000 1 kg'],
+    ['DETERGENTE 500 C.C.', 'Detergente 500 cc'],
+  ];
+  for (const [leido, esperado] of casos) {
+    const r = proponerAmplio(leido);
+    assert.equal(nombreAmplio(r.productoId), esperado, leido);
+    assert.ok(r.confianza >= UMBRAL_CONFIANZA, `${leido}: ${r.confianza}`);
+  }
+  // Otro tamaño no se propone: se sugiere el alta.
+  assert.deepEqual(proponerAmplio('AZUCAR 1/2 KG'), { productoId: null, confianza: 0 });
+});
+
+test('variantes: una palabra leída que el producto no tiene nunca da una propuesta confiable', () => {
+  const casos = [
+    ['YERBA MATE SIN PALO 1KG', 'Yerba mate con palo 1 kg'],
+    ['ALFAJOR TRIPLE CHOCOLATE BLANCO', 'Alfajor triple chocolate'],
+    ['GASEOSA COLA LIGHT 500ML', 'Gaseosa cola 500 ml'],
+  ];
+  for (const [leido, propuesto] of casos) {
+    const r = proponerAmplio(leido);
+    assert.equal(nombreAmplio(r.productoId), propuesto, leido); // se propone…
+    assert.ok(r.confianza < UMBRAL_CONFIANZA, `${leido}: ${r.confianza}`); // …pero se destaca
+    assert.equal(esDudosa(r), true, leido);
+  }
+});
+
+test('descripciones que cubren poco del nombre (una sola palabra) se destacan', () => {
+  for (const leido of ['COLA', 'ENTERA', 'GIRASOL']) {
+    const r = proponerAmplio(leido);
+    assert.ok(r.productoId, leido);
+    assert.equal(esDudosa(r), true, `${leido}: ${r.confianza}`);
+  }
+});
+
+test('abreviaturas: lo leído abrevia al producto, no al revés con palabras cortas', () => {
+  assert.equal(parecidoPalabra('gall', 'galletitas'), 0.9);
+  assert.equal(parecidoPalabra('panales', 'pan'), 0); // "PAÑALES" no es "Pan"
+  assert.equal(parecidoPalabra('galletitas', 'gall'), 0.8); // nombre abreviado en el catálogo
+  assert.deepEqual(proponerAmplio('PAÑALES'), { productoId: null, confianza: 0 });
+  assert.deepEqual(proponerAmplio('PAÑALES PAMPERS G'), { productoId: null, confianza: 0 });
+});
+
+test('envases y multiplicadores no cuentan como variantes', () => {
+  assert.deepEqual(palabras('GAS, COLA 500ML X6 PACK'), ['gas', 'cola', '500ml']);
+  const r = proponerAmplio('LECHE ENTERA 1L PACK');
+  assert.equal(nombreAmplio(r.productoId), 'Leche entera 1 l');
+  assert.ok(r.confianza >= UMBRAL_CONFIANZA);
 });
