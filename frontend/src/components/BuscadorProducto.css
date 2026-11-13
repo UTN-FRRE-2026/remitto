@@ -1,0 +1,46 @@
+/* Buscador de productos compartido por Nueva salida (HU13) y Recuento (HU14). */
+.buscador {
+  margin-bottom: 14px;
+}
+.buscador__resultados {
+  list-style: none;
+  margin-top: 4px;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-sm);
+  background: var(--superficie);
+  overflow: hidden;
+}
+.buscador__resultados li + li {
+  border-top: 1px solid var(--borde);
+}
+.buscador__resultados button {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--oscuro);
+}
+.buscador__resultados button:hover:not(:disabled) {
+  background: var(--crema-claro);
+}
+.buscador__resultados button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+.buscador__resultados small {
+  flex-shrink: 0;
+  font-size: var(--fs-detalle);
+  color: var(--texto-suave);
+}
+.buscador__nota {
+  padding: 8px 2px 0;
+  font-size: var(--fs-detalle);
+  color: var(--texto-suave);
+}
+.buscador__resultados .buscador__nota {
+  padding: 10px 14px;
+}

@@ -1,7 +1,21 @@
+.productos__encabezado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
 .productos__titulo {
   font-size: var(--fs-titulo);
   font-weight: 800;
-  margin-bottom: 16px;
+}
+.productos__recuento {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 8px 14px;
+  font-size: var(--fs-detalle);
 }
 .productos__titulo span {
   color: var(--texto-suave);

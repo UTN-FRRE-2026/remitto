@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { api } from '../lib/api.js';
-import { IconoRemitto, IconoBuscar, IconoCodigo, IconoMas } from '../components/iconos.jsx';
+import { IconoRemitto, IconoBuscar, IconoCodigo, IconoMas, IconoRecuento } from '../components/iconos.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import EstadoBadge from '../components/EstadoBadge.jsx';
 import { unidadCorta } from '../lib/unidades.js';
@@ -64,9 +64,15 @@ export default function Productos() {
         )}
       </header>
 
-      <h1 className="productos__titulo">
-        Productos <span>{resumen?.totalProductos ?? ''}</span>
-      </h1>
+      <div className="productos__encabezado">
+        <h1 className="productos__titulo">
+          Productos <span>{resumen?.totalProductos ?? ''}</span>
+        </h1>
+        {/* HU14: en el celular el recuento se abre desde acá (la barra inferior está completa). */}
+        <Link to="/recuento" className="btn btn--secundario productos__recuento">
+          <IconoRecuento size={18} /> Recuento
+        </Link>
+      </div>
 
       <div className="input productos__buscar">
         <IconoBuscar size={20} color="var(--texto-suave)" />

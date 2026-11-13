@@ -7,6 +7,7 @@ import productosRoutes from './modules/productos/productos.routes.js';
 import comprobantesRoutes from './modules/comprobantes/comprobantes.routes.js';
 import movimientosRoutes from './modules/movimientos/movimientos.routes.js';
 import salidasRoutes from './modules/salidas/salidas.routes.js';
+import recuentosRoutes from './modules/recuentos/recuentos.routes.js';
 
 const router = Router();
 
@@ -20,5 +21,6 @@ router.use('/productos', productosRoutes);
 router.use('/comprobantes', comprobantesRoutes);
 router.use('/movimientos', movimientosRoutes);
 router.use('/salidas', salidasRoutes);
+router.use('/recuentos', recuentosRoutes);
 
 export default router;

@@ -4,7 +4,8 @@ import { api } from '../lib/api.js';
 import { leerNumero, mostrarNumero } from '../lib/numeros.js';
 import { unidadCorta } from '../lib/unidades.js';
 import { nuevoIdOperacion } from '../lib/idOperacion.js';
-import { IconoBuscar, IconoCheck, IconoCodigo } from '../components/iconos.jsx';
+import { IconoCheck } from '../components/iconos.jsx';
+import BuscadorProducto from '../components/BuscadorProducto.jsx';
 import './Salidas.css';
 
 const MOTIVOS = [
@@ -173,7 +174,7 @@ export default function Salidas() {
         ))}
       </div>
 
-      <BuscadorProducto onElegir={agregar} />
+      <BuscadorProducto onElegir={agregar} soloConStock />
 
       <div className="card carrito">
         {lineas.length === 0 ? (
@@ -263,95 +264,6 @@ function ResumenSalida({ salida, onCerrar }) {
           Ver movimientos
         </Link>
       </div>
-    </div>
-  );
-}
-
-function BuscadorProducto({ onElegir }) {
-  const [q, setQ] = useState('');
-  const [resultados, setResultados] = useState([]);
-  const [buscando, setBuscando] = useState(false);
-  const [aviso, setAviso] = useState('');
-
-  useEffect(() => {
-    if (q.trim().length < 2) {
-      setResultados([]);
-      return undefined;
-    }
-    const t = setTimeout(() => {
-      setBuscando(true);
-      api
-        .get(`/productos?q=${encodeURIComponent(q.trim())}`)
-        .then((r) => setResultados(r.slice(0, 8)))
-        .catch(() => setResultados([]))
-        .finally(() => setBuscando(false));
-    }, 250);
-    return () => clearTimeout(t);
-  }, [q]);
-
-  function elegir(p) {
-    onElegir(p);
-    setQ('');
-    setAviso('');
-  }
-
-  // Un lector de códigos escribe el código y manda Enter: si coincide
-  // exactamente (o hay un solo resultado), se agrega directo.
-  async function alEnter(e) {
-    if (e.key !== 'Enter' || !q.trim()) return;
-    e.preventDefault();
-    const texto = q.trim();
-    try {
-      const r = await api.get(`/productos?q=${encodeURIComponent(texto)}`);
-      const exacto = r.find((p) => p.codigoBarras === texto) ?? (r.length === 1 ? r[0] : null);
-      if (!exacto) {
-        setAviso(r.length === 0 ? 'No hay productos con ese nombre o código.' : 'Elegí el producto de la lista.');
-        return;
-      }
-      if (exacto.stockActual <= 0) {
-        setAviso(`${exacto.nombre} no tiene stock.`);
-        return;
-      }
-      elegir(exacto);
-    } catch (err) {
-      setAviso(err.message);
-    }
-  }
-
-  return (
-    <div className="salidas__buscador">
-      <div className="input">
-        <IconoBuscar size={18} color="var(--texto-suave)" />
-        <input
-          placeholder="Buscar por nombre o código"
-          value={q}
-          onChange={(e) => {
-            setQ(e.target.value);
-            setAviso('');
-          }}
-          onKeyDown={alEnter}
-          aria-label="Buscar producto"
-          enterKeyHint="search"
-        />
-        <IconoCodigo size={18} color="var(--texto-suave)" />
-      </div>
-      {aviso && <p className="salidas__nota">{aviso}</p>}
-      {q.trim().length >= 2 && (
-        <ul className="salidas__resultados">
-          {buscando && <li className="salidas__nota">Buscando…</li>}
-          {!buscando && resultados.length === 0 && <li className="salidas__nota">Sin resultados.</li>}
-          {resultados.map((p) => (
-            <li key={p.id}>
-              <button onClick={() => elegir(p)} disabled={p.stockActual <= 0}>
-                <span>{p.nombre}</span>
-                <small>
-                  {p.stockActual <= 0 ? 'Sin stock' : `Hay ${mostrarNumero(p.stockActual)} ${unidadCorta(p.unidadMedida)}`}
-                </small>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
     </div>
   );
 }

@@ -1,0 +1,206 @@
+/* HU14 · Recuento de stock. Misma estructura visual que Nueva salida (HU13). */
+.recuento__titulo {
+  font-size: var(--fs-titulo);
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+.recuento__ayuda {
+  margin-bottom: 16px;
+  font-size: var(--fs-texto);
+  color: var(--texto-suave);
+}
+.recuento__nota {
+  padding: 0 2px 10px;
+  font-size: var(--fs-detalle);
+  color: var(--texto-suave);
+}
+
+/* --- Productos contados --- */
+.recuento__lista {
+  padding: 4px 16px;
+  margin-bottom: 10px;
+}
+.recuento__vacio {
+  padding: 24px 0;
+  text-align: center;
+  color: var(--texto-suave);
+}
+.recuento__linea {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    'datos contado'
+    'diferencia contado'
+    'quitar contado'
+    'problema problema';
+  column-gap: 12px;
+  row-gap: 4px;
+  align-items: center;
+  padding: 14px 0;
+}
+.recuento__linea + .recuento__linea {
+  border-top: 1px solid var(--borde);
+}
+.recuento__datos {
+  grid-area: datos;
+  min-width: 0;
+}
+.recuento__datos strong {
+  display: block;
+  font-size: var(--fs-producto);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.recuento__datos span {
+  font-size: var(--fs-detalle);
+  color: var(--texto-suave);
+}
+.recuento__diferencia {
+  grid-area: diferencia;
+  min-height: 22px;
+}
+.recuento__igual {
+  font-size: var(--fs-detalle);
+  font-weight: 600;
+  color: var(--texto-suave);
+}
+.recuento__quitar {
+  grid-area: quitar;
+  justify-self: start;
+  padding: 4px 0;
+  font-size: var(--fs-detalle);
+  font-weight: 700;
+  color: var(--rojo);
+}
+.recuento__contado {
+  grid-area: contado;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.recuento__contado span {
+  font-size: var(--fs-detalle);
+  font-weight: 700;
+  color: var(--texto-suave);
+}
+.recuento__contado input {
+  width: 88px;
+  height: 44px;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-sm);
+  background: var(--superficie);
+  text-align: center;
+  font-family: inherit;
+  font-size: var(--fs-producto);
+  font-weight: 700;
+  color: var(--oscuro);
+}
+.recuento__contado input:focus {
+  outline: 2px solid var(--salvia-oscuro);
+  outline-offset: -2px;
+}
+.recuento__linea--error .recuento__contado input {
+  border-color: var(--rojo);
+}
+.recuento__problema {
+  grid-area: problema;
+  margin-top: 4px;
+  font-size: var(--fs-detalle);
+  font-weight: 700;
+  color: var(--rojo);
+}
+.recuento__resumen {
+  margin-bottom: 14px;
+  padding: 0 2px;
+  font-size: var(--fs-detalle);
+  font-weight: 600;
+  color: var(--oscuro);
+}
+
+/* --- Observación y confirmación --- */
+.recuento__observacion {
+  margin-bottom: 14px;
+}
+.recuento__observacion span {
+  font-size: var(--fs-detalle);
+  font-weight: 700;
+  color: var(--texto-suave);
+}
+.recuento__observacion textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  background: var(--crema-claro);
+  font-family: inherit;
+  font-size: var(--fs-texto);
+  color: var(--oscuro);
+  resize: vertical;
+}
+.recuento__observacion textarea:focus {
+  outline: none;
+  border-color: var(--salvia-oscuro);
+}
+.recuento__error {
+  margin-bottom: 12px;
+}
+
+/* --- Resultado --- */
+.recuento__resultado {
+  padding: 16px;
+  margin-bottom: 16px;
+  border-color: var(--salvia);
+}
+.recuento__resultado h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: var(--fs-seccion);
+  font-weight: 800;
+  color: var(--fg-en-stock);
+}
+.recuento__resultado ul {
+  list-style: none;
+  margin: 4px 0 14px;
+}
+.recuento__resultado li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 12px;
+  align-items: center;
+  padding: 8px 0;
+  font-size: var(--fs-texto);
+}
+.recuento__resultado li + li {
+  border-top: 1px dashed var(--borde);
+}
+.recuento__resultado li > span:nth-child(2) {
+  color: var(--texto-suave);
+  text-align: right;
+}
+.recuento__resultado li > :last-child {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+.recuento__resultado strong {
+  color: var(--oscuro);
+}
+.recuento__acciones {
+  display: flex;
+  gap: 10px;
+}
+.recuento__acciones .btn {
+  flex: 1;
+  padding: 11px 14px;
+}
+
+@media (min-width: 900px) {
+  .recuento__titulo {
+    font-size: 32px;
+  }
+  .recuento {
+    max-width: 720px;
+  }
+}

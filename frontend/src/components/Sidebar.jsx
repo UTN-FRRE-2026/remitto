@@ -7,6 +7,7 @@ import {
   IconoProductos,
   IconoMovimientos,
   IconoSalidas,
+  IconoRecuento,
   IconoPrecios,
   IconoAsistente,
   IconoIntegraciones,
@@ -22,6 +23,7 @@ const principales = [
   { to: '/productos', label: 'Productos', Icono: IconoProductos },
   { to: '/movimientos', label: 'Movimientos', Icono: IconoMovimientos },
   { to: '/salidas', label: 'Salidas', Icono: IconoSalidas },
+  { to: '/recuento', label: 'Recuento', Icono: IconoRecuento },
   { to: '/precios', label: 'Precios y reportes', Icono: IconoPrecios },
   { to: '/asistente', label: 'Asistente', Icono: IconoAsistente },
 ];
