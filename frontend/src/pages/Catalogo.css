@@ -207,3 +207,9 @@
 .categoria__acciones .btn {
   padding: 10px 14px;
 }
+
+/* --- Usuarios (HU3) --- */
+.usuario__vos {
+  font-weight: 600;
+  color: var(--texto-suave);
+}

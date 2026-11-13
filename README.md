@@ -11,23 +11,22 @@ automática de comprobantes de compra mediante Inteligencia Artificial.
 
 ## Estado actual
 
-Sprint 1 en curso. Están implementadas las historias HU1 a HU14 y la
-aplicación está desplegada en producción con Coolify, a partir de `main`.
-Del Sprint 1 falta la pantalla de administración de usuarios (HU3), que hoy
-tiene solo backend.
+Están implementadas las historias del Sprint 1 (HU1 a HU14) y HU15 del
+Sprint 2. La aplicación está desplegada en producción con Coolify, a partir
+de `main`. La instalación de la PWA en Android (HU7) todavía no se probó.
 
 Ya implementado:
 
 | Requerimiento | Historias | Estado |
 |---|---|---|
-| **RF1** Usuarios y acceso | HU1 (login), HU2 (roles), HU3 (admin usuarios) | ✅ Backend |
+| **RF1** Usuarios y acceso | HU1 (login), HU2 (roles), HU3 (admin usuarios) | ✅ Backend y pantallas |
 | **RF2** Catálogo | HU4 (productos), HU5 (categorías), HU6 (proveedores) | ✅ Backend y pantallas |
 | **RNF4** PWA móvil | HU7 (instalable) | ✅ Base |
 | **RF3** Ingesta de comprobantes | HU8 (carga), HU9 (lectura con IA), HU10 (revisión), HU11 (entradas de stock), HU15 (asociación automática) | ✅ Backend y pantallas M3/M4/M5 |
 | **Existencias** | HU12 (movimientos y existencias) | ✅ Backend y pantalla Movimientos |
 | **Salidas** | HU13 (carrito de salida) | ✅ Backend y pantalla Nueva salida |
 | **Recuento** | HU14 (ajuste por recuento) | ✅ Backend y pantalla Recuento |
-| Frontend | Login, Tablero, Productos (alta y edición), Proveedores, Categorías, Cargar remito, Lectura con IA, Revisar remito, Movimientos, Nueva salida, Recuento | ✅ Vistas base |
+| Frontend | Login, Tablero, Productos (alta y edición), Proveedores, Categorías, Usuarios, Cargar remito, Lectura con IA, Revisar remito, Movimientos, Nueva salida, Recuento | ✅ Vistas base |
 
 Están completos el flujo de ingreso (cargar → leer con IA → revisar →
 confirmar), el de salida (carrito → confirmar) y el recuento (contar →
@@ -359,6 +358,22 @@ empleado (403) y el frontend no le muestra estas pantallas.
   a uno. Al eliminar una categoría sus productos quedan sin categoría; no se
   borra ninguno. En **Productos**, todos los usuarios pueden filtrar por
   categoría.
+
+### Usuarios (HU3)
+
+La pantalla **Usuarios** (`/usuarios`, solo propietario; en escritorio en
+«Configuración» y en el celular desde **Cuenta**) lista quién opera el sistema
+con su rol y permite el alta, la edición y la desactivación.
+
+- El correo no se repite y no distingue mayúsculas: se guarda en minúsculas y
+  el inicio de sesión acepta «Carlos@…» igual que «carlos@…».
+- La contraseña tiene entre 6 y 72 caracteres. Al editar, vacía no se cambia;
+  así el propietario puede asignar una nueva si alguien la olvida.
+- Un usuario no se elimina: se desactiva y se puede reactivar. Desactivado no
+  puede iniciar sesión y, si tenía una sesión abierta, su siguiente pedido
+  recibe 401 (el backend relee el usuario en cada pedido).
+- El propietario no puede desactivarse ni quitarse el rol desde sus propios
+  datos, así el comercio nunca queda sin propietario.
 
 ### Backend en Docker (opcional)
 

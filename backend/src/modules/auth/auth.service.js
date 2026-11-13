@@ -15,7 +15,10 @@ function datosPublicos(usuario) {
 
 // HU1: inicia sesión validando credenciales y devuelve un token + el usuario.
 export async function login({ email, password }) {
-  const usuario = await prisma.usuario.findUnique({ where: { email } });
+  // Sin distinguir mayúsculas: «Carlos@...» entra igual que «carlos@...» (HU3).
+  const usuario = await prisma.usuario.findFirst({
+    where: { email: { equals: email.trim(), mode: 'insensitive' } },
+  });
 
   // Mensaje genérico para no revelar si el correo existe.
   if (!usuario || !usuario.activo) {
