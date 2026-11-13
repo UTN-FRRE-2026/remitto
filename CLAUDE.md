@@ -38,7 +38,7 @@ TFI de UTN FRRe (Tecnicatura Universitaria en Programación): PWA de gestión de
 
 - Un solo comercio con roles propietario y empleado. No es un punto de venta: las salidas son en unidades, sin precios de venta, cobros ni facturación.
 - La lectura de IA es una propuesta: se conservan lo leído (`*Extraido`, `respuesta_ia`) y lo corregido por separado, y el stock solo entra con confirmación humana. Un comprobante confirmado no se vuelve a ingresar ni se resetea.
-- Todo cambio de stock pasa por `registrarMovimiento` de `backend/src/modules/stock/stock.service.js`, en la misma transacción que su movimiento, con stock anterior y bloqueo de la fila del producto (las salidas bloquean varios productos en orden de id). `stock_actual` debe coincidir con la suma de movimientos.
+- Todo cambio de stock pasa por `registrarMovimiento` de `backend/src/modules/stock/stock.service.js`, en la misma transacción que su movimiento, con stock anterior y bloqueo de la fila del producto. Las operaciones con varios productos (ingresos, salidas, recuentos) los bloquean en orden de id para no trabarse entre sí; mantené ese orden. `stock_actual` debe coincidir con la suma de movimientos.
 - Reutilizá los servicios existentes para nuevas entradas, salidas y ajustes, conservando las garantías de reenvío (idempotencia) y concurrencia.
 - Usá `Prisma.Decimal` para cantidades y precios. Respetá las restricciones `CHECK` y las validaciones existentes.
 - Los permisos se controlan en el backend; ocultar un botón no alcanza.

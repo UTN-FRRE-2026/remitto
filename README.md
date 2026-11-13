@@ -11,10 +11,10 @@ automática de comprobantes de compra mediante Inteligencia Artificial.
 
 ## Estado actual
 
-Sprint 1 en curso. Están implementadas las historias HU1 a HU13 y la
+Sprint 1 en curso. Están implementadas las historias HU1 a HU14 y la
 aplicación está desplegada en producción con Coolify, a partir de `main`.
-Del Sprint 1 falta la pantalla de administración de usuarios (HU3, hoy solo
-backend). La próxima historia es el recuento de stock (HU14).
+Del Sprint 1 faltan las pantallas de administración de usuarios (HU3) y del
+catálogo (HU4 a HU6), que hoy tienen solo backend.
 
 Ya implementado:
 
@@ -26,12 +26,13 @@ Ya implementado:
 | **RF3** Ingesta de comprobantes | HU8 (carga), HU9 (lectura con IA), HU10 (revisión), HU11 (entradas de stock) | ✅ Backend y pantallas M3/M4/M5 |
 | **Existencias** | HU12 (movimientos y existencias) | ✅ Backend y pantalla Movimientos |
 | **Salidas** | HU13 (carrito de salida) | ✅ Backend y pantalla Nueva salida |
-| Frontend | Login, Tablero, Productos, Cargar remito, Lectura con IA, Revisar remito, Movimientos, Nueva salida | ✅ Vistas base |
+| **Recuento** | HU14 (ajuste por recuento) | ✅ Backend y pantalla Recuento |
+| Frontend | Login, Tablero, Productos, Cargar remito, Lectura con IA, Revisar remito, Movimientos, Nueva salida, Recuento | ✅ Vistas base |
 
 Están completos el flujo de ingreso (cargar → leer con IA → revisar →
-confirmar) y el de salida (carrito → confirmar). Cada movimiento queda en el
-historial de Movimientos.
-El resto del backlog (recuento, integración, alertas, agente, reportes) se incorpora en las historias siguientes.
+confirmar), el de salida (carrito → confirmar) y el recuento (contar →
+ajustar). Cada movimiento queda en el historial de Movimientos.
+El resto del backlog (integración, alertas, agente, reportes) se incorpora en las historias siguientes.
 
 Documentación del proyecto en [`docs/`](docs/README.md): [estado y continuidad](docs/estado-proyecto.md),
 [plan de trabajo con las HU](docs/plan-de-trabajo.md) y [guía de maquetación](docs/maquetacion.md).
@@ -255,6 +256,42 @@ producto.
   confirmarlo.
 - Las salidas aparecen en **Movimientos** (HU12).
 
+### Ajuste de stock por recuento (HU14)
+
+La pantalla **Recuento** (`/recuento`, propietario y empleado; en el celular se
+abre desde **Productos**) registra lo que se contó en el comercio. Se buscan
+los productos por nombre o código, se carga la cantidad contada (0 si no hay)
+y se ve en el momento la diferencia con el stock del sistema y un resumen
+(faltantes, sobrantes, sin diferencia).
+
+`POST /api/recuentos` hace todo en **una sola transacción**: bloquea los
+productos en orden de id (como las salidas y la confirmación de ingresos),
+vuelve a validar y, por cada producto con diferencia, registra un
+`MovimientoStock` AJUSTE/RECUENTO por `contado − registrado` mediante
+`stock.service.js`.
+
+- Sin diferencia no se registra movimiento. El movimiento guarda el stock
+  anterior: lo contado es `stock_anterior + cantidad`.
+- Al agregar un producto, la pantalla lee su stock y su **versión**
+  (`GET /api/recuentos/producto/:id`): el id de su último movimiento. Cada
+  línea envía ambos (`stockRegistrado`, `ultimoMovimientoId`). Al confirmar,
+  con los productos ya bloqueados, si alguno tuvo **cualquier** movimiento
+  desde que se leyó (una venta, un ingreso, otro recuento o el mismo recuento
+  reenviado), responde 409 con el stock y la versión actuales y no ajusta
+  ninguno. Como los ids solo crecen, esto vale aunque el stock haya vuelto al
+  mismo valor (por ejemplo: 10 → recuento a 12 → venta de 2 → 10; reenviar el
+  recuento no vuelve a sumar). La pantalla toma los valores nuevos para
+  revisar el conteo y confirmar de nuevo.
+- Garantías: un recuento se aplica una sola vez, nunca pisa movimientos
+  posteriores a su lectura y es todo o nada. No hay idempotencia con
+  respuesta: si se pierde la respuesta y se reintenta, se recibe el 409 (no
+  el resumen original); los ajustes quedan en **Movimientos**.
+- Responde 201 si registró algún ajuste y 200 si no había diferencias.
+- Mismas reglas que el carrito: hasta 3 decimales y unidades y paquetes
+  enteros. Los productos desactivados no se ajustan.
+- Los ajustes aparecen en **Movimientos** con el motivo «Recuento» y la
+  observación cargada. El borrador se guarda en la pestaña (`sessionStorage`).
+
 ### Backend en Docker (opcional)
 
 El servicio `backend` usa el perfil `app`, así que `docker compose up -d`
@@ -346,6 +383,8 @@ POSTGRES_PASSWORD=prueba123 JWT_SECRET=prueba CORS_ORIGIN=http://localhost:8088 
 | `GET` | `/api/movimientos/conciliacion` (productos con stock descuadrado) | propietario |
 | `POST` | `/api/salidas` (carrito; 201, o 200 con `repetida` si se reenvía) | autenticado |
 | `GET` | `/api/salidas` · `?limite=` · `/api/salidas/:id` | autenticado |
+| `GET` | `/api/recuentos/producto/:id` (stock y versión para el recuento) | autenticado |
+| `POST` | `/api/recuentos` (201 con ajustes, 200 sin diferencias, 409 si hubo movimientos desde la lectura) | autenticado |
 
 ---
 

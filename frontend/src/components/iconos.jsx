@@ -184,3 +184,12 @@ export const IconoUsuarios = (p) => (
     <path d="M17.5 14.3A5.5 5.5 0 0 1 20.5 20" />
   </svg>
 );
+
+export const IconoRecuento = (p) => (
+  // Planilla con tilde: recuento físico del stock (HU14).
+  <svg {...base} {...p}>
+    <path d="M9 4h6a1 1 0 0 1 1 1v1H8V5a1 1 0 0 1 1-1Z" />
+    <path d="M8 5H6a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2" />
+    <path d="m9 13.5 2 2 4-4.5" />
+  </svg>
+);
