@@ -4,8 +4,8 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 
 ## Referencia verificada (13/11/2026)
 
-- `origin/main` en `048b676` (merge del PR #12, HU5). Todas las ramas remotas anteriores están integradas.
-- **Publicado, pendiente de integrar:** HU3 (pantalla de usuarios) en la rama `feature/HU3-usuarios`, creada desde `048b676`, con PR abierto a `main`.
+- `origin/main` en `bb3a501` (merge del PR #13, HU3). Todas las ramas remotas anteriores están integradas.
+- **Publicado, pendiente de integrar:** ajuste de la asociación de HU15 en la rama `feature/HU15-ajuste-asociacion`, creada desde `bb3a501`, con PR abierto a `main`.
 - **Trabajo en pausa, sin commit:** HU21 (claves de integración) quedó guardada solo en la copia local de Maxi: un stash de Git sobre la rama `feature/HU21-claves-integracion` y un patch equivalente en `retomar/HU21-en-progreso.patch`, fuera del repositorio, con las instrucciones para recuperarla. Tiene el backend con sus pruebas y la pantalla sin terminar. No está en `origin`.
 - No se consultaron PR abiertos ni Issues: la CLI `gh` no estaba disponible.
 
@@ -26,6 +26,7 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 | HU15 asociación automática al catálogo | [PR #10](https://github.com/UTN-FRRE-2026/remitto/pull/10) |
 | HU4 productos y HU6 proveedores (pantallas) | [PR #11](https://github.com/UTN-FRRE-2026/remitto/pull/11) |
 | HU5 categorías (pantalla y filtro en Productos) | [PR #12](https://github.com/UTN-FRRE-2026/remitto/pull/12) |
+| HU3 usuarios (pantalla) y verificación de permisos de HU2 | [PR #13](https://github.com/UTN-FRRE-2026/remitto/pull/13) |
 
 HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa que se haya comprobado ahora cada criterio de aceptación.
 
@@ -33,13 +34,21 @@ HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa qu
 
 | Estado observado | Historias |
 | --- | --- |
-| Backend y pantalla | HU1 inicio de sesión, HU2 roles (rutas protegidas y menú según rol), HU4 a HU6, HU8 a HU15 |
-| Implementada en rama con PR abierto | HU3 usuarios (alta, edición, desactivación y reactivación) |
+| Backend y pantalla | HU1 a HU6, HU8 a HU15 |
+| Ajuste en rama con PR abierto | HU15: medidas, variantes y abreviaturas en la asociación |
 | En pausa (stash) | HU21 claves de integración |
 | Base existente | HU7 PWA (`vite-plugin-pwa`); instalación en Android no comprobada |
 | Sin implementar | HU16 a HU20 y HU22 a HU31. `/comprobantes`, `/asistente`, `/precios` e `/integraciones` son `EnConstruccion`; `simulador/` solo tiene un README |
 
-## Validación de HU3 y permisos de HU2 (13/11/2026, rama `feature/HU3-usuarios`)
+## Ajuste de la asociación de HU15 (13/11/2026, rama `feature/HU15-ajuste-asociacion`)
+
+Corrige lo encontrado en la revisión: números sin unidad, conversión ml/l y g/kg, punto de miles, `C.C.` y `1/2 KG`; variantes propuestas como confiables (palabra leída que el producto no tiene o descripción que cubre poco del nombre → tope 0,79); abreviatura en un solo sentido («PAÑALES» ya no se asocia con «Pan»); empates resueltos por menor id; el aviso «Revisar» ya no aparece en comprobantes confirmados; rendimiento aproximadamente 2,5 veces mejor.
+
+- `npm test`: 140 correctas (6 nuevas en `test/asociacion.test.js`; los casos claros anteriores siguen pasando). `npm run build` correcto.
+- No se volvió a probar de punta a punta: `comprobantes.procesamiento.js` no cambió y las líneas de la lectura simulada están cubiertas por las pruebas unitarias.
+- **Pendiente:** calibrar con remitos reales leídos por Gemini. La regla de la palabra sobrante es conservadora: si los remitos traen marcas que el catálogo no tiene, más líneas van a quedar destacadas.
+
+## Validación de HU3 y permisos de HU2 (13/11/2026, integrada en el PR #13)
 
 - `npm test` en `backend/`: 134 pruebas correctas (4 nuevas en `test/usuarios.test.js`). `npm run build` correcto.
 - Contra una base descartable (eliminada al terminar): 44 controles de API y de pantalla correctos. Incluyen los permisos de HU2 que el plan pedía probar (401 sin sesión o con token inválido; 403 del empleado en usuarios, altas del catálogo y conciliación; 200 en sus consultas) y HU3: correo único sin distinguir mayúsculas, login con mayúsculas, cambio de contraseña, desactivación que corta una sesión abierta, reactivación y protección del propio propietario.

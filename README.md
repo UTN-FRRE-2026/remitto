@@ -224,15 +224,24 @@ productos activos:
 1. Si el código impreso coincide con un código de barras del catálogo (8 o
    más dígitos), la confianza es 1.
 2. Si no, se compara la descripción con el nombre de cada producto, palabra por
-   palabra: se normalizan mayúsculas, acentos, `C/` y `S/` y las medidas
-   (`500ML` = `500 ml`, `1.5L` = `1,5 l`, `CC` = `ml`). Una palabra igual vale 1;
-   una abreviatura («gall» → «galletitas»), 0,9; un error de tipeo leve, hasta
-   0,9. Pesa 70 % cuánto de lo leído explica el producto y 30 % cuánto del
-   nombre aparece en lo leído.
-3. Si las medidas no coinciden (500 ml contra 2,25 l), el puntaje se divide
-   por 2. Si otro producto queda casi empatado (diferencia menor a 0,05), la
-   asociación es ambigua: la confianza se limita a 0,79, siempre por debajo
-   del umbral, aunque los dos coincidan perfecto.
+   palabra: se normalizan mayúsculas, acentos, `C/` y `S/`, y se ignoran
+   palabras de envase (`PACK`, `CAJA`, `BOT`…) y multiplicadores (`X6`). Una
+   palabra igual vale 1; una abreviatura de la del producto («gall» →
+   «galletitas»), 0,9; un error de tipeo leve, hasta 0,9. La abreviatura vale
+   en ese sentido: «PAÑALES» no se explica por «Pan». Pesa 70 % cuánto de lo
+   leído explica el producto y 30 % cuánto del nombre aparece en lo leído.
+3. Las medidas se comparan por su valor: `500ML` = `500 ml`, `1500ML` =
+   `1,5 l`, `1000G` = `1 kg`, `CC` y `C.C.` = `ml`, `1.000 GR` = 1000 g,
+   `1/2 KG` = 0,5 kg, y un número sin unidad (`COLA 500`) coincide con cualquier
+   medida de ese número. Dos números sueltos se comparan como texto (la
+   harina «000» no es la «0000»). Si las medidas no coinciden, el puntaje se
+   divide por 2.
+4. La confianza se limita a 0,79 (siempre se destaca) si la propuesta es
+   dudosa: otro producto queda casi empatado (diferencia menor a 0,05; ante un
+   empate exacto se propone el de menor id); alguna palabra leída no aparece
+   en el producto, lo que suele indicar otra variante («SIN palo» frente a
+   «con palo», «LIGHT», otra marca); o lo leído cubre menos del 60 % del
+   nombre del producto («COLA» frente a «Gaseosa cola 500 ml»).
 
 Umbrales: desde **0,8** la propuesta es confiable; entre 0,5 y 0,8 se propone
 pero la línea se **destaca** («Revisar · 74 %») y «Validar datos» lo avisa sin
@@ -248,6 +257,12 @@ formulario; el empleado puede buscar otro producto).
 - El stock sigue entrando solo con «Confirmar ingreso» (HU11).
 - Los comprobantes leídos antes de HU15 no tienen propuestas. Las equivalencias
   aprendidas por proveedor son de HU16.
+- Rendimiento medido con catálogos sintéticos y 40 líneas: 0,3 s con 1.000
+  productos y 1,8 s con 5.000. El cálculo es síncrono y no entra en la medición
+  de tiempo del RNF2.
+- Al corregir una propuesta no se conserva cuál había sido (el producto y la
+  confianza se reemplazan). Si HU19 necesita medir los aciertos de la
+  asociación, hará falta guardarla aparte.
 
 ### Movimientos y existencias (HU12)
 

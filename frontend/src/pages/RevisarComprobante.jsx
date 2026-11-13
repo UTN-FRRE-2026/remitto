@@ -507,10 +507,11 @@ function Linea({ comprobanteId, detalle: d, leida, editable, esPropietario, umbr
                   <span className="badge badge--sin-stock">Desactivado</span>
                 ) : a.propuesta ? (
                   <span
-                    className={`badge ${a.dudosa ? 'badge--stock-bajo' : 'badge--ia'}`}
+                    className={`badge ${editable && a.dudosa ? 'badge--stock-bajo' : 'badge--ia'}`}
                     title="Propuesto automáticamente según la descripción leída"
                   >
-                    {a.dudosa ? 'Revisar' : 'Propuesto'} · {porciento(a.confianza)}
+                    {/* Confirmado el ingreso ya no hay nada que revisar. */}
+                    {editable && a.dudosa ? 'Revisar' : 'Propuesto'} · {porciento(a.confianza)}
                   </span>
                 ) : (
                   <span className="badge badge--en-stock">Asociado</span>
