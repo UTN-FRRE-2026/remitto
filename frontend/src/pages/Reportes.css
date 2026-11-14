@@ -171,3 +171,62 @@
     max-width: 820px;
   }
 }
+
+/* --- Vistas: reposición (HU27) y sin movimiento (HU29) --- */
+.reportes__vistas {
+  margin-bottom: 14px;
+}
+.reportes__proveedor-cabeza {
+  font-size: var(--fs-producto);
+  color: var(--oscuro);
+  font-weight: 800;
+  border-bottom: 1px solid var(--borde);
+}
+.reportes__pedido {
+  padding-left: 0;
+}
+.reportes__pedir {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+  text-align: right;
+}
+.reportes__pedir strong {
+  color: var(--salvia-oscuro);
+}
+.reportes__enlace {
+  flex-shrink: 0;
+  font-size: var(--fs-detalle);
+  font-weight: 700;
+  color: var(--salvia-oscuro);
+}
+.reportes__periodos {
+  margin: 10px 0 8px;
+}
+.reportes__fechas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.reportes__fechas label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--fs-detalle);
+  font-weight: 700;
+  color: var(--texto-suave);
+}
+.reportes__fechas input {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  background: var(--crema-claro);
+  font-family: inherit;
+  font-size: var(--fs-texto);
+  color: var(--oscuro);
+}
+.reportes__resumen-sin-mov .reportes__monto {
+  font-size: var(--fs-seccion);
+}

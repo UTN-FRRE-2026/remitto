@@ -1,6 +1,6 @@
 # Manual del usuario de Remitto
 
-Versión del 14/11/2026, correspondiente a `main` con las historias HU1 a HU18 y HU28. Las capturas usan los datos ficticios de ejemplo («Almacén Don Carlos») y una lectura con IA simulada.
+Versión del 14/11/2026, correspondiente a `main` con las historias HU1 a HU18 y HU27 a HU29. Las capturas usan los datos ficticios de ejemplo («Almacén Don Carlos») y una lectura con IA simulada.
 
 ## Contenido
 
@@ -71,7 +71,7 @@ El Inicio muestra:
 
 - el acceso rápido **Cargar un remito**;
 - la cantidad de productos activos y cuántos están **en stock**, con **stock bajo** (en el mínimo o por debajo) y **sin stock**;
-- **Para reponer**: los productos sin stock o con stock bajo, con su cantidad actual frente al mínimo. **Ver todo** abre Productos con el filtro de stock bajo.
+- **Para reponer**: los productos sin stock o con stock bajo, con su cantidad actual frente al mínimo. Para el propietario, **Ver sugerencia** abre cuánto pedir a cada proveedor (ver [Reposición](#reposición-qué-pedir-y-cuánto)); para el empleado, **Ver todo** abre Productos con el filtro de stock bajo.
 - **Remitos por revisar**: los remitos leídos que esperan revisión; tocá uno para retomarlo. **Ver comprobantes** abre el archivo de comprobantes (ver [sección 5](#comprobantes-cargados)).
 
 ## 5. Ingresar mercadería con un remito
@@ -253,6 +253,26 @@ En el menú lateral, **Precios y reportes**; en el celular, desde **Cuenta**. Mu
 - **Productos con stock sin precio de compra** (recuadro dorado): no entran en el total porque todavía no tienen un precio registrado. El precio se guarda al confirmar un remito que lo traiga.
 - Los productos sin stock o desactivados no se valorizan. Solo el propietario ve este reporte.
 
+Arriba de la pantalla, las pestañas **Valorización**, **Reposición** y **Sin movimiento** cambian de reporte.
+
+### Reposición: qué pedir y cuánto
+
+<img src="manual/23-reposicion.png" alt="Sugerencia de reposición agrupada por proveedor" width="300">
+
+Lista los productos que están en su **stock mínimo o por debajo** y cuánto pedir de cada uno para llegar a su **stock deseado** (las unidades y los paquetes se redondean hacia arriba).
+
+- Están agrupados por el **proveedor al que se le compró por última vez**, con el costo estimado al último precio. Los que nunca se compraron con un remito aparecen en «Sin proveedor registrado».
+- Los productos sin stock deseado aparecen aparte: tocá **Definir deseado** para completarlo en el producto.
+
+### Sin movimiento: mercadería inmovilizada
+
+<img src="manual/24-sin-movimiento.png" alt="Productos sin salidas en los últimos 30 días" width="300">
+
+Muestra los productos **con stock que no tuvieron salidas** (ventas, consumo interno, roturas, vencimientos) en el período: por defecto los últimos 30 días; cambialo con **Últimos 60 o 90 días** o con las fechas **Desde** y **Hasta**.
+
+- Cada producto muestra su stock, cuánto vale a su último precio de compra y cuándo fue su última salida (o «Nunca tuvo salidas»).
+- Arriba, el **capital inmovilizado**: la suma de esos valores. Los productos sin precio de compra se listan al final y no suman.
+
 ## 11. Preguntas frecuentes y mensajes
 
 **¿Por qué no cambió el stock después de leer un remito?**
@@ -287,4 +307,4 @@ Puede estar desactivado: el propietario lo ve con el filtro **Desactivados** y l
 - Los campos de fecha aparecen en formato mm/dd/aaaa porque el navegador de las capturas estaba en inglés; en un celular en castellano se ven como dd/mm/aaaa.
 - La campana del Inicio todavía no tiene función (las alertas son de HU24).
 - La sección de instalación describe el procedimiento estándar de Chrome; la instalación en un Android real todavía no se probó (HU7).
-- Al implementar más historias, agregar sus secciones (Comprobantes, Precios y reportes, Asistente, Integraciones) y actualizar la lista de «En construcción».
+- Al implementar más historias, agregar sus secciones (Asistente, Integraciones, evolución de precios) y actualizar la lista de «En construcción».

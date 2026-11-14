@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
+import { rangoFechas } from '../movimientos/movimientos.service.js';
 
 // HU28 (RF8.1): valorización de existencias a precio de compra.
 // - Se valorizan los productos activos con stock positivo: stock × último
@@ -113,4 +114,168 @@ export async function valorizacion(db = prisma) {
       .map((f) => [f.id, { precioUnitario: f.precioUnitario, fechaVigencia: f.fechaVigencia, proveedor: f.proveedor }]),
   );
   return { generadoEn: filas[0]?.generadoEn ?? new Date(), ...valorizar(productos, precios) };
+}
+
+// ---------------------------------------------------------------------------
+// HU27 (RF6.2): sugerencia de reposición.
+// - Entran los productos activos con stock mínimo definido (> 0) y el stock en
+//   el mínimo o por debajo: el mismo criterio de «stock bajo» que el resto de
+//   la aplicación (Inicio, Productos).
+// - La cantidad sugerida lleva el producto a su stock deseado (deseado −
+//   actual). Las unidades y los paquetes se redondean hacia arriba; kilos y
+//   litros, a 3 decimales.
+// - Se agrupa por el proveedor del último precio de compra (el mismo «último»
+//   que la valorización). Sin compras registradas: «Sin proveedor registrado».
+// - Sin stock deseado (o con un deseado que no supera el stock) no se puede
+//   calcular cuánto pedir: se informan aparte para completarlo.
+
+const ENTERAS = new Set(['UNIDAD', 'PAQUETE']);
+const SIN_PROVEEDOR = 'Sin proveedor registrado';
+
+export function cantidadSugerida(stockActual, stockDeseado, unidadMedida) {
+  if (stockDeseado == null) return null;
+  const falta = new Prisma.Decimal(stockDeseado).minus(stockActual);
+  if (falta.lte(0)) return null;
+  return ENTERAS.has(unidadMedida)
+    ? falta.toDecimalPlaces(0, Prisma.Decimal.ROUND_UP).toNumber()
+    : falta.toDecimalPlaces(3, Prisma.Decimal.ROUND_UP).toNumber();
+}
+
+// Arma la sugerencia (pura). filas: productos activos con su último precio.
+export function sugerir(filas) {
+  const proveedores = new Map();
+  const sinDeseado = [];
+  let productos = 0;
+  let costoTotal = cero;
+  let productosSinPrecio = 0;
+
+  for (const f of filas) {
+    const stock = new Prisma.Decimal(f.stockActual);
+    const minimo = new Prisma.Decimal(f.stockMinimo);
+    if (minimo.lte(0) || stock.gt(minimo)) continue;
+    const base = {
+      id: f.id,
+      nombre: f.nombre,
+      unidadMedida: f.unidadMedida,
+      categoria: f.categoriaNombre ?? SIN_CATEGORIA,
+      stockActual: stock.toNumber(),
+      stockMinimo: minimo.toNumber(),
+      stockDeseado: f.stockDeseado == null ? null : new Prisma.Decimal(f.stockDeseado).toNumber(),
+    };
+    const cantidad = cantidadSugerida(stock, f.stockDeseado, f.unidadMedida);
+    if (cantidad == null) {
+      sinDeseado.push(base);
+      continue;
+    }
+    const precio = f.precioUnitario == null ? null : new Prisma.Decimal(f.precioUnitario);
+    const costo = precio ? aCentavos(precio.times(cantidad)) : null;
+    const clave = f.proveedorId ?? 0;
+    if (!proveedores.has(clave)) {
+      proveedores.set(clave, { id: f.proveedorId ?? null, nombre: f.proveedor ?? SIN_PROVEEDOR, costo: cero, conPrecio: 0, productos: [] });
+    }
+    const grupo = proveedores.get(clave);
+    grupo.productos.push({ ...base, cantidad, ultimoPrecio: precio?.toNumber() ?? null, costo: costo?.toNumber() ?? null });
+    if (costo) {
+      grupo.costo = grupo.costo.plus(costo);
+      grupo.conPrecio += 1;
+      costoTotal = costoTotal.plus(costo);
+    } else {
+      productosSinPrecio += 1;
+    }
+    productos += 1;
+  }
+
+  const porNombre = (a, b) => a.nombre.localeCompare(b.nombre, 'es');
+  return {
+    productos,
+    // Costo estimado al último precio; no incluye los productos sin precio.
+    costoEstimado: costoTotal.toNumber(),
+    productosSinPrecio,
+    proveedores: [...proveedores.values()]
+      .map((g) => ({ ...g, costo: g.costo.toNumber(), productos: g.productos.sort(porNombre) }))
+      // Proveedores con nombre primero; «Sin proveedor registrado» al final.
+      .sort((a, b) => (a.id == null) - (b.id == null) || porNombre(a, b)),
+    sinDeseado: sinDeseado.sort(porNombre),
+  };
+}
+
+// Productos activos con su último precio y proveedor: una sola sentencia, así
+// stock y precio salen de la misma foto de la base (como la valorización).
+function consultaProductos(condicion, columnasExtra = Prisma.empty) {
+  return Prisma.sql`
+    SELECT p.id, p.nombre, p.unidad_medida::text AS "unidadMedida", p.stock_actual AS "stockActual",
+           p.stock_minimo AS "stockMinimo", p.stock_deseado AS "stockDeseado", p.creado_en AS "creadoEn",
+           c.nombre AS "categoriaNombre",
+           u.precio_unitario AS "precioUnitario", u.fecha_vigencia AS "fechaVigencia",
+           u.proveedor_id AS "proveedorId", u.proveedor,
+           now() AS "generadoEn" ${columnasExtra}
+    FROM productos p
+    LEFT JOIN categorias c ON c.id = p.categoria_id
+    LEFT JOIN LATERAL (
+      SELECT pc.precio_unitario, pc.fecha_vigencia, pr.id AS proveedor_id, pr.razon_social AS proveedor
+      FROM precios_compra pc
+      JOIN proveedores pr ON pr.id = pc.proveedor_id
+      WHERE pc.producto_id = p.id
+      ORDER BY pc.fecha_vigencia DESC, pc.creado_en DESC, pc.id DESC
+      LIMIT 1
+    ) u ON true
+    WHERE p.activo ${condicion}`;
+}
+
+export async function reposicion(db = prisma) {
+  const filas = await db.$queryRaw(consultaProductos(Prisma.sql`AND p.stock_minimo > 0 AND p.stock_actual <= p.stock_minimo`));
+  return { generadoEn: filas[0]?.generadoEn ?? new Date(), ...sugerir(filas) };
+}
+
+// ---------------------------------------------------------------------------
+// HU29 (RF8.2): productos sin movimiento.
+// - Productos activos con stock que no tuvieron ninguna SALIDA (venta, consumo,
+//   rotura, vencimiento…) entre «desde» y «hasta» (días en hora de Argentina,
+//   «hasta» inclusivo). Los ajustes por recuento y los ingresos no cuentan.
+// - Cada uno muestra su stock, su valor a último precio de compra (si tiene) y
+//   la fecha de su última salida (puede ser anterior al período o no existir).
+
+const DIA_MS = 24 * 60 * 60 * 1000;
+
+export function inmovilizados(filas, { hasta }) {
+  let total = cero;
+  let sinPrecio = 0;
+  const productos = filas
+    .map((f) => {
+      const stock = new Prisma.Decimal(f.stockActual);
+      const precio = f.precioUnitario == null ? null : new Prisma.Decimal(f.precioUnitario);
+      const valor = precio ? aCentavos(stock.times(precio)) : null;
+      if (valor) total = total.plus(valor);
+      else sinPrecio += 1;
+      const ultima = f.ultimaSalida ? new Date(f.ultimaSalida) : null;
+      return {
+        id: f.id,
+        nombre: f.nombre,
+        unidadMedida: f.unidadMedida,
+        categoria: f.categoriaNombre ?? SIN_CATEGORIA,
+        stockActual: stock.toNumber(),
+        ultimoPrecio: precio?.toNumber() ?? null,
+        valor: valor?.toNumber() ?? null,
+        ultimaSalida: ultima,
+        // Días desde la última salida hasta el fin del período (null: nunca salió).
+        diasSinSalida: ultima ? Math.max(0, Math.floor((hasta.getTime() - ultima.getTime()) / DIA_MS)) : null,
+        creadoEn: f.creadoEn,
+      };
+    })
+    // Mayor capital inmovilizado primero; sin precio al final, por nombre.
+    .sort((a, b) => (b.valor ?? -1) - (a.valor ?? -1) || a.nombre.localeCompare(b.nombre, 'es'));
+  return { productos, valorTotal: total.toNumber(), productosSinPrecio: sinPrecio };
+}
+
+export async function sinMovimiento({ desde, hasta }, db = prisma) {
+  const rango = rangoFechas(desde, hasta);
+  const filas = await db.$queryRaw(
+    consultaProductos(
+      Prisma.sql`AND p.stock_actual > 0 AND NOT EXISTS (
+        SELECT 1 FROM movimientos_stock m
+        WHERE m.producto_id = p.id AND m.tipo = 'SALIDA' AND m.fecha >= ${rango.gte} AND m.fecha < ${rango.lt})`,
+      Prisma.sql`, (SELECT max(m.fecha) FROM movimientos_stock m WHERE m.producto_id = p.id AND m.tipo = 'SALIDA') AS "ultimaSalida"`,
+    ),
+  );
+  return { desde, hasta, generadoEn: filas[0]?.generadoEn ?? new Date(), ...inmovilizados(filas, { hasta: rango.lt }) };
 }
