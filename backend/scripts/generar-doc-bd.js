@@ -1,6 +1,8 @@
 // Genera docs/base-de-datos.md (diseño de la base de datos) a partir del
 // modelo de Prisma y de las restricciones SQL de las migraciones.
-// Uso: npm run doc-bd. No se conecta a la base.
+// Uso: npm run doc-bd. No se conecta a la base. Lee el modelo del cliente de
+// Prisma generado: después de cambiar el esquema o traer cambios, correr antes
+// `npm run prisma:generate`, o el documento sale con el modelo anterior.
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';

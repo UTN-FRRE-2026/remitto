@@ -200,3 +200,25 @@ test('HU17: la marca de revisada se guarda y se puede quitar', () => {
   assert.equal(actualizarDetalleSchema.safeParse({ revisada: true }).success, true);
   assert.equal(actualizarDetalleSchema.safeParse({ revisada: 'si' }).success, false);
 });
+
+// --- Fecha de emisión (corrección de la revisión de HU28) ---
+
+test('la fecha de emisión no puede ser futura; hoy y fechas pasadas sí', async () => {
+  const { hoyArgentina } = await import('../src/modules/comprobantes/comprobantes.schema.js');
+  const hoy = hoyArgentina();
+  const manana = hoyArgentina(new Date(Date.now() + 36 * 3600 * 1000));
+  assert.equal(actualizarCabeceraSchema.safeParse({ fechaEmision: hoy }).success, true);
+  assert.equal(actualizarCabeceraSchema.safeParse({ fechaEmision: '2026-01-15' }).success, true);
+  const futura = actualizarCabeceraSchema.safeParse({ fechaEmision: manana });
+  assert.equal(futura.success, false);
+  assert.match(futura.error.issues[0].message, /posterior a hoy/);
+  assert.equal(actualizarCabeceraSchema.safeParse({ fechaEmision: '2062-09-28' }).success, false);
+  assert.equal(actualizarCabeceraSchema.safeParse({ fechaEmision: null }).success, true);
+});
+
+test('el día de hoy se calcula en hora de Argentina', async () => {
+  const { hoyArgentina } = await import('../src/modules/comprobantes/comprobantes.schema.js');
+  // 01:00 UTC del 15/11 todavía es 14/11 en Argentina (UTC−3).
+  assert.equal(hoyArgentina(new Date('2026-11-15T01:00:00Z')), '2026-11-14');
+  assert.equal(hoyArgentina(new Date('2026-11-15T03:30:00Z')), '2026-11-15');
+});

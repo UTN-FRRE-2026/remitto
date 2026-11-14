@@ -36,3 +36,6 @@ export function tituloComprobante(c) {
   if (c.numero) return `${tipo} ${c.numero}`;
   return c.numeroLeido ? `${tipo} · leído ${c.numeroLeido}` : `${tipo} sin número`;
 }
+
+// Día de hoy en Argentina (AAAA-MM-DD): tope de la fecha de emisión.
+export const hoyArgentina = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Argentina/Buenos_Aires' });

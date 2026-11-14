@@ -7,7 +7,7 @@ import { ErrorIa, formatearError } from '../../ia/errores.js';
 import { VERSION_ESQUEMA } from '../../ia/esquemaComprobante.js';
 import { leerArchivo } from './comprobantes.archivos.js';
 import { proponerAsociacion } from './comprobantes.asociacion.js';
-import { buscarEquivalencia, equivalenciasDelProveedor } from './comprobantes.equivalencias.js';
+import { buscarEquivalencia, equivalenciasDelProveedor, elegirPropuesta } from './comprobantes.equivalencias.js';
 
 // HU9: lectura con IA en segundo plano, sin infraestructura extra.
 //
@@ -239,11 +239,9 @@ async function proponerAsociaciones(comprobanteId, lineas) {
       prisma.producto.findMany({ where: { activo: true }, select: { id: true, nombre: true, codigoBarras: true } }),
       equivalenciasDelProveedor(prisma, proveedorId),
     ]);
-    return lineas.map((l) => {
-      const equivalencia = buscarEquivalencia(l, equivalencias);
-      // Confianza 1, o dudosa si la equivalencia es ambigua (HU16).
-      return equivalencia ? { productoId: equivalencia.productoId, confianza: equivalencia.confianza } : proponerAsociacion(l, productos);
-    });
+    // Una equivalencia segura manda; una dudosa no tapa una coincidencia
+    // confiable del catálogo, como un código de barras exacto (HU15/HU16).
+    return lineas.map((l) => elegirPropuesta(buscarEquivalencia(l, equivalencias), proponerAsociacion(l, productos)));
   } catch (err) {
     console.warn(`[IA] No se pudieron proponer asociaciones: ${err.message}`);
     return lineas.map(() => ({ productoId: null, confianza: null }));
