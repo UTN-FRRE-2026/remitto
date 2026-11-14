@@ -4,12 +4,12 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 
 ## Referencia verificada (14/11/2026)
 
-- `origin/main` en `31fd649` (merge del PR #18, HU18). Todas las ramas remotas anteriores están integradas.
+- `origin/main` en `c203c4e` (merge del PR #19, HU17). Todas las ramas remotas están integradas.
 - **Primera entrega del TPI: lunes 16/11/2026.** Consigna y entregables en [entrega-tpi.md](entrega-tpi.md).
-- **Publicado, pendiente de integrar:** HU17 (revisión obligatoria en comprobantes dudosos) en la rama `feature/HU17-revision-obligatoria`, con PR abierto a `main`. Incluye una migración (columna `revisada`).
-- Los PDF de la documentación probatoria se generaron el 14/11 fuera del repositorio (`../remitto-entrega/`) y se regeneraron con HU17 y HU18 (manual y requerimientos).
+- **Trabajo local, con commit y sin publicar,** a nombre de Agostina Jara, en dos ramas independientes desde `c203c4e`: HU16 (equivalencias por proveedor) en `feature/HU16-equivalencias-proveedor` y HU28 (valorización de existencias) en `feature/HU28-valorizacion-existencias`. No se publicaron porque en la máquina donde se hicieron solo hay credenciales de GitHub de otro integrante.
+- Los PDF de la documentación probatoria se generaron el 14/11 fuera del repositorio (`../remitto-entrega/`).
 - **Trabajo en pausa, sin commit:** HU21 (claves de integración) quedó guardada solo en la copia local de Maxi: un stash de Git sobre la rama `feature/HU21-claves-integracion` y un patch equivalente en `retomar/HU21-en-progreso.patch`, fuera del repositorio, con las instrucciones para recuperarla. Tiene el backend con sus pruebas y la pantalla sin terminar. No está en `origin`.
-- PR #1 a #18 integrados en `main`; los PR se crean con la CLI `gh`.
+- PR #1 a #19 integrados en `main`.
 
 ## Integrado en `main`
 
@@ -34,6 +34,7 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 | Lista de requerimientos y diseño de la base de datos | [PR #16](https://github.com/UTN-FRRE-2026/remitto/pull/16) |
 | Manual del usuario | [PR #17](https://github.com/UTN-FRRE-2026/remitto/pull/17) |
 | HU18 comprobantes archivados | [PR #18](https://github.com/UTN-FRRE-2026/remitto/pull/18) |
+| HU17 revisión obligatoria en comprobantes dudosos (con migración: columna `revisada`) | [PR #19](https://github.com/UTN-FRRE-2026/remitto/pull/19) |
 
 HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa que se haya comprobado ahora cada criterio de aceptación.
 
@@ -41,18 +42,25 @@ HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa qu
 
 | Estado observado | Historias |
 | --- | --- |
-| Backend y pantalla | HU1 a HU6, HU8 a HU15, HU18 |
-| Implementada en rama con PR abierto | HU17 revisión obligatoria en comprobantes dudosos |
+| Backend y pantalla | HU1 a HU6, HU8 a HU15, HU17, HU18 |
+| Implementada en rama local, sin publicar | HU16 equivalencias por proveedor y HU28 valorización de existencias (ramas separadas) |
 | En pausa (stash) | HU21 claves de integración |
 | Base existente | HU7 PWA (`vite-plugin-pwa`); instalación en Android no comprobada |
-| Sin implementar | HU16, HU19, HU20 y HU22 a HU31 (HU26 parcial). `/asistente`, `/precios` e `/integraciones` son `EnConstruccion`; `simulador/` solo tiene un README |
+| Sin implementar | HU19, HU20, HU22 a HU27 y HU29 a HU31 (HU26 parcial). `/asistente` e `/integraciones` son `EnConstruccion`; `simulador/` solo tiene un README |
 
-## Validación de HU17 (14/11/2026, rama `feature/HU17-revision-obligatoria`)
+## Validación de HU28 (14/11/2026, rama local `feature/HU28-valorizacion-existencias`)
+
+- `npm test`: 153 correctas (5 nuevas en `test/valorizacion.test.js`, una con 200 casos generados que comprueba que el total coincide con la suma por categoría pese al redondeo). `npm run build` correcto.
+- Integración contra una base descartable (`remitto_hu28`, migraciones y seed, eliminada al terminar) con la IA simulada; los precios se crean confirmando remitos: 26 controles correctos. Cubren permisos (200 propietario, 403 empleado, 401 sin sesión), base sin precios (todo aparte), último precio por fecha de vigencia y no por orden de carga, total igual a la suma por categoría y a un cálculo independiente en SQL, productos sin precio aparte y sin duplicarse, grupo «Sin categoría» con kilos y centavos, producto desactivado fuera del reporte, y una salida que baja el total en stock × último precio.
+- Recorrido automatizado en el navegador de la app: propietario en escritorio y a 375 px (total, categorías, despliegue de productos, productos sin precio, acceso desde Cuenta, sin desplazamiento horizontal) y empleado (mensaje y sin acceso en Cuenta).
+- **Pendiente:** revisarlo con los precios reales del comercio y en un celular real.
+
+## Validación de HU17 (14/11/2026, integrada en el PR #19)
 
 - `npm test`: 148 correctas (4 nuevas en `test/revision.test.js`). `npm run build` correcto.
 - Migración aplicada en una base descartable; `prisma migrate diff` contra el esquema sin diferencias.
 - 23 controles de API y pantalla con la IA simulada: un comprobante de baja calidad exige marcar cada línea (validar y confirmar dan 400 sin las marcas, sin cambiar el estado), marcar y deshacer, línea manual revisada, confirmación con todas revisadas, marca bloqueada después de confirmar, comprobante normal sin exigencia, aviso y cuenta en pantalla a 390 px.
-- **Al integrar:** quien trabaje con base local tiene que aplicar la migración (`npx prisma migrate deploy` o `npm run prisma:migrate`).
+- **Base local:** quien trabaje con base local tiene que aplicar la migración (`npx prisma migrate deploy` o `npm run prisma:migrate`).
 
 ## Validación de HU18 (14/11/2026, integrada en el PR #18)
 

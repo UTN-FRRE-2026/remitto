@@ -14,9 +14,9 @@ Para el detalle de lo verificado en cada entrega, ver [estado-proyecto.md](estad
 
 | | Historias | Puntos del plan |
 | --- | --- | --- |
-| Implementadas | 17 (HU1 a HU15, HU17 y HU18) | 57 de 100 obligatorios |
+| Implementadas | 18 (HU1 a HU15, HU17, HU18 y HU28) | 59 de 100 obligatorios |
 | Parciales | 1 (HU26) | 3 |
-| Pendientes obligatorias | 11 (HU16, HU19 a HU25, HU27 a HU29) | 40 |
+| Pendientes obligatorias | 10 (HU16, HU19 a HU25, HU27 y HU29) | 38 |
 | Deseables pendientes | 2 (HU30, HU31) | 5 (fuera de los 100) |
 
 ## Requerimientos funcionales
@@ -84,7 +84,7 @@ Para el detalle de lo verificado en cada entrega, ver [estado-proyecto.md](estad
 
 | Sub. | Descripción | HU | Estado | Qué falta |
 | --- | --- | --- | --- | --- |
-| RF8.1 | Valorización de existencias | HU28 | Pendiente | Los precios de compra ya se registran al confirmar |
+| RF8.1 | Valorización de existencias | HU28 | Implementado | Pantalla Precios y reportes: valor por categoría a último precio de compra y productos sin precio aparte · `GET /api/reportes/valorizacion` |
 | RF8.2 | Productos sin movimiento | HU29 | Pendiente | — |
 | RF8.3 | Evolución de precios de compra | HU20 | Pendiente | Los datos se registran en `precios_compra` |
 | RF8.4 | Tablero de situación | HU26 | Parcial | El tablero muestra indicadores de stock, productos para reponer y remitos por revisar. Faltan las alertas activas y el valor del stock |

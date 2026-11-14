@@ -1,0 +1,173 @@
+/* Precios y reportes · HU28 valorización de existencias. */
+.reportes__titulo {
+  font-size: var(--fs-titulo);
+  font-weight: 800;
+  margin-bottom: 16px;
+}
+.reportes__vacio {
+  padding: 20px 16px;
+  text-align: center;
+  color: var(--texto-suave);
+}
+
+/* --- Total --- */
+.reportes__total {
+  padding: 18px 16px;
+  margin-bottom: 14px;
+}
+.reportes__total h2 {
+  font-size: var(--fs-seccion);
+  font-weight: 800;
+}
+.reportes__monto {
+  display: block;
+  margin: 6px 0 4px;
+  font-size: var(--fs-titulo);
+  font-weight: 800;
+  color: var(--salvia-oscuro);
+  overflow-wrap: anywhere;
+}
+.reportes__total p {
+  font-size: var(--fs-detalle);
+  color: var(--texto-suave);
+}
+
+/* --- Categorías --- */
+.reportes__categorias {
+  padding: 4px 16px;
+  margin-bottom: 14px;
+}
+.reportes__encabezado,
+.reportes__suma {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  font-size: var(--fs-detalle);
+  font-weight: 700;
+  color: var(--texto-suave);
+}
+.reportes__suma {
+  border-top: 2px solid var(--borde);
+  font-size: var(--fs-texto);
+  color: var(--oscuro);
+}
+.reportes__categoria {
+  border-top: 1px solid var(--borde);
+}
+.reportes__fila {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    'nombre valor'
+    'barra barra';
+  gap: 6px 12px;
+  width: 100%;
+  padding: 12px 0;
+  text-align: left;
+  color: var(--oscuro);
+}
+.reportes__fila:hover {
+  background: var(--crema-claro);
+}
+.reportes__nombre {
+  grid-area: nombre;
+  min-width: 0;
+  font-size: var(--fs-producto);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.reportes__nombre small {
+  display: block;
+  font-size: var(--fs-detalle);
+  font-weight: 500;
+  color: var(--texto-suave);
+}
+.reportes__fila > strong {
+  grid-area: valor;
+  font-size: var(--fs-producto);
+}
+.reportes__barra {
+  grid-area: barra;
+  height: 6px;
+  border-radius: var(--radio-pill);
+  background: var(--crema-claro);
+  overflow: hidden;
+}
+.reportes__barra span {
+  display: block;
+  height: 100%;
+  background: var(--salvia);
+}
+.reportes__productos {
+  list-style: none;
+  padding: 0 0 10px 12px;
+}
+.reportes__productos li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 8px 0;
+  font-size: var(--fs-texto);
+}
+.reportes__productos li + li {
+  border-top: 1px dashed var(--borde);
+}
+.reportes__productos li > span {
+  min-width: 0;
+}
+.reportes__productos small {
+  display: block;
+  font-size: var(--fs-detalle);
+  color: var(--texto-suave);
+}
+.reportes__productos li > strong {
+  flex-shrink: 0;
+}
+
+/* --- Sin precio --- */
+.reportes__sin-precio {
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  border-color: var(--dorado);
+  background: var(--bg-stock-bajo);
+}
+.reportes__sin-precio h2 {
+  font-size: var(--fs-producto);
+  font-weight: 800;
+  color: var(--fg-stock-bajo);
+}
+.reportes__sin-precio p {
+  margin: 4px 0 8px;
+  font-size: var(--fs-detalle);
+  color: var(--fg-stock-bajo);
+}
+.reportes__sin-precio ul {
+  list-style: none;
+}
+.reportes__sin-precio li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  font-size: var(--fs-texto);
+}
+.reportes__sin-precio li + li {
+  border-top: 1px dashed var(--dorado);
+}
+.reportes__sin-precio small {
+  color: var(--texto-suave);
+}
+.reportes__pie {
+  font-size: var(--fs-detalle);
+  color: var(--texto-suave);
+}
+
+@media (min-width: 900px) {
+  .reportes__titulo {
+    font-size: 32px;
+  }
+  .reportes {
+    max-width: 820px;
+  }
+}

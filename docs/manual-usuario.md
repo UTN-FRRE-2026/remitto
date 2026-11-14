@@ -1,6 +1,6 @@
 # Manual del usuario de Remitto
 
-Versión del 14/11/2026, correspondiente a `main` con las historias HU1 a HU15, HU17 y HU18. Las capturas usan los datos ficticios de ejemplo («Almacén Don Carlos») y una lectura con IA simulada.
+Versión del 14/11/2026, correspondiente a `main` con las historias HU1 a HU15, HU17, HU18 y HU28. Las capturas usan los datos ficticios de ejemplo («Almacén Don Carlos») y una lectura con IA simulada.
 
 ## Contenido
 
@@ -61,7 +61,7 @@ Remitto es una aplicación web instalable (PWA). En Chrome para Android, abrí l
 
 <img src="manual/20-tablero-escritorio.png" alt="Tablero en la computadora, con el menú lateral" width="640">
 
-Algunas secciones del menú todavía muestran «En construcción»: **Precios y reportes**, **Asistente** e **Integraciones**. Se habilitan en las próximas versiones.
+Algunas secciones del menú todavía muestran «En construcción»: **Asistente** e **Integraciones**. Se habilitan en las próximas versiones.
 
 ## 4. Inicio (tablero)
 
@@ -242,6 +242,15 @@ Se abre desde **Configuración** en el menú lateral (computadora) o desde **Cue
 - Al editar, la contraseña se puede dejar vacía para no cambiarla, o completar para asignar una nueva si la persona la olvidó.
 - **Desactivar usuario:** no puede volver a ingresar y, si tenía una sesión abierta, deja de funcionar en su siguiente acción. Lo que registró se conserva. Se puede reactivar.
 - En tus propios datos no podés quitarte el rol de propietario ni desactivarte, para que el comercio nunca quede sin administrador.
+
+### Precios y reportes: valorización de existencias
+
+En el menú lateral, **Precios y reportes**; en el celular, desde **Cuenta**. Muestra cuánto vale tu stock a precio de compra:
+
+- **El total** suma los productos con stock, cada uno multiplicado por su **último precio de compra** (el del remito más reciente que lo trajo con precio).
+- **Por categoría:** cada fila muestra su valor y qué parte del total representa. Tocala para ver los productos, con el stock, el precio usado, su fecha y el proveedor. La suma de las categorías es igual al total.
+- **Productos con stock sin precio de compra** (recuadro dorado): no entran en el total porque todavía no tienen un precio registrado. El precio se guarda al confirmar un remito que lo traiga.
+- Los productos sin stock o desactivados no se valorizan. Solo el propietario ve este reporte.
 
 ## 11. Preguntas frecuentes y mensajes
 

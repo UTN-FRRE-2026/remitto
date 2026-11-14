@@ -8,6 +8,7 @@ import comprobantesRoutes from './modules/comprobantes/comprobantes.routes.js';
 import movimientosRoutes from './modules/movimientos/movimientos.routes.js';
 import salidasRoutes from './modules/salidas/salidas.routes.js';
 import recuentosRoutes from './modules/recuentos/recuentos.routes.js';
+import reportesRoutes from './modules/reportes/reportes.routes.js';
 
 const router = Router();
 
@@ -22,5 +23,6 @@ router.use('/comprobantes', comprobantesRoutes);
 router.use('/movimientos', movimientosRoutes);
 router.use('/salidas', salidasRoutes);
 router.use('/recuentos', recuentosRoutes);
+router.use('/reportes', reportesRoutes);
 
 export default router;
