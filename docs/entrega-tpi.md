@@ -38,7 +38,7 @@ Estado al 13/11/2026, según el repositorio. Lo que se prepara fuera del repo (a
 | Lista de Requerimientos | [requerimientos.md](requerimientos.md), con el estado de cada uno | Exportarla en el formato de entrega |
 | Diseño de la Base de Datos | [base-de-datos.md](base-de-datos.md) y diagrama [der-remitto.png](referencias/der-remitto.png) | Exportarlo en el formato de entrega |
 | Maquetación de la Aplicación | [maquetacion.html](referencias/maquetacion.html) y [guía](maquetacion.md) | Exportarla en el formato de entrega |
-| Manual del Usuario | No existe | Redactarlo |
+| Manual del Usuario | [manual-usuario.md](manual-usuario.md), con capturas de HU1 a HU15 | Revisarlo, completarlo con las historias que se agreguen y exportarlo |
 | Infografía (exposición) | No existe | Vertical, con el contenido del plan de trabajo |
 | Exposición y defensa oral | — | Preparar la demo en vivo y repartir la participación entre los tres integrantes |
 
