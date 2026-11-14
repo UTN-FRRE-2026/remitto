@@ -148,6 +148,7 @@ erDiagram
     integer clave_integracion_id FK
     text referencia_externa
     timestamp_3 fecha_externa
+    jsonb pedido_externo
     timestamp_3 registrada_en
   }
   movimientos_stock {
@@ -391,6 +392,7 @@ Cabecera que agrupa los movimientos de salida confirmados juntos. - CARRITO: usu
 | `clave_integracion_id` | integer | sí | FK → claves_integracion | — |
 | `referencia_externa` | text | sí | — | INTEGRACION: id de la operación en el sistema externo (ticket, venta). CARRITO: id de operación que genera la app (HU13). Garantiza idempotencia: un reenvío no descuenta dos veces. Para el carrito la unicidad es por usuario (índice parcial en la migración SQL). |
 | `fecha_externa` | timestamp(3) | sí | — | Momento en que ocurrió la venta según el sistema externo. |
+| `pedido_externo` | jsonb | sí | — | INTEGRACION (HU22): petición original normalizada (líneas con su identificador productoId o codigoBarras y cantidades sumadas). Reconoce un reenvío aunque cambie el catálogo. CHECK chk_pedido_externo. |
 | `registrada_en` | timestamp(3) | no | = now() | — |
 
 - Único: (clave_integracion_id, referencia_externa)
@@ -399,6 +401,7 @@ Cabecera que agrupa los movimientos de salida confirmados juntos. - CARRITO: usu
 - CHECK `chk_origen_salida`: `("origen" = 'CARRITO' AND "usuario_id" IS NOT NULL AND "clave_integracion_id" IS NULL) OR ("origen" = 'INTEGRACION' AND "usuario_id" IS NULL AND "clave_integracion_id" IS NOT NULL AND "referencia_externa" IS NOT NULL)` — Origen de la salida coherente con quién la registró
 - CHECK `chk_motivo_salida`: `"motivo" IN ('VENTA', 'CONSUMO_INTERNO', 'ROTURA', 'VENCIMIENTO', 'OTRO')` — Motivos válidos para una salida
 - UNIQUE parcial `uq_salida_carrito_operacion`: `("usuario_id", "referencia_externa") WHERE "origen" = 'CARRITO' AND "referencia_externa" IS NOT NULL` — Un reintento del mismo carrito (mismo id de operación generado por la app) no descuenta dos veces. Las salidas de integración ya son únicas por (clave_integracion_id, referencia_externa); en el carrito esa clave es nula, por eso la unicidad es por usuario.
+- CHECK `chk_pedido_externo`: `("origen" = 'INTEGRACION') = ("pedido_externo" IS NOT NULL)` — Las ventas de integración guardan su petición; las del carrito no.
 
 ### movimientos_stock
 
@@ -535,3 +538,4 @@ Prisma no expresa estas reglas; se agregaron en las migraciones (`backend/prisma
 | salidas | `uq_salida_carrito_operacion` | UNIQUE parcial | `("usuario_id", "referencia_externa") WHERE "origen" = 'CARRITO' AND "referencia_externa" IS NOT NULL` | Un reintento del mismo carrito (mismo id de operación generado por la app) no descuenta dos veces. Las salidas de integración ya son únicas por (clave_integracion_id, referencia_externa); en el carrito esa clave es nula, por eso la unicidad es por usuario. |
 | codigos_proveedor | `uq_codigo_proveedor_descripcion` | UNIQUE parcial | `("proveedor_id", "descripcion") WHERE "codigo" IS NULL` | Una descripción de un proveedor tiene una sola fila por descripción. |
 | claves_integracion | `chk_clave_revocada` | CHECK | `("activa" AND "revocada_en" IS NULL) OR (NOT "activa" AND "revocada_en" IS NOT NULL)` | Una clave activa no tiene fecha de revocación y una revocada sí. |
+| salidas | `chk_pedido_externo` | CHECK | `("origen" = 'INTEGRACION') = ("pedido_externo" IS NOT NULL)` | Las ventas de integración guardan su petición; las del carrito no. |

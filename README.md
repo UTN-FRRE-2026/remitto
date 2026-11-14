@@ -618,11 +618,18 @@ pantalla Integraciones lo enlaza con un ejemplo.
   movimiento `SALIDA` por producto, sin usuario, en una transacción que bloquea
   los productos en orden de id. Las líneas del mismo producto se suman.
 - **Reenvíos:** la referencia es única por clave
-  (`@@unique [clave_integracion_id, referencia_externa]`). Un reenvío con el
-  mismo contenido devuelve la venta original (200, `repetida: true`) sin
-  descontar; con otro contenido, 409. Dos envíos simultáneos de la misma venta:
-  el segundo choca con el índice único y recibe la del primero. Si se cambia
-  de clave, los reenvíos pendientes deben salir con la clave anterior.
+  (`@@unique [clave_integracion_id, referencia_externa]`). Cada venta guarda
+  su petición normalizada en `salidas.pedido_externo` (migración
+  `hu22_pedido_externo`, `CHECK chk_pedido_externo`). Para reconocer un
+  reenvío se comparan **las líneas normalizadas con sus identificadores
+  originales** (cada `productoId` o `codigoBarras` tal como se envió, con las
+  cantidades sumadas y sin importar el orden); **`fecha` no participa**. No se
+  consulta el catálogo: el reenvío exacto devuelve la venta original (200,
+  `repetida: true`) sin descontar, aunque después se haya cambiado o borrado el
+  código de barras o desactivado el producto. Con otras líneas, o con el mismo
+  producto identificado de otra forma, 409. Dos envíos simultáneos de la misma
+  venta: el segundo choca con el índice único y recibe la del primero. Si se
+  cambia de clave, los reenvíos pendientes deben salir con la clave anterior.
 - **Stock insuficiente:** la venta ya ocurrió, así que se registra igual; el
   stock queda negativo y la respuesta lo avisa en `advertencias`. La
   valorización (HU28) lista esos productos aparte. El carrito, en cambio, sigue
@@ -636,7 +643,8 @@ pantalla Integraciones lo enlaza con un ejemplo.
 - **Carga:** las transacciones de salida esperan hasta 10 s una conexión libre
   (`maxWait`); con la espera por defecto (2 s) una ráfaga de ventas sobre los
   mismos productos terminaba en 500. Si aun así no hay conexión, la API
-  responde 503 con `Retry-After` (antes, 500). Un JSON mal formado ahora da 400.
+  responde 503 con `Retry-After` (antes, 500), documentado en el contrato.
+  Un JSON mal formado ahora da 400, y un cuerpo demasiado grande, 413.
 - Las ventas aparecen en Movimientos como «Punto de venta (nombre de la clave)».
 
 ### Pruebas de punta a punta

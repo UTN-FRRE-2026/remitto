@@ -3,10 +3,19 @@
   "info": {
     "title": "Remitto · API de integración con punto de venta",
     "version": "1.0.0",
-    "description": "Permite que un sistema de punto de venta informe sus ventas para que Remitto descuente el stock (RF5.2, HU22).\n\n**Autenticación:** cada pedido lleva una clave de integración que genera el propietario en la pantalla Integraciones (HU21): `Authorization: Bearer rmt_live_…`. La clave completa se muestra una sola vez; si se pierde, se genera otra y se revoca la anterior. Una clave revocada o inexistente recibe 401.\n\n**Idempotencia:** `referencia` identifica la venta en el sistema externo y es única por clave. Si un pedido se reenvía (por un corte de red o un reintento), Remitto responde 200 con `repetida: true` y la venta registrada la primera vez, sin descontar de nuevo. Una referencia ya usada con otros productos o cantidades se rechaza con 409. La unicidad es por clave: al cambiar de clave, los reenvíos pendientes deben mandarse con la clave anterior antes de revocarla.\n\n**Stock negativo:** la venta ya ocurrió en la caja, así que se registra aunque el stock de Remitto no alcance. El producto queda con stock negativo y la respuesta lo informa en `advertencias`.\n\n**Atomicidad:** si alguna línea tiene un problema (producto inexistente o desactivado, fracción de un producto que se vende por unidad), la venta se rechaza entera con 400 y no se descuenta nada.\n\nLas rutas son relativas a `/api/v1/integracion` en el servidor de Remitto."
+    "description": "Permite que un sistema de punto de venta informe sus ventas para que Remitto descuente el stock (RF5.2, HU22).\n\n**Autenticación:** cada pedido lleva una clave de integración que genera el propietario en la pantalla Integraciones (HU21): `Authorization: Bearer rmt_live_…`. La clave completa se muestra una sola vez; si se pierde, se genera otra y se revoca la anterior. Una clave revocada o inexistente recibe 401.\n\n**Idempotencia:** `referencia` identifica la venta en el sistema externo y es única por clave. Si un pedido se reenvía (por un corte de red o un reintento), Remitto responde 200 con `repetida: true` y la venta registrada la primera vez, sin descontar de nuevo. Para reconocer el reenvío se comparan las líneas normalizadas con sus identificadores originales: cada `productoId` o `codigoBarras` tal como se envió (sin espacios en los extremos), con las cantidades sumadas si se repite y sin importar el orden. `fecha` no participa en la comparación. No se consulta el catálogo: el reenvío exacto devuelve la venta original aunque después se haya cambiado o borrado el código de barras o desactivado el producto. La misma referencia con otras líneas se rechaza con 409; también si el mismo producto se identifica de otra forma (por `productoId` en lugar de `codigoBarras`): un reenvío tiene que repetir la petición. La unicidad es por clave: al cambiar de clave, los reenvíos pendientes deben mandarse con la clave anterior antes de revocarla.\n\n**Stock negativo:** la venta ya ocurrió en la caja, así que se registra aunque el stock de Remitto no alcance. El producto queda con stock negativo y la respuesta lo informa en `advertencias`.\n\n**Atomicidad:** si alguna línea tiene un problema (producto inexistente o desactivado, fracción de un producto que se vende por unidad), la venta se rechaza entera con 400 y no se descuenta nada.\n\nLas rutas son relativas a `/api/v1/integracion` en el servidor de Remitto."
   },
-  "servers": [{ "url": "/api/v1/integracion", "description": "Servidor de Remitto (mismo dominio que la aplicación)" }],
-  "security": [{ "claveIntegracion": [] }],
+  "servers": [
+    {
+      "url": "/api/v1/integracion",
+      "description": "Servidor de Remitto (mismo dominio que la aplicación)"
+    }
+  ],
+  "security": [
+    {
+      "claveIntegracion": []
+    }
+  ],
   "paths": {
     "/estado": {
       "get": {
@@ -18,12 +27,22 @@
             "description": "Clave válida",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Estado" },
-                "example": { "ok": true, "clave": { "nombre": "Caja del mostrador", "prefijo": "rmt_live_7a5bce" } }
+                "schema": {
+                  "$ref": "#/components/schemas/Estado"
+                },
+                "example": {
+                  "ok": true,
+                  "clave": {
+                    "nombre": "Caja del mostrador",
+                    "prefijo": "rmt_live_7a5bce"
+                  }
+                }
               }
             }
           },
-          "401": { "$ref": "#/components/responses/NoAutorizado" }
+          "401": {
+            "$ref": "#/components/responses/NoAutorizado"
+          }
         }
       }
     },
@@ -36,7 +55,9 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/Venta" },
+              "schema": {
+                "$ref": "#/components/schemas/Venta"
+              },
               "examples": {
                 "porCodigoDeBarras": {
                   "summary": "Ticket con códigos de barras",
@@ -44,25 +65,51 @@
                     "referencia": "CAJA1-0001-00004512",
                     "fecha": "2026-11-14T18:32:05-03:00",
                     "lineas": [
-                      { "codigoBarras": "7790001000012", "cantidad": 2 },
-                      { "codigoBarras": "7790001000029", "cantidad": 1 }
+                      {
+                        "codigoBarras": "7790001000012",
+                        "cantidad": 2
+                      },
+                      {
+                        "codigoBarras": "7790001000029",
+                        "cantidad": 1
+                      }
                     ]
                   }
                 },
                 "porIdentificador": {
                   "summary": "Venta por identificador de producto, con kilos",
-                  "value": { "referencia": "VTA-98765", "lineas": [{ "productoId": 4, "cantidad": 1.25 }] }
+                  "value": {
+                    "referencia": "VTA-98765",
+                    "lineas": [
+                      {
+                        "productoId": 4,
+                        "cantidad": 1.25
+                      }
+                    ]
+                  }
                 }
               }
             }
           }
         },
         "responses": {
+          "200": {
+            "description": "Reenvío de una venta ya registrada (mismas líneas normalizadas con sus identificadores originales; `fecha` no participa): no se descuenta de nuevo y se devuelve la venta original con `repetida: true`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VentaRegistrada"
+                }
+              }
+            }
+          },
           "201": {
             "description": "Venta registrada; el stock se descontó.",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/VentaRegistrada" },
+                "schema": {
+                  "$ref": "#/components/schemas/VentaRegistrada"
+                },
                 "example": {
                   "id": 31,
                   "referencia": "CAJA1-0001-00004512",
@@ -70,49 +117,106 @@
                   "registradaEn": "2026-11-14T21:32:06.418Z",
                   "lineas": [
                     {
-                      "producto": { "id": 1, "nombre": "Gaseosa cola 500 ml", "codigoBarras": "7790001000012", "unidadMedida": "UNIDAD" },
+                      "producto": {
+                        "id": 1,
+                        "nombre": "Gaseosa cola 500 ml",
+                        "codigoBarras": "7790001000012",
+                        "unidadMedida": "UNIDAD"
+                      },
                       "cantidad": 2,
                       "stockAnterior": 58,
                       "stockNuevo": 56
                     },
                     {
-                      "producto": { "id": 3, "nombre": "Yerba mate con palo 1 kg", "codigoBarras": "7790001000029", "unidadMedida": "UNIDAD" },
+                      "producto": {
+                        "id": 3,
+                        "nombre": "Yerba mate con palo 1 kg",
+                        "codigoBarras": "7790001000029",
+                        "unidadMedida": "UNIDAD"
+                      },
                       "cantidad": 1,
                       "stockAnterior": 0,
                       "stockNuevo": -1
                     }
                   ],
                   "advertencias": [
-                    { "productoId": 3, "mensaje": "Yerba mate con palo 1 kg quedó con stock negativo (-1). Conviene hacer un recuento." }
+                    {
+                      "productoId": 3,
+                      "mensaje": "Yerba mate con palo 1 kg quedó con stock negativo (-1). Conviene hacer un recuento."
+                    }
                   ],
                   "repetida": false
                 }
               }
             }
           },
-          "200": {
-            "description": "Reenvío de una venta ya registrada con el mismo contenido: no se descuenta de nuevo y se devuelve la venta original con `repetida: true`.",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/VentaRegistrada" } } }
-          },
           "400": {
             "description": "Datos inválidos o una línea con problemas. No se descontó nada.",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" },
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
                 "example": {
                   "error": "Revisá la venta: no se descontó ningún producto.",
-                  "detalles": [{ "campo": "lineas.1.codigoBarras", "mensaje": "No hay un producto con el código de barras 7790000000000." }]
+                  "detalles": [
+                    {
+                      "campo": "lineas.1.codigoBarras",
+                      "mensaje": "No hay un producto con el código de barras 7790000000000."
+                    }
+                  ]
                 }
               }
             }
           },
-          "401": { "$ref": "#/components/responses/NoAutorizado" },
+          "401": {
+            "$ref": "#/components/responses/NoAutorizado"
+          },
           "409": {
-            "description": "La referencia ya se registró con otros productos o cantidades.",
+            "description": "La referencia ya se registró con otras líneas (otros productos, otras cantidades u otro identificador del producto).",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" },
-                "example": { "error": "La venta CAJA1-0001-00004512 ya se registró con otros productos o cantidades. Usá una referencia nueva para otra venta." }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "La venta CAJA1-0001-00004512 ya se registró con otros productos o cantidades. Usá una referencia nueva para otra venta."
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "El cuerpo del pedido supera el tamaño admitido. No se registró nada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "El cuerpo del pedido es demasiado grande."
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Servidor ocupado (no hubo una conexión libre para registrar la venta a tiempo). No se registró nada y se puede reintentar la misma petición: los reenvíos son idempotentes.",
+            "headers": {
+              "Retry-After": {
+                "description": "Segundos que conviene esperar antes de reintentar.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "El servidor está ocupado. Reintentá en unos segundos."
+                }
               }
             }
           }
@@ -133,8 +237,12 @@
         "description": "Falta la clave, o es inválida o está revocada.",
         "content": {
           "application/json": {
-            "schema": { "$ref": "#/components/schemas/Error" },
-            "example": { "error": "Clave de integración inválida o revocada" }
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "error": "Clave de integración inválida o revocada"
+            }
           }
         }
       }
@@ -143,7 +251,10 @@
       "Venta": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["referencia", "lineas"],
+        "required": [
+          "referencia",
+          "lineas"
+        ],
         "properties": {
           "referencia": {
             "type": "string",
@@ -160,18 +271,29 @@
             "type": "array",
             "minItems": 1,
             "maxItems": 200,
-            "items": { "$ref": "#/components/schemas/LineaVenta" }
+            "items": {
+              "$ref": "#/components/schemas/LineaVenta"
+            }
           }
         }
       },
       "LineaVenta": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["cantidad"],
+        "required": [
+          "cantidad"
+        ],
         "description": "Indicar `codigoBarras` o `productoId`, no ambos.",
         "properties": {
-          "codigoBarras": { "type": "string", "minLength": 1, "maxLength": 64 },
-          "productoId": { "type": "integer", "minimum": 1 },
+          "codigoBarras": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "productoId": {
+            "type": "integer",
+            "minimum": 1
+          },
           "cantidad": {
             "type": "number",
             "exclusiveMinimum": true,
@@ -184,30 +306,75 @@
       "Producto": {
         "type": "object",
         "properties": {
-          "id": { "type": "integer" },
-          "nombre": { "type": "string" },
-          "codigoBarras": { "type": "string", "nullable": true },
-          "unidadMedida": { "type": "string", "enum": ["UNIDAD", "KILOGRAMO", "GRAMO", "LITRO", "MILILITRO", "METRO", "PAQUETE"] }
+          "id": {
+            "type": "integer"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "codigoBarras": {
+            "type": "string",
+            "nullable": true
+          },
+          "unidadMedida": {
+            "type": "string",
+            "enum": [
+              "UNIDAD",
+              "KILOGRAMO",
+              "GRAMO",
+              "LITRO",
+              "MILILITRO",
+              "METRO",
+              "PAQUETE"
+            ]
+          }
         }
       },
       "VentaRegistrada": {
         "type": "object",
-        "required": ["id", "referencia", "registradaEn", "lineas", "advertencias", "repetida"],
+        "required": [
+          "id",
+          "referencia",
+          "registradaEn",
+          "lineas",
+          "advertencias",
+          "repetida"
+        ],
         "properties": {
-          "id": { "type": "integer", "description": "Identificador de la salida en Remitto." },
-          "referencia": { "type": "string" },
-          "fecha": { "type": "string", "format": "date-time", "nullable": true },
-          "registradaEn": { "type": "string", "format": "date-time" },
+          "id": {
+            "type": "integer",
+            "description": "Identificador de la salida en Remitto."
+          },
+          "referencia": {
+            "type": "string"
+          },
+          "fecha": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "registradaEn": {
+            "type": "string",
+            "format": "date-time"
+          },
           "lineas": {
             "type": "array",
             "description": "Una por producto, ordenadas por id de producto.",
             "items": {
               "type": "object",
               "properties": {
-                "producto": { "$ref": "#/components/schemas/Producto" },
-                "cantidad": { "type": "number" },
-                "stockAnterior": { "type": "number" },
-                "stockNuevo": { "type": "number" }
+                "producto": {
+                  "$ref": "#/components/schemas/Producto"
+                },
+                "cantidad": {
+                  "type": "number"
+                },
+                "stockAnterior": {
+                  "type": "number"
+                },
+                "stockNuevo": {
+                  "type": "number"
+                }
               }
             }
           },
@@ -216,30 +383,63 @@
             "description": "Productos que quedaron con stock negativo.",
             "items": {
               "type": "object",
-              "properties": { "productoId": { "type": "integer" }, "mensaje": { "type": "string" } }
+              "properties": {
+                "productoId": {
+                  "type": "integer"
+                },
+                "mensaje": {
+                  "type": "string"
+                }
+              }
             }
           },
-          "repetida": { "type": "boolean", "description": "true si el pedido es un reenvío de una venta ya registrada." }
+          "repetida": {
+            "type": "boolean",
+            "description": "true si el pedido es un reenvío de una venta ya registrada."
+          }
         }
       },
       "Estado": {
         "type": "object",
         "properties": {
-          "ok": { "type": "boolean" },
+          "ok": {
+            "type": "boolean"
+          },
           "clave": {
             "type": "object",
-            "properties": { "nombre": { "type": "string" }, "prefijo": { "type": "string" } }
+            "properties": {
+              "nombre": {
+                "type": "string"
+              },
+              "prefijo": {
+                "type": "string"
+              }
+            }
           }
         }
       },
       "Error": {
         "type": "object",
-        "required": ["error"],
+        "required": [
+          "error"
+        ],
         "properties": {
-          "error": { "type": "string" },
+          "error": {
+            "type": "string"
+          },
           "detalles": {
             "type": "array",
-            "items": { "type": "object", "properties": { "campo": { "type": "string" }, "mensaje": { "type": "string" } } }
+            "items": {
+              "type": "object",
+              "properties": {
+                "campo": {
+                  "type": "string"
+                },
+                "mensaje": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { Prisma, UnidadMedida } from '@prisma/client';
 import { ventaSchema, MAX_LINEAS } from '../src/modules/integracion/integracion.schema.js';
-import { agruparLineas, mismoContenido, mapearVenta } from '../src/modules/integracion/integracion.service.js';
+import { agruparLineas, mismoContenido, mapearVenta, normalizarPedido, firmaPedido } from '../src/modules/integracion/integracion.service.js';
 import { problemasDelCarrito } from '../src/modules/salidas/salidas.service.js';
 import { manejadorErrores } from '../src/middlewares/error.js';
 
@@ -24,7 +24,10 @@ test('contrato OpenAPI: campos, límites y unidades coinciden con el backend', (
   assert.equal(Venta.properties.lineas.maxItems, MAX_LINEAS);
   assert.deepEqual(Object.keys(LineaVenta.properties).sort(), ['cantidad', 'codigoBarras', 'productoId']);
   assert.deepEqual(Producto.properties.unidadMedida.enum.sort(), Object.values(UnidadMedida).sort());
-  assert.deepEqual(Object.keys(operacion.responses).sort(), ['200', '201', '400', '401', '409']);
+  assert.deepEqual(Object.keys(operacion.responses).sort(), ['200', '201', '400', '401', '409', '413', '503']);
+  // El 503 que devuelve el manejador de errores, con Retry-After.
+  assert.equal(operacion.responses['503'].headers['Retry-After'].schema.type, 'integer');
+  assert.match(contrato.info.description, /fecha` no participa/);
   assert.ok(contrato.paths['/estado'].get);
 });
 
@@ -62,6 +65,25 @@ test('agrupar líneas: suma el mismo producto y ordena por id', () => {
     { productoId: 2, cantidad: 0.5 },
   ]);
   assert.deepEqual(r.map((l) => [l.productoId, l.cantidad.toString()]), [[2, '0.75'], [5, '3']]);
+});
+
+test('petición normalizada: orden, líneas repetidas, decimales e identificadores originales', () => {
+  const a = normalizarPedido([
+    { codigoBarras: ' 779 ', cantidad: 1 },
+    { productoId: 5, cantidad: 0.5 },
+    { codigoBarras: '779', cantidad: 1 },
+    { productoId: 5, cantidad: 0.25 },
+  ]);
+  assert.deepEqual(a, [{ codigoBarras: '779', cantidad: '2' }, { productoId: 5, cantidad: '0.75' }]);
+  const firma = (lineas) => firmaPedido(normalizarPedido(lineas));
+  // Mismo pedido en otro orden, partido distinto o con 2.0 en lugar de 2.
+  assert.equal(firma([{ productoId: 5, cantidad: 0.75 }, { codigoBarras: '779', cantidad: 2.0 }]), firmaPedido(a));
+  // El identificador original importa: el mismo producto por id es otra petición.
+  assert.notEqual(firma([{ productoId: 1, cantidad: 2 }]), firma([{ codigoBarras: '779', cantidad: 2 }]));
+  assert.notEqual(firma([{ codigoBarras: '779', cantidad: 2 }]), firma([{ codigoBarras: '779', cantidad: 3 }]));
+  assert.notEqual(firma([{ codigoBarras: '779', cantidad: 2 }]), firma([{ codigoBarras: '779', cantidad: 2 }, { productoId: 1, cantidad: 1 }]));
+  // jsonb reordena las claves de cada objeto: la firma no depende de eso.
+  assert.equal(firmaPedido([{ cantidad: '2', codigoBarras: '779' }, { cantidad: '0.75', productoId: 5 }]), firmaPedido(a));
 });
 
 test('reenvío: mismo contenido sin importar el orden; otro contenido no', () => {

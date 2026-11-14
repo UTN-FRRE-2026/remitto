@@ -9,15 +9,45 @@ import { registrarSalida, incluirSalida, esUnico, OPCIONES_TRANSACCION } from '.
 //   cabecera Salida con origen INTEGRACION y un movimiento por producto, todo
 //   en una transacción y bloqueando los productos en orden de id.
 // - Idempotencia: la referencia de la venta es única por clave
-//   (@@unique [clave_integracion_id, referencia_externa]). Un reenvío con el
-//   mismo contenido devuelve la venta ya registrada (200, repetida) y no
-//   descuenta de nuevo; con otro contenido se rechaza (409).
+//   (@@unique [clave_integracion_id, referencia_externa]). Cada venta guarda
+//   su petición normalizada (pedido_externo). Un reenvío con las mismas
+//   líneas normalizadas, con sus identificadores originales, devuelve la venta
+//   ya registrada (200, repetida) sin consultar el catálogo ni descontar de
+//   nuevo, aunque el código de barras haya cambiado o el producto se haya
+//   desactivado. Con otras líneas, se rechaza (409). La fecha no participa.
 // - La venta ya ocurrió en la caja: si el stock no alcanza se registra igual,
 //   el stock queda negativo y la respuesta lo avisa (el recuento, HU14, lo
 //   corrige). Un producto inexistente, desactivado o una fracción de algo que
 //   se vende por unidad rechazan la venta entera (400), sin descontar nada.
 
 const decimal = (v) => new Prisma.Decimal(v);
+
+// Petición normalizada (pura): una línea por identificador tal como llegó
+// (productoId o codigoBarras, que no se mezclan aunque sean el mismo
+// producto), con las cantidades sumadas como texto decimal («2» y «2.0» son
+// iguales) y en orden. No incluye la fecha: un reenvío es la misma venta.
+export function normalizarPedido(lineas) {
+  const porIdentificador = new Map();
+  for (const l of lineas) {
+    const clave = l.productoId !== undefined ? `p:${l.productoId}` : `c:${String(l.codigoBarras).trim()}`;
+    porIdentificador.set(clave, (porIdentificador.get(clave) ?? decimal(0)).plus(l.cantidad));
+  }
+  return [...porIdentificador]
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+    .map(([clave, cantidad]) =>
+      clave.startsWith('p:')
+        ? { productoId: Number(clave.slice(2)), cantidad: cantidad.toFixed() }
+        : { codigoBarras: clave.slice(2), cantidad: cantidad.toFixed() },
+    );
+}
+
+// Firma comparable de una petición normalizada. No depende del orden de las
+// claves de cada objeto (jsonb las reordena al guardarlas).
+export const firmaPedido = (pedido) =>
+  pedido
+    .map((l) => (l.productoId !== undefined ? `p:${l.productoId}` : `c:${l.codigoBarras}`) + `=${decimal(l.cantidad).toFixed()}`)
+    .sort()
+    .join('|');
 
 // Junta las líneas del mismo producto (una caja puede escanear dos veces el
 // mismo artículo). Devuelve [{ productoId, cantidad: Decimal }] ordenado por id.
@@ -32,6 +62,8 @@ export function agruparLineas(lineas) {
 }
 
 // ¿El reenvío trae los mismos productos y cantidades que la venta registrada?
+// Solo para ventas anteriores a pedido_externo (no se les inventa la
+// petición): compara los productos ya resueltos.
 // registrada: [{ productoId, cantidad }] con cantidades positivas.
 export function mismoContenido(registrada, pedida) {
   if (registrada.length !== pedida.length) return false;
@@ -103,11 +135,18 @@ function previa(claveId, referencia) {
   });
 }
 
-// La venta ya estaba registrada: mismo contenido → la devuelve; otro → 409.
-function respuestaReenvio(registrada, lineas) {
+// La venta ya estaba registrada: misma petición → la devuelve; otra → 409.
+async function respuestaReenvio(registrada, pedido, lineas) {
   const venta = mapearVenta(registrada);
-  const anteriores = venta.lineas.map((l) => ({ productoId: l.producto.id, cantidad: l.cantidad }));
-  if (!mismoContenido(anteriores, lineas)) {
+  let igual;
+  if (registrada.pedidoExterno) {
+    igual = firmaPedido(registrada.pedidoExterno) === firmaPedido(pedido);
+  } else {
+    // Venta anterior a la migración: se comparan los productos resueltos.
+    const anteriores = venta.lineas.map((l) => ({ productoId: l.producto.id, cantidad: l.cantidad }));
+    igual = mismoContenido(anteriores, agruparLineas(await resolverProductos(lineas).catch(() => [])));
+  }
+  if (!igual) {
     throw ApiError.conflicto(
       `La venta ${registrada.referenciaExterna} ya se registró con otros productos o cantidades. Usá una referencia nueva para otra venta.`,
     );
@@ -116,10 +155,13 @@ function respuestaReenvio(registrada, lineas) {
 }
 
 export async function registrarVenta(clave, { referencia, fecha, lineas }) {
-  const agrupadas = agruparLineas(await resolverProductos(lineas));
-
+  // Primero se busca la venta: un reenvío se reconoce por la petición, sin
+  // consultar el catálogo (que puede haber cambiado desde la venta).
+  const pedido = normalizarPedido(lineas);
   const anterior = await previa(clave.id, referencia);
-  if (anterior) return respuestaReenvio(anterior, agrupadas);
+  if (anterior) return respuestaReenvio(anterior, pedido, lineas);
+
+  const agrupadas = agruparLineas(await resolverProductos(lineas));
 
   try {
     const registrada = await prisma.$transaction(
@@ -138,6 +180,7 @@ export async function registrarVenta(clave, { referencia, fecha, lineas }) {
             claveIntegracionId: clave.id,
             referenciaExterna: referencia,
             fechaExterna: fecha ?? null,
+            pedidoExterno: pedido,
           },
           lineas: agrupadas,
           permitirNegativo: true,
@@ -153,7 +196,7 @@ export async function registrarVenta(clave, { referencia, fecha, lineas }) {
     // índice único y responde con la venta que registró el primero.
     if (esUnico(err)) {
       const ganadora = await previa(clave.id, referencia);
-      if (ganadora) return respuestaReenvio(ganadora, agrupadas);
+      if (ganadora) return respuestaReenvio(ganadora, pedido, lineas);
     }
     throw err;
   }
