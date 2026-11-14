@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Prisma } from '@prisma/client';
-import { valorizar } from '../src/modules/reportes/reportes.service.js';
+import { valorizar, valorizacion } from '../src/modules/reportes/reportes.service.js';
 
 const bebidas = { id: 1, nombre: 'Bebidas' };
 const almacen = { id: 2, nombre: 'Almacén' };
@@ -109,4 +109,35 @@ test('criterio: el total coincide con la suma por categoría (casos generados co
       assert.equal(centavos(c.valor), c.productos.reduce((s, p) => s + centavos(p.valor), 0), `caso ${caso} ${c.nombre}`);
     }
   }
+});
+
+test('regresión: stock y precios se leen en una sola consulta (misma foto de la base)', async () => {
+  const consultas = [];
+  // Base simulada: cualquier otro acceso (findMany, segunda consulta) falla.
+  const db = new Proxy(
+    {
+      $queryRaw: async (strings) => {
+        consultas.push(strings.join('?'));
+        return [
+          { id: 1, nombre: 'Gaseosa', unidadMedida: 'UNIDAD', stockActual: new Prisma.Decimal('20'), categoriaId: 1, categoriaNombre: 'Bebidas', precioUnitario: new Prisma.Decimal('200'), fechaVigencia: new Date('2026-11-14'), proveedor: 'Distribuidora Norte', generadoEn: new Date('2026-11-14T12:00:00Z') },
+          { id: 2, nombre: 'Suelto', unidadMedida: 'KILOGRAMO', stockActual: new Prisma.Decimal('2.5'), categoriaId: null, categoriaNombre: null, precioUnitario: new Prisma.Decimal('1234.56'), fechaVigencia: new Date('2026-11-01'), proveedor: 'Mayorista', generadoEn: new Date('2026-11-14T12:00:00Z') },
+          { id: 3, nombre: 'Pan', unidadMedida: 'UNIDAD', stockActual: new Prisma.Decimal('4'), categoriaId: null, categoriaNombre: null, precioUnitario: null, fechaVigencia: null, proveedor: null, generadoEn: new Date('2026-11-14T12:00:00Z') },
+        ];
+      },
+    },
+    {
+      get(objetivo, propiedad) {
+        if (propiedad in objetivo) return objetivo[propiedad];
+        throw new Error(`acceso inesperado a la base: ${String(propiedad)}`);
+      },
+    },
+  );
+  const r = await valorizacion(db);
+  assert.equal(consultas.length, 1);
+  assert.match(consultas[0], /LEFT JOIN LATERAL/);
+  assert.equal(r.total, 4000 + 3086.4);
+  assert.deepEqual(r.categorias.map((c) => [c.nombre, c.valor]), [['Bebidas', 4000], ['Sin categoría', 3086.4]]);
+  assert.deepEqual(r.sinPrecio.map((p) => p.nombre), ['Pan']);
+  assert.equal(r.categorias[0].productos[0].proveedor, 'Distribuidora Norte');
+  assert.deepEqual(r.generadoEn, new Date('2026-11-14T12:00:00Z'));
 });

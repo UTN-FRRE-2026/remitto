@@ -76,22 +76,41 @@ export function valorizar(productos, precios) {
   };
 }
 
-export async function valorizacion() {
-  const [productos, ultimos] = await Promise.all([
-    prisma.producto.findMany({
-      where: { activo: true, stockActual: { gt: 0 } },
-      select: { id: true, nombre: true, unidadMedida: true, stockActual: true, categoria: { select: { id: true, nombre: true } } },
-    }),
-    // Último precio de cada producto (DISTINCT ON se queda con la primera fila
-    // de cada producto según el orden).
-    prisma.$queryRaw`
-      SELECT DISTINCT ON (pc.producto_id)
-        pc.producto_id AS "productoId", pc.precio_unitario AS "precioUnitario",
-        pc.fecha_vigencia AS "fechaVigencia", pr.razon_social AS "proveedor"
+// Stock y último precio se leen en UNA sola sentencia: PostgreSQL le da a cada
+// sentencia una única foto de la base, así que un ingreso que se confirma
+// mientras tanto entra completo o no entra (nunca stock viejo con precio
+// nuevo). Dos consultas separadas, aun dentro de una transacción con el
+// aislamiento predeterminado (READ COMMITTED), podrían ver estados distintos.
+export async function valorizacion(db = prisma) {
+  const filas = await db.$queryRaw`
+    SELECT p.id, p.nombre, p.unidad_medida::text AS "unidadMedida", p.stock_actual AS "stockActual",
+           c.id AS "categoriaId", c.nombre AS "categoriaNombre",
+           u.precio_unitario AS "precioUnitario", u.fecha_vigencia AS "fechaVigencia", u.proveedor,
+           now() AS "generadoEn"
+    FROM productos p
+    LEFT JOIN categorias c ON c.id = p.categoria_id
+    -- Último precio de compra del producto (fecha de vigencia más reciente;
+    -- ante la misma fecha, el registrado último).
+    LEFT JOIN LATERAL (
+      SELECT pc.precio_unitario, pc.fecha_vigencia, pr.razon_social AS proveedor
       FROM precios_compra pc
       JOIN proveedores pr ON pr.id = pc.proveedor_id
-      ORDER BY pc.producto_id, pc.fecha_vigencia DESC, pc.creado_en DESC, pc.id DESC`,
-  ]);
-  const precios = new Map(ultimos.map((u) => [u.productoId, u]));
-  return { generadoEn: new Date(), ...valorizar(productos, precios) };
+      WHERE pc.producto_id = p.id
+      ORDER BY pc.fecha_vigencia DESC, pc.creado_en DESC, pc.id DESC
+      LIMIT 1
+    ) u ON true
+    WHERE p.activo AND p.stock_actual > 0`;
+  const productos = filas.map((f) => ({
+    id: f.id,
+    nombre: f.nombre,
+    unidadMedida: f.unidadMedida,
+    stockActual: f.stockActual,
+    categoria: f.categoriaId == null ? null : { id: f.categoriaId, nombre: f.categoriaNombre },
+  }));
+  const precios = new Map(
+    filas
+      .filter((f) => f.precioUnitario != null)
+      .map((f) => [f.id, { precioUnitario: f.precioUnitario, fechaVigencia: f.fechaVigencia, proveedor: f.proveedor }]),
+  );
+  return { generadoEn: filas[0]?.generadoEn ?? new Date(), ...valorizar(productos, precios) };
 }

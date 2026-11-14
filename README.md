@@ -448,6 +448,10 @@ compra (`GET /api/reportes/valorizacion`, lógica en
   entran en el total. Los productos sin stock, con stock negativo o
   desactivados no se valorizan.
 - El empleado recibe 403: el reporte muestra costos de compra.
+- **Lectura consistente:** stock y último precio se leen en una sola sentencia
+  SQL, que en PostgreSQL ve una única foto de la base. Un ingreso que se
+  confirma mientras tanto entra completo o no entra: nunca stock anterior con
+  precio nuevo.
 
 ### Backend en Docker (opcional)
 
