@@ -4,6 +4,7 @@
 | --- | --- |
 | [Primera entrega del TPI](entrega-tpi.md) | Consigna de la profesora para el 16/11/2026, puntaje y estado de cada entregable |
 | [Estado y continuidad](estado-proyecto.md) | Última fotografía verificada, avance por historia y pendientes |
+| [Manual del usuario](manual-usuario.md) | Uso de cada pantalla, con capturas (en `manual/`) |
 | [Lista de requerimientos](requerimientos.md) | RF, RNF y requerimientos técnicos con la HU que los implementa y su estado |
 | [Diseño de la base de datos](base-de-datos.md) | Diagrama entidad-relación, tablas, relaciones y restricciones (generado con `npm run doc-bd`) |
 | [Plan de trabajo](plan-de-trabajo.md) | Alcance, RF/RNF, arquitectura propuesta, proceso y las 31 HU con tareas y criterios de aceptación |
@@ -20,4 +21,3 @@ Un plan, una maqueta o un resumen no prueban qué está implementado: comprobalo
 Todavía no existen:
 
 - `openapi.yaml`: contrato del endpoint de integración con el punto de venta (RF5.2, HU22).
-- Manual de usuario (etapa de cierre).

@@ -2,13 +2,13 @@
 
 Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuente de verdad: contrastá esta nota antes de usarla.
 
-## Referencia verificada (13/11/2026)
+## Referencia verificada (14/11/2026)
 
-- `origin/main` en `b780c77` (merge del PR #15, consigna de la entrega). Todas las ramas remotas anteriores están integradas.
+- `origin/main` en `9a43f74` (merge del PR #16, requerimientos y base de datos). Todas las ramas remotas anteriores están integradas.
 - **Primera entrega del TPI: lunes 16/11/2026.** Consigna y entregables en [entrega-tpi.md](entrega-tpi.md).
-- **Publicado, pendiente de integrar:** documentación probatoria ([requerimientos.md](requerimientos.md) y [base-de-datos.md](base-de-datos.md) con el diagrama entidad-relación) en la rama `docs/documentacion-probatoria`, con PR abierto a `main`.
+- **Publicado, pendiente de integrar:** manual del usuario ([manual-usuario.md](manual-usuario.md), con capturas en `manual/`) en la rama `docs/manual-usuario`, con PR abierto a `main`.
 - **Trabajo en pausa, sin commit:** HU21 (claves de integración) quedó guardada solo en la copia local de Maxi: un stash de Git sobre la rama `feature/HU21-claves-integracion` y un patch equivalente en `retomar/HU21-en-progreso.patch`, fuera del repositorio, con las instrucciones para recuperarla. Tiene el backend con sus pruebas y la pantalla sin terminar. No está en `origin`.
-- No se consultaron PR abiertos ni Issues: la CLI `gh` no estaba disponible.
+- PR #1 a #16 integrados en `main`; los PR se crean con la CLI `gh`.
 
 ## Integrado en `main`
 
@@ -30,6 +30,7 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 | HU3 usuarios (pantalla) y verificación de permisos de HU2 | [PR #13](https://github.com/UTN-FRRE-2026/remitto/pull/13) |
 | Ajuste de la asociación de HU15 | [PR #14](https://github.com/UTN-FRRE-2026/remitto/pull/14) |
 | Consigna de la primera entrega | [PR #15](https://github.com/UTN-FRRE-2026/remitto/pull/15) |
+| Lista de requerimientos y diseño de la base de datos | [PR #16](https://github.com/UTN-FRRE-2026/remitto/pull/16) |
 
 HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa que se haya comprobado ahora cada criterio de aceptación.
 
