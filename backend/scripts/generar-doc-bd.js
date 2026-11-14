@@ -192,10 +192,10 @@ for (const m of models) {
   const unicos = atributosModelo(m.name, 'unique');
   const indices = atributosModelo(m.name, 'index');
   const nombreCol = (n) => columna(m.fields.find((f) => f.name === n) ?? { name: n });
-  if (unicos.length || indices.length) p('');
+  const propias = restricciones.filter((r) => r.tabla === tabla(m));
+  if (unicos.length || indices.length || propias.length) p('');
   for (const u of unicos) p(`- Único: (${u.map(nombreCol).join(', ')})`);
   for (const i of indices) p(`- Índice: (${i.map(nombreCol).join(', ')})`);
-  const propias = restricciones.filter((r) => r.tabla === tabla(m));
   for (const r of propias) p(`- ${r.tipo} \`${r.nombre}\`: \`${r.regla}\`${r.comentario ? ` — ${r.comentario}` : ''}`);
   p('');
 }

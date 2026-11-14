@@ -12,7 +12,7 @@ automática de comprobantes de compra mediante Inteligencia Artificial.
 ## Estado actual
 
 Están implementadas las historias del Sprint 1 (HU1 a HU14) y, del
-Sprint 2, HU15 a HU20 y HU27 a HU29. La aplicación está desplegada en producción con Coolify, a partir
+Sprint 2, HU15 a HU21 y HU27 a HU29. La aplicación está desplegada en producción con Coolify, a partir
 de `main`. El equipo probó la instalación de la PWA en un Android real (HU7) y funciona.
 
 Ya implementado:
@@ -26,9 +26,10 @@ Ya implementado:
 | **Existencias** | HU12 (movimientos y existencias) | ✅ Backend y pantalla Movimientos |
 | **Salidas** | HU13 (carrito de salida) | ✅ Backend y pantalla Nueva salida |
 | **Recuento** | HU14 (ajuste por recuento) | ✅ Backend y pantalla Recuento |
+| **RF5** Integración | HU21 (claves de integración) | ✅ Backend y pantalla Integraciones |
 | **RF6** Reposición | HU27 (sugerencia de reposición) | ✅ Backend y pantalla Precios y reportes |
 | **RF8** Reportes | HU20 (evolución de precios), HU28 (valorización de existencias), HU29 (productos sin movimiento) | ✅ Backend y pantalla Precios y reportes |
-| Frontend | Login, Tablero, Comprobantes, Precisión de la lectura, Productos (alta y edición), Proveedores, Categorías, Usuarios, Cargar remito, Lectura con IA, Revisar remito, Movimientos, Nueva salida, Recuento, Precios y reportes | ✅ Vistas base |
+| Frontend | Login, Tablero, Comprobantes, Precisión de la lectura, Productos (alta y edición), Proveedores, Categorías, Usuarios, Cargar remito, Lectura con IA, Revisar remito, Movimientos, Nueva salida, Recuento, Precios y reportes, Integraciones | ✅ Vistas base |
 
 Están completos el flujo de ingreso (cargar → leer con IA → revisar →
 confirmar), el de salida (carrito → confirmar) y el recuento (contar →
@@ -570,6 +571,56 @@ Solo el propietario.
 - Gráfico SVG propio (`components/GraficoPrecios.jsx`), sin bibliotecas; la
   variación se indica con flecha y texto, no solo con color.
 
+### Claves de integración (HU21)
+
+La pantalla **Integraciones** (`/integraciones`, solo el propietario; en el
+celular se abre desde **Cuenta**) administra las claves con las que un sistema
+externo, como la caja del comercio, se autentica ante la API de integración
+(lógica en `backend/src/modules/claves/`):
+
+- **Generar:** la clave (`rmt_live_` + 64 caracteres hexadecimales, 256 bits
+  aleatorios) se muestra **completa una sola vez**, en la respuesta de
+  `POST /api/claves-integracion`. En la base quedan solo su **prefijo** visible
+  (`rmt_live_7a5bce`) y su **hash SHA-256** (RNF1). Con 256 bits aleatorios no
+  hace falta un hash lento: no hay diccionario que probar, y el hash permite
+  buscarla por índice.
+- **Usar:** el sistema externo envía `Authorization: Bearer rmt_live_…`. El
+  middleware `autenticarIntegracion` valida la clave y registra el **último
+  uso** en una sola sentencia (`UPDATE … WHERE hash_clave = … AND activa`). Una
+  clave inexistente o revocada recibe el mismo 401. La clave no sirve para la
+  API de personas, ni el token de una persona para la de integración.
+  `GET /api/v1/integracion/estado` permite comprobar una clave.
+- **Revocar:** no se borra; queda con `activa = false` y la fecha de
+  revocación, y desde ese momento se rechaza. Repetirlo no cambia la fecha. La
+  migración `hu21_claves_integracion` agrega `CHECK chk_clave_revocada`
+  (activa ⇔ sin fecha de revocación).
+- El empleado recibe 403 en todas las operaciones y no ve la pantalla.
+
+Las comprobaciones de punta a punta están en `backend/e2e/hu21-claves.mjs`
+(ver [Pruebas de punta a punta](#pruebas-de-punta-a-punta)).
+
+### Pruebas de punta a punta
+
+`npm test` no usa base de datos. Las comprobaciones contra PostgreSQL
+(permisos, SQL, reenvíos y concurrencia) se corren con una base descartable:
+
+```bash
+cd backend && npm run e2e -- hu21-claves
+```
+
+Requiere el PostgreSQL de desarrollo encendido (`docker compose up -d db`).
+Crea una base `remitto_e2e_…` con nombre único en ese servidor (solo si
+`DATABASE_URL` apunta a localhost), aplica migraciones y seed, levanta la API
+en un puerto libre con la IA simulada y borra la base al terminar. No toca la
+base de desarrollo.
+
+Antes de enviar cualquier operación, comprueba que la API que responde usa su
+base: escribe una marca aleatoria en la base y la busca por la API. Si no la
+encuentra, o si el puerto pedido está ocupado, la API cae al arrancar o el nombre
+de la base no es de prueba, aborta con código 2 sin correr escenarios. Solo
+borra lo que creó. `npm run e2e:aislamiento` verifica estas garantías. Detalle
+en [`backend/e2e/README.md`](backend/e2e/README.md).
+
 ### Backend en Docker (opcional)
 
 El servicio `backend` usa el perfil `app`, así que `docker compose up -d`
@@ -669,6 +720,9 @@ POSTGRES_PASSWORD=prueba123 JWT_SECRET=prueba CORS_ORIGIN=http://localhost:8088 
 | `GET` | `/api/reportes/precios` · `?desde=&hasta=` · `/api/reportes/precios/:productoId` (evolución de precios de compra) (HU20) | propietario |
 | `GET` | `/api/reportes/reposicion` (qué pedir y cuánto, por último proveedor) (HU27) | propietario |
 | `GET` | `/api/reportes/sin-movimiento` · `?desde=&hasta=` (productos con stock sin salidas) (HU29) | propietario |
+| `GET/POST` | `/api/claves-integracion` (listado; alta con la clave completa una sola vez) (HU21) | propietario |
+| `DELETE` | `/api/claves-integracion/:id` (revoca; no borra) (HU21) | propietario |
+| `GET` | `/api/v1/integracion/estado` (comprueba la clave) (HU21) | clave de integración |
 
 ---
 

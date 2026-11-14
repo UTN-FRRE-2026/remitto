@@ -61,7 +61,7 @@ Remitto es una aplicación web instalable (PWA). En Chrome para Android, abrí l
 
 <img src="manual/20-tablero-escritorio.png" alt="Tablero en la computadora, con el menú lateral" width="640">
 
-Algunas secciones del menú todavía muestran «En construcción»: **Asistente** e **Integraciones**. Se habilitan en las próximas versiones.
+La sección **Asistente** del menú todavía muestra «En construcción». Se habilita en una próxima versión.
 
 ## 4. Inicio (tablero)
 
@@ -255,6 +255,15 @@ Se abre desde **Configuración** en el menú lateral (computadora) o desde **Cue
 - **Desactivar usuario:** no puede volver a ingresar y, si tenía una sesión abierta, deja de funcionar en su siguiente acción. Lo que registró se conserva. Se puede reactivar.
 - En tus propios datos no podés quitarte el rol de propietario ni desactivarte, para que el comercio nunca quede sin administrador.
 
+### Integraciones: conectar la caja
+
+En el menú lateral, **Integraciones**; en el celular, desde **Cuenta**. Una clave de integración permite que la caja del comercio (el sistema de punto de venta) informe sus ventas a Remitto.
+
+- Escribí un nombre que la identifique, por ejemplo «Caja del mostrador», y tocá **Generar clave**.
+- **La clave completa se muestra una sola vez.** Copiala y cargala en la caja en ese momento; después solo se ve su comienzo (`rmt_live_7a5bce••••••••`). Si la perdés, generá otra y revocá la anterior.
+- Cada clave muestra cuándo se usó por última vez y quién la creó.
+- **Revocar** corta el acceso de esa clave en el acto y no se puede deshacer. La clave queda en la lista como «Revocada» para el historial.
+
 ### Precios y reportes: valorización de existencias
 
 En el menú lateral, **Precios y reportes**; en el celular, desde **Cuenta**. Muestra cuánto vale tu stock a precio de compra:
@@ -329,4 +338,4 @@ Puede estar desactivado: el propietario lo ve con el filtro **Desactivados** y l
 - La campana del Inicio todavía no tiene función (las alertas son de HU24).
 - La sección de instalación describe el procedimiento estándar de Chrome; el equipo instaló la aplicación en un Android real y funciona (HU7, 14/11/2026).
 - Las capturas de precisión y evolución de precios (14/11) usan tres remitos simulados confirmados con fechas de emisión de junio, agosto y septiembre; para la precisión se marcaron como lecturas reales en la base descartable.
-- Al implementar más historias, agregar sus secciones (Asistente, Integraciones) y actualizar la lista de «En construcción».
+- Al implementar más historias, agregar sus secciones (Asistente) y actualizar la lista de «En construcción».
