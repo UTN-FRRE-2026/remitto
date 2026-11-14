@@ -9,6 +9,15 @@ export function manejadorErrores(err, req, res, next) {
     return res.status(err.status).json({ error: err.message, detalles: err.detalles });
   }
 
+  // Cuerpo que no es JSON válido o que supera el límite (express.json): es un
+  // error de quien envía el pedido, no del servidor.
+  if (err.type === 'entity.parse.failed') {
+    return res.status(400).json({ error: 'El cuerpo del pedido no es un JSON válido.' });
+  }
+  if (err.type === 'entity.too.large') {
+    return res.status(413).json({ error: 'El cuerpo del pedido es demasiado grande.' });
+  }
+
   // Violaciones de restricciones de Prisma (RNF5: reglas en la base).
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
     if (err.code === 'P2002') {
@@ -20,6 +29,13 @@ export function manejadorErrores(err, req, res, next) {
     }
     if (err.code === 'P2025') {
       return res.status(404).json({ error: 'Recurso no encontrado.' });
+    }
+    // Sin conexiones libres para empezar la transacción: el servidor está
+    // saturado. No se registró nada y se puede reintentar (los reenvíos son
+    // idempotentes en salidas, ingresos y ventas externas).
+    if (err.code === 'P2028') {
+      res.set('Retry-After', '2');
+      return res.status(503).json({ error: 'El servidor está ocupado. Reintentá en unos segundos.' });
     }
   }
 

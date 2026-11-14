@@ -9,6 +9,9 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
+      // La API no es parte de la aplicación: abrir una ruta /api (por ejemplo,
+      // el contrato OpenAPI de la integración, HU22) no debe devolver la app.
+      workbox: { navigateFallbackDenylist: [/^\/api\//] },
       manifest: {
         name: 'Remitto',
         short_name: 'Remitto',

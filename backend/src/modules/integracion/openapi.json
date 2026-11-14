@@ -1,0 +1,248 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Remitto · API de integración con punto de venta",
+    "version": "1.0.0",
+    "description": "Permite que un sistema de punto de venta informe sus ventas para que Remitto descuente el stock (RF5.2, HU22).\n\n**Autenticación:** cada pedido lleva una clave de integración que genera el propietario en la pantalla Integraciones (HU21): `Authorization: Bearer rmt_live_…`. La clave completa se muestra una sola vez; si se pierde, se genera otra y se revoca la anterior. Una clave revocada o inexistente recibe 401.\n\n**Idempotencia:** `referencia` identifica la venta en el sistema externo y es única por clave. Si un pedido se reenvía (por un corte de red o un reintento), Remitto responde 200 con `repetida: true` y la venta registrada la primera vez, sin descontar de nuevo. Una referencia ya usada con otros productos o cantidades se rechaza con 409. La unicidad es por clave: al cambiar de clave, los reenvíos pendientes deben mandarse con la clave anterior antes de revocarla.\n\n**Stock negativo:** la venta ya ocurrió en la caja, así que se registra aunque el stock de Remitto no alcance. El producto queda con stock negativo y la respuesta lo informa en `advertencias`.\n\n**Atomicidad:** si alguna línea tiene un problema (producto inexistente o desactivado, fracción de un producto que se vende por unidad), la venta se rechaza entera con 400 y no se descuenta nada.\n\nLas rutas son relativas a `/api/v1/integracion` en el servidor de Remitto."
+  },
+  "servers": [{ "url": "/api/v1/integracion", "description": "Servidor de Remitto (mismo dominio que la aplicación)" }],
+  "security": [{ "claveIntegracion": [] }],
+  "paths": {
+    "/estado": {
+      "get": {
+        "summary": "Comprobar la clave de integración",
+        "description": "Responde 200 si la clave es válida y está activa. Cuenta como uso de la clave.",
+        "operationId": "estado",
+        "responses": {
+          "200": {
+            "description": "Clave válida",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Estado" },
+                "example": { "ok": true, "clave": { "nombre": "Caja del mostrador", "prefijo": "rmt_live_7a5bce" } }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/NoAutorizado" }
+        }
+      }
+    },
+    "/salidas": {
+      "post": {
+        "summary": "Informar una venta",
+        "description": "Registra una venta y descuenta el stock de cada producto en una sola operación. Cada línea identifica el producto por `codigoBarras` o por `productoId` (uno de los dos). Las líneas repetidas del mismo producto se suman.",
+        "operationId": "informarVenta",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Venta" },
+              "examples": {
+                "porCodigoDeBarras": {
+                  "summary": "Ticket con códigos de barras",
+                  "value": {
+                    "referencia": "CAJA1-0001-00004512",
+                    "fecha": "2026-11-14T18:32:05-03:00",
+                    "lineas": [
+                      { "codigoBarras": "7790001000012", "cantidad": 2 },
+                      { "codigoBarras": "7790001000029", "cantidad": 1 }
+                    ]
+                  }
+                },
+                "porIdentificador": {
+                  "summary": "Venta por identificador de producto, con kilos",
+                  "value": { "referencia": "VTA-98765", "lineas": [{ "productoId": 4, "cantidad": 1.25 }] }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Venta registrada; el stock se descontó.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/VentaRegistrada" },
+                "example": {
+                  "id": 31,
+                  "referencia": "CAJA1-0001-00004512",
+                  "fecha": "2026-11-14T21:32:05.000Z",
+                  "registradaEn": "2026-11-14T21:32:06.418Z",
+                  "lineas": [
+                    {
+                      "producto": { "id": 1, "nombre": "Gaseosa cola 500 ml", "codigoBarras": "7790001000012", "unidadMedida": "UNIDAD" },
+                      "cantidad": 2,
+                      "stockAnterior": 58,
+                      "stockNuevo": 56
+                    },
+                    {
+                      "producto": { "id": 3, "nombre": "Yerba mate con palo 1 kg", "codigoBarras": "7790001000029", "unidadMedida": "UNIDAD" },
+                      "cantidad": 1,
+                      "stockAnterior": 0,
+                      "stockNuevo": -1
+                    }
+                  ],
+                  "advertencias": [
+                    { "productoId": 3, "mensaje": "Yerba mate con palo 1 kg quedó con stock negativo (-1). Conviene hacer un recuento." }
+                  ],
+                  "repetida": false
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Reenvío de una venta ya registrada con el mismo contenido: no se descuenta de nuevo y se devuelve la venta original con `repetida: true`.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/VentaRegistrada" } } }
+          },
+          "400": {
+            "description": "Datos inválidos o una línea con problemas. No se descontó nada.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "error": "Revisá la venta: no se descontó ningún producto.",
+                  "detalles": [{ "campo": "lineas.1.codigoBarras", "mensaje": "No hay un producto con el código de barras 7790000000000." }]
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/NoAutorizado" },
+          "409": {
+            "description": "La referencia ya se registró con otros productos o cantidades.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "error": "La venta CAJA1-0001-00004512 ya se registró con otros productos o cantidades. Usá una referencia nueva para otra venta." }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "claveIntegracion": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Clave de integración generada en Remitto (`rmt_live_` y 64 caracteres hexadecimales)."
+      }
+    },
+    "responses": {
+      "NoAutorizado": {
+        "description": "Falta la clave, o es inválida o está revocada.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" },
+            "example": { "error": "Clave de integración inválida o revocada" }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "Venta": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["referencia", "lineas"],
+        "properties": {
+          "referencia": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Identificador de la venta en el sistema externo (por ejemplo, el número de ticket). Clave de idempotencia junto con la clave de integración. Se ignoran los espacios al principio y al final."
+          },
+          "fecha": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Momento de la venta según el sistema externo, en ISO 8601 con zona horaria. Opcional: se guarda como dato de la venta; el movimiento de stock lleva la hora en que Remitto lo registra."
+          },
+          "lineas": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 200,
+            "items": { "$ref": "#/components/schemas/LineaVenta" }
+          }
+        }
+      },
+      "LineaVenta": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["cantidad"],
+        "description": "Indicar `codigoBarras` o `productoId`, no ambos.",
+        "properties": {
+          "codigoBarras": { "type": "string", "minLength": 1, "maxLength": 64 },
+          "productoId": { "type": "integer", "minimum": 1 },
+          "cantidad": {
+            "type": "number",
+            "exclusiveMinimum": true,
+            "minimum": 0,
+            "maximum": 999999999,
+            "description": "Cantidad vendida, positiva y con hasta 3 decimales. Los productos que se venden por unidad o por paquete solo admiten enteros."
+          }
+        }
+      },
+      "Producto": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "nombre": { "type": "string" },
+          "codigoBarras": { "type": "string", "nullable": true },
+          "unidadMedida": { "type": "string", "enum": ["UNIDAD", "KILOGRAMO", "GRAMO", "LITRO", "MILILITRO", "METRO", "PAQUETE"] }
+        }
+      },
+      "VentaRegistrada": {
+        "type": "object",
+        "required": ["id", "referencia", "registradaEn", "lineas", "advertencias", "repetida"],
+        "properties": {
+          "id": { "type": "integer", "description": "Identificador de la salida en Remitto." },
+          "referencia": { "type": "string" },
+          "fecha": { "type": "string", "format": "date-time", "nullable": true },
+          "registradaEn": { "type": "string", "format": "date-time" },
+          "lineas": {
+            "type": "array",
+            "description": "Una por producto, ordenadas por id de producto.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "producto": { "$ref": "#/components/schemas/Producto" },
+                "cantidad": { "type": "number" },
+                "stockAnterior": { "type": "number" },
+                "stockNuevo": { "type": "number" }
+              }
+            }
+          },
+          "advertencias": {
+            "type": "array",
+            "description": "Productos que quedaron con stock negativo.",
+            "items": {
+              "type": "object",
+              "properties": { "productoId": { "type": "integer" }, "mensaje": { "type": "string" } }
+            }
+          },
+          "repetida": { "type": "boolean", "description": "true si el pedido es un reenvío de una venta ya registrada." }
+        }
+      },
+      "Estado": {
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean" },
+          "clave": {
+            "type": "object",
+            "properties": { "nombre": { "type": "string" }, "prefijo": { "type": "string" } }
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": ["error"],
+        "properties": {
+          "error": { "type": "string" },
+          "detalles": {
+            "type": "array",
+            "items": { "type": "object", "properties": { "campo": { "type": "string" }, "mensaje": { "type": "string" } } }
+          }
+        }
+      }
+    }
+  }
+}

@@ -6,6 +6,14 @@ import './Integraciones.css';
 const ZONA = 'America/Argentina/Buenos_Aires';
 const fecha = (f) => new Date(f).toLocaleDateString('es-AR', { timeZone: ZONA, day: '2-digit', month: '2-digit', year: 'numeric' });
 
+// Pedido de ejemplo para quien programa la caja (HU22).
+const EJEMPLO = `{
+  "referencia": "CAJA1-0001-00004512",
+  "lineas": [
+    { "codigoBarras": "7790001000012", "cantidad": 2 }
+  ]
+}`;
+
 // "Hace 4 minutos", "Hace 2 horas"; más de una semana, la fecha.
 export function haceCuanto(f, ahora = Date.now()) {
   if (!f) return 'Nunca';
@@ -176,8 +184,16 @@ export default function Integraciones() {
         <p>Cada pedido se autentica con la clave en el encabezado:</p>
         <pre>Authorization: Bearer rmt_live_…</pre>
         <p>
-          Para comprobar una clave: <code>GET /api/v1/integracion/estado</code>. El envío de ventas se habilita con la
-          historia HU22.
+          Cada venta se informa con <code>POST /api/v1/integracion/salidas</code>, con una referencia única (el número de
+          ticket) y los productos por código de barras. Si la caja reenvía la misma venta, no se descuenta dos veces.
+        </p>
+        <pre>{EJEMPLO}</pre>
+        <p>
+          Para comprobar una clave: <code>GET /api/v1/integracion/estado</code>. Contrato completo (OpenAPI):{' '}
+          <a href="/api/v1/integracion/openapi.json" target="_blank" rel="noreferrer">
+            /api/v1/integracion/openapi.json
+          </a>
+          .
         </p>
       </section>
     </div>

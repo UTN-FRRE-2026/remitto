@@ -16,8 +16,6 @@ El arranque, el detalle de cada HU implementada y la API están en el [README pr
 
 Un plan, una maqueta o un resumen no prueban qué está implementado: comprobalo en el código y en Git.
 
-## Documentación prevista
+## Contrato de la integración
 
-Todavía no existen:
-
-- `openapi.yaml`: contrato del endpoint de integración con el punto de venta (RF5.2, HU22).
+El contrato OpenAPI del punto de venta (RF5.2, HU22) está en [`backend/src/modules/integracion/openapi.json`](../backend/src/modules/integracion/openapi.json) y la API lo publica en `GET /api/v1/integracion/openapi.json`.

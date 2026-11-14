@@ -263,6 +263,9 @@ En el menú lateral, **Integraciones**; en el celular, desde **Cuenta**. Una cla
 - **La clave completa se muestra una sola vez.** Copiala y cargala en la caja en ese momento; después solo se ve su comienzo (`rmt_live_7a5bce••••••••`). Si la perdés, generá otra y revocá la anterior.
 - Cada clave muestra cuándo se usó por última vez y quién la creó.
 - **Revocar** corta el acceso de esa clave en el acto y no se puede deshacer. La clave queda en la lista como «Revocada» para el historial.
+- Con la clave cargada, **cada venta de la caja descuenta el stock sola**. En **Movimientos** aparece como «Venta · Punto de venta (nombre de la clave)». Si la caja reenvía una venta, no se descuenta dos veces.
+- Si la caja vende algo que Remitto todavía no tiene en stock (por ejemplo, porque falta confirmar el remito), la venta se registra igual y el producto queda con **stock negativo**. Confirmá el remito pendiente o hacé un recuento.
+- La sección **Para quien programa la caja** tiene un ejemplo y el enlace al contrato técnico.
 
 ### Precios y reportes: valorización de existencias
 
@@ -271,6 +274,7 @@ En el menú lateral, **Precios y reportes**; en el celular, desde **Cuenta**. Mu
 - **El total** suma los productos con stock, cada uno multiplicado por su **último precio de compra** (el del remito más reciente que lo trajo con precio).
 - **Por categoría:** cada fila muestra su valor y qué parte del total representa. Tocala para ver los productos, con el stock, el precio usado, su fecha y el proveedor. La suma de las categorías es igual al total.
 - **Productos con stock sin precio de compra** (recuadro dorado): no entran en el total porque todavía no tienen un precio registrado. El precio se guarda al confirmar un remito que lo traiga.
+- **Productos con stock negativo** (recuadro rojo): tampoco entran en el total. Suele pasar cuando la caja informa ventas de mercadería que todavía no se ingresó.
 - Los productos sin stock o desactivados no se valorizan. Solo el propietario ve este reporte.
 
 Arriba de la pantalla, las pestañas **Valorización**, **Evolución de precios**, **Reposición** y **Sin movimiento** cambian de reporte.

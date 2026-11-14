@@ -4,12 +4,15 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 
 ## Referencia verificada (14/11/2026)
 
-- `origin/main` en `10fba21` (merge del PR #24, HU19 y HU20). Todas las ramas remotas están integradas.
+- `origin/main` en `474b7b0` (merge del PR #26, documentación de la entrega). Las ramas remotas anteriores están integradas; HU21 y HU22 están publicadas sin integrar.
 - **Primera entrega del TPI: lunes 16/11/2026.** Consigna y entregables en [entrega-tpi.md](entrega-tpi.md).
 - **HU7:** el equipo informó el 14/11 que instaló la PWA en un Android real y funciona (no verificado en esta revisión).
 - Los PDF de la documentación probatoria están fuera del repositorio (`../remitto-entrega/`); se regeneraron el 14/11 con HU16 a HU20 y HU27 a HU29.
-- **HU21 (claves de integración):** completada sobre `474b7b0` en la rama `feature/HU21-claves-integracion` (PR pendiente). Se recuperó del stash `5373a09` con `apply`; el stash y el patch de `retomar/` se conservan hasta integrarla. HU22 depende de ella y HU23 de HU22.
-- PR #1 a #24 integrados en `main`.
+- **Integración externa, publicada en ramas y sin integrar (PR pendientes):**
+  - HU21 (claves de integración): rama `feature/HU21-claves-integracion`, commit `e40cced`, sobre `474b7b0`. Se recuperó del stash `5373a09` con `apply`; el stash y el patch de `retomar/` se conservan hasta integrarla.
+  - HU22 (salidas desde un sistema externo): rama `feature/HU22-salidas-integracion`, **sobre HU21**: integrar primero el PR de HU21.
+  - HU23 (simulador) es el paso siguiente y depende de HU22.
+- PR #1 a #26 integrados en `main`.
 
 ## Integrado en `main`
 
@@ -40,6 +43,7 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 | Correcciones de HU16 y HU28 (precedencia del catálogo, fecha de emisión no futura) | [PR #22](https://github.com/UTN-FRRE-2026/remitto/pull/22) |
 | HU27 sugerencia de reposición y HU29 productos sin movimiento | [PR #23](https://github.com/UTN-FRRE-2026/remitto/pull/23) |
 | HU19 precisión de la lectura y HU20 evolución de precios de compra | [PR #24](https://github.com/UTN-FRRE-2026/remitto/pull/24) |
+| Estado de HU7 en Android y de los entregables de la primera entrega (documentación) | [PR #25](https://github.com/UTN-FRRE-2026/remitto/pull/25) y [PR #26](https://github.com/UTN-FRRE-2026/remitto/pull/26) |
 
 HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa que se haya comprobado ahora cada criterio de aceptación.
 
@@ -47,9 +51,24 @@ HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa qu
 
 | Estado observado | Historias |
 | --- | --- |
-| Backend y pantalla | HU1 a HU6, HU8 a HU21, HU27 a HU29 (HU21 en su rama, sin integrar) |
+| Backend y pantalla | HU1 a HU6, HU8 a HU22, HU27 a HU29 (HU21 y HU22 en sus ramas, sin integrar) |
 | Probada por el equipo | HU7 PWA (`vite-plugin-pwa`): instalada en un Android real y funcionando (informado el 14/11/2026, no verificado en esta revisión) |
-| Sin implementar | HU22 a HU25 (HU26 parcial) y las deseables HU30 y HU31. `/asistente` es `EnConstruccion`; `simulador/` solo tiene un README |
+| Sin implementar | HU23 a HU25 (HU26 parcial) y las deseables HU30 y HU31. `/asistente` es `EnConstruccion`; `simulador/` solo tiene un README |
+
+## Validación de HU22 (14/11/2026, rama `feature/HU22-salidas-integracion`, sobre HU21)
+
+- `POST /api/v1/integracion/salidas` reutiliza el núcleo del carrito (`registrarSalida`, extraído de HU13 sin cambiar su comportamiento). Contrato OpenAPI 3.0 en `backend/src/modules/integracion/openapi.json`, publicado en `GET /api/v1/integracion/openapi.json` y enlazado desde la pantalla Integraciones.
+- **Decisiones:** la referencia es única por clave (índice existente desde el diseño inicial); un reenvío igual devuelve 200 y uno distinto 409; la venta se registra aunque deje stock negativo, con aviso; una línea inválida rechaza la venta entera; la clave se vuelve a comprobar dentro de la transacción (`FOR SHARE`) para que ninguna venta entre después de revocarla.
+- **Defectos encontrados y corregidos:**
+  - Con una ráfaga de operaciones sobre los mismos productos, las transacciones de salida (también las del carrito de HU13) fallaban con 500 (`P2028`, sin conexión libre en los 2 s por defecto de Prisma): 1 de 52 operaciones en una corrida y entre 24 y 43 de 120 en otras. Ahora esperan hasta 10 s (`maxWait`) y, si aun así no hay conexión, responden 503 con `Retry-After`. Después del cambio, 0 errores en 3 corridas seguidas.
+  - Un cuerpo que no es JSON válido respondía 500; ahora 400 (y 413 si excede el límite).
+  - El service worker de la PWA respondía la aplicación a cualquier navegación, incluso a `/api/...`: abrir el enlace al contrato desde la app instalada llevaba al inicio. Se excluye `/api/` (`navigateFallbackDenylist`), verificado en el `sw.js` generado. No se pudo probar en ejecución: el navegador integrado no registra service workers.
+  - HU28: los productos con stock negativo (algo esperable con HU22) desaparecían de la valorización sin aviso. Ahora se listan aparte, sin sumar (commit propio).
+- `npm test`: 204 correctas (8 nuevas en `test/integracion.test.js`, entre ellas que los ejemplos del contrato pasen la validación del backend y que campos, límites y unidades coincidan; la de valorización con stock negativo se actualizó). `npm run build` correcto.
+- **Punta a punta reproducible:** `npm run e2e -- hu21-claves hu22-salidas` → 83 controles correctos (38 + 45). Los de HU22 cubren contrato publicado, 401 (sin clave, inexistente, token de persona), validación y atomicidad (400 sin descontar), venta por código de barras e id con líneas sumadas, cabecera y movimientos sin usuario, último uso, Movimientos «Punto de venta (Caja 1)», reenvío 200 en otro orden y con espacios, 409 con otro contenido, misma referencia en otra caja, stock negativo con aviso y en la valorización, kilos, carrito sin cambios (sigue rechazando sin stock y su reenvío), 25 envíos simultáneos de la misma venta (un 201 y 24 × 200, un solo descuento), 52 operaciones simultáneas (40 ventas de dos cajas y 12 carritos, productos en orden aleatorio) con el stock esperado igual al registrado, revocación con 120 ventas en curso (cada 201 tiene su venta, ningún 401 deja una, después 10 de 10 rechazadas), el orden determinístico venta en curso → revocación, y stock igual a la suma de movimientos.
+- **Pruebas de mutación:** sin el `FOR SHARE` fallan 3 controles (la revocación se confirma antes que la venta en curso); sin el manejo del índice único fallan 2 (los reenvíos simultáneos dan 409). Restaurado, 45/45.
+- Recorrido en el navegador de la app contra una base descartable: venta y reenvío por el proxy de la app, valorización con el recuadro de stock negativo a 375 px, Movimientos con «Venta · Punto de venta (Caja de prueba HU22)» y la ayuda de Integraciones con el ejemplo y el enlace al contrato.
+- **No probado:** con un sistema de punto de venta real ni en producción (HTTPS, Coolify). El simulador de HU23 queda pendiente.
 
 ## Validación de HU21 (14/11/2026, rama `feature/HU21-claves-integracion`)
 
@@ -82,7 +101,7 @@ Revisión independiente de lo integrado en los PR #20 y #21: 166 pruebas y build
 
 **Pendientes de la revisión, no corregidos:**
 - HU16: la ambigüedad se pierde si una sola corrección con un código nuevo pisa la fila por descripción, o si un mismo comprobante trae la misma descripción con dos productos; diferencias menores de normalización («1.000 GR» y «1000 GR»); «Recordado» puede tapar el aviso «Revisar». Las pruebas son solo de funciones puras.
-- HU28 (a decidir): los productos desactivados con stock no aparecen en el reporte; un precio 0 cuenta como valorizado; el stock negativo se excluye sin aviso; con tres categorías iguales los porcentajes no suman 100; el empleado ve «Precios y reportes» en el menú de escritorio. Las pruebas no ejecutan el SQL.
+- HU28 (a decidir): los productos desactivados con stock no aparecen en el reporte; un precio 0 cuenta como valorizado; ~~el stock negativo se excluye sin aviso~~ (corregido con HU22: se lista aparte); con tres categorías iguales los porcentajes no suman 100; el empleado ve «Precios y reportes» en el menú de escritorio. Las pruebas no ejecutan el SQL.
 - `npm run doc-bd` lee el cliente de Prisma generado: correr antes `npm run prisma:generate`.
 
 ## Validación de HU28 (14/11/2026, integrada en el PR #21)

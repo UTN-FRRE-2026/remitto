@@ -30,5 +30,6 @@ Termina con código 0 solo si todos los controles pasaron.
 | Archivo | Historia | Qué comprueba |
 | --- | --- | --- |
 | `hu21-claves.mjs` | HU21 | Permisos, la clave completa solo en el alta, el hash SHA-256 en la base, el último uso, la revocación (incluso con pedidos en curso) y `CHECK chk_clave_revocada`. |
+| `hu22-salidas.mjs` | HU22 | Contrato publicado, autenticación, validación y atomicidad, venta por código de barras e id, reenvíos (200 y 409), stock negativo y su aviso en la valorización, kilos, carrito sin cambios, 25 reenvíos simultáneos, 52 operaciones simultáneas de dos cajas y carritos, revocación con 120 ventas en curso y el orden determinístico venta → revocación. |
 
 Para agregar uno, crear `e2e/<nombre>.mjs` con una función por defecto que recibe `{ api, check, db, login, dueño, empleado, base }`. `db` es un `PrismaClient` conectado a la base descartable.
