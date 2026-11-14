@@ -19,6 +19,7 @@ import Comprobantes from './pages/Comprobantes.jsx';
 import UsuarioForm from './pages/UsuarioForm.jsx';
 import ProveedorForm from './pages/ProveedorForm.jsx';
 import EnConstruccion from './pages/EnConstruccion.jsx';
+import Reportes from './pages/Reportes.jsx';
 
 // Protege las rutas privadas: sin sesión redirige al login.
 function Privado({ children }) {
@@ -87,11 +88,7 @@ export default function App() {
             path="/precios"
             element={
               <Privado>
-                <EnConstruccion
-                  titulo="Precios y reportes"
-                  descripcion="Evolución de precios de compra, valorización y productos sin movimiento."
-                  hu="HU20, HU28, HU29 (Sprint 2)"
-                />
+                <Reportes />
               </Privado>
             }
           />

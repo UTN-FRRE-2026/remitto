@@ -12,7 +12,7 @@ automática de comprobantes de compra mediante Inteligencia Artificial.
 ## Estado actual
 
 Están implementadas las historias del Sprint 1 (HU1 a HU14) y, del
-Sprint 2, HU15 a HU18. La aplicación está desplegada en producción con Coolify, a partir
+Sprint 2, HU15 a HU18 y HU28. La aplicación está desplegada en producción con Coolify, a partir
 de `main`. La instalación de la PWA en Android (HU7) todavía no se probó.
 
 Ya implementado:
@@ -26,7 +26,8 @@ Ya implementado:
 | **Existencias** | HU12 (movimientos y existencias) | ✅ Backend y pantalla Movimientos |
 | **Salidas** | HU13 (carrito de salida) | ✅ Backend y pantalla Nueva salida |
 | **Recuento** | HU14 (ajuste por recuento) | ✅ Backend y pantalla Recuento |
-| Frontend | Login, Tablero, Comprobantes, Productos (alta y edición), Proveedores, Categorías, Usuarios, Cargar remito, Lectura con IA, Revisar remito, Movimientos, Nueva salida, Recuento | ✅ Vistas base |
+| **RF8** Reportes | HU28 (valorización de existencias) | ✅ Backend y pantalla Precios y reportes |
+| Frontend | Login, Tablero, Comprobantes, Productos (alta y edición), Proveedores, Categorías, Usuarios, Cargar remito, Lectura con IA, Revisar remito, Movimientos, Nueva salida, Recuento, Precios y reportes | ✅ Vistas base |
 
 Están completos el flujo de ingreso (cargar → leer con IA → revisar →
 confirmar), el de salida (carrito → confirmar) y el recuento (contar →
@@ -464,6 +465,31 @@ con su rol y permite el alta, la edición y la desactivación.
 - El propietario no puede desactivarse ni quitarse el rol desde sus propios
   datos, así el comercio nunca queda sin propietario.
 
+### Valorización de existencias (HU28)
+
+La pantalla **Precios y reportes** (`/precios`, solo el propietario; en el
+celular se abre desde **Cuenta**) muestra el valor del stock a precio de
+compra (`GET /api/reportes/valorizacion`, lógica en
+`backend/src/modules/reportes/reportes.service.js`):
+
+- Se valorizan los productos **activos con stock positivo**: stock × **último
+  precio de compra**, el de fecha de vigencia más reciente de cualquier
+  proveedor (ante la misma fecha, el registrado último). Los precios se
+  guardan al confirmar un remito (HU11).
+- El resultado se agrupa **por categoría** (con «Sin categoría»), con su
+  porcentaje del total; cada categoría se despliega para ver los productos con
+  su stock, último precio, fecha y proveedor.
+- Cada producto se redondea a centavos y los totales se suman en centavos: el
+  **total coincide exactamente con la suma por categoría**.
+- Los productos **con stock y sin precio registrado se informan aparte** y no
+  entran en el total. Los productos sin stock, con stock negativo o
+  desactivados no se valorizan.
+- El empleado recibe 403: el reporte muestra costos de compra.
+- **Lectura consistente:** stock y último precio se leen en una sola sentencia
+  SQL, que en PostgreSQL ve una única foto de la base. Un ingreso que se
+  confirma mientras tanto entra completo o no entra: nunca stock anterior con
+  precio nuevo.
+
 ### Backend en Docker (opcional)
 
 El servicio `backend` usa el perfil `app`, así que `docker compose up -d`
@@ -558,6 +584,7 @@ POSTGRES_PASSWORD=prueba123 JWT_SECRET=prueba CORS_ORIGIN=http://localhost:8088 
 | `GET` | `/api/salidas` · `?limite=` · `/api/salidas/:id` | autenticado |
 | `GET` | `/api/recuentos/producto/:id` (stock y versión para el recuento) | autenticado |
 | `POST` | `/api/recuentos` (201 con ajustes, 200 sin diferencias, 409 si hubo movimientos desde la lectura) | autenticado |
+| `GET` | `/api/reportes/valorizacion` (valor del stock a último precio de compra, por categoría) | propietario |
 
 ---
 

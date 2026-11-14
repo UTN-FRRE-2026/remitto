@@ -4,12 +4,12 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 
 ## Referencia verificada (14/11/2026)
 
-- `origin/main` en `c203c4e` (merge del PR #19, HU17). Todas las ramas remotas están integradas.
+- `origin/main` en `bbd7fc8` (merge del PR #20, HU16). Todas las ramas remotas salvo la de HU28 están integradas.
 - **Primera entrega del TPI: lunes 16/11/2026.** Consigna y entregables en [entrega-tpi.md](entrega-tpi.md).
-- **Trabajo local, con commit y sin publicar:** HU16 (equivalencias por proveedor) en la rama `feature/HU16-equivalencias-proveedor`, a nombre de Agostina Jara. No se publicó porque en la máquina donde se hizo solo hay credenciales de GitHub de otro integrante.
+- **Publicado, pendiente de integrar:** HU28 (valorización de existencias) en `feature/HU28-valorizacion-existencias`, a nombre de Agostina Jara, actualizada con `main` (incluye HU16). El push se hizo con las credenciales de otro integrante; el PR lo abre Agostina desde su cuenta.
 - Los PDF de la documentación probatoria se generaron el 14/11 fuera del repositorio (`../remitto-entrega/`).
 - **Trabajo en pausa, sin commit:** HU21 (claves de integración) quedó guardada solo en la copia local de Maxi: un stash de Git sobre la rama `feature/HU21-claves-integracion` y un patch equivalente en `retomar/HU21-en-progreso.patch`, fuera del repositorio, con las instrucciones para recuperarla. Tiene el backend con sus pruebas y la pantalla sin terminar. No está en `origin`.
-- PR #1 a #19 integrados en `main`.
+- PR #1 a #20 integrados en `main`.
 
 ## Integrado en `main`
 
@@ -35,6 +35,7 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 | Manual del usuario | [PR #17](https://github.com/UTN-FRRE-2026/remitto/pull/17) |
 | HU18 comprobantes archivados | [PR #18](https://github.com/UTN-FRRE-2026/remitto/pull/18) |
 | HU17 revisión obligatoria en comprobantes dudosos (con migración: columna `revisada`) | [PR #19](https://github.com/UTN-FRRE-2026/remitto/pull/19) |
+| HU16 equivalencias por proveedor (con migración `hu16_equivalencias`) | [PR #20](https://github.com/UTN-FRRE-2026/remitto/pull/20) |
 
 HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa que se haya comprobado ahora cada criterio de aceptación.
 
@@ -42,13 +43,22 @@ HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa qu
 
 | Estado observado | Historias |
 | --- | --- |
-| Backend y pantalla | HU1 a HU6, HU8 a HU15, HU17, HU18 |
-| Implementada en rama local, sin publicar | HU16 equivalencias por proveedor |
+| Backend y pantalla | HU1 a HU6, HU8 a HU18 |
+| Publicada en rama, pendiente de integrar | HU28 valorización de existencias |
 | En pausa (stash) | HU21 claves de integración |
 | Base existente | HU7 PWA (`vite-plugin-pwa`); instalación en Android no comprobada |
-| Sin implementar | HU19, HU20 y HU22 a HU31 (HU26 parcial). `/asistente`, `/precios` e `/integraciones` son `EnConstruccion`; `simulador/` solo tiene un README |
+| Sin implementar | HU19, HU20, HU22 a HU27 y HU29 a HU31 (HU26 parcial). `/asistente` e `/integraciones` son `EnConstruccion`; `simulador/` solo tiene un README |
 
-## Validación de HU16 (14/11/2026, rama local `feature/HU16-equivalencias-proveedor`)
+## Validación de HU28 (14/11/2026, rama `feature/HU28-valorizacion-existencias`, pendiente de integrar)
+
+- `npm test`: 153 correctas (5 nuevas en `test/valorizacion.test.js`, una con 200 casos generados que comprueba que el total coincide con la suma por categoría pese al redondeo). `npm run build` correcto.
+- Integración contra una base descartable (`remitto_hu28`, migraciones y seed, eliminada al terminar) con la IA simulada; los precios se crean confirmando remitos: 26 controles correctos. Cubren permisos (200 propietario, 403 empleado, 401 sin sesión), base sin precios (todo aparte), último precio por fecha de vigencia y no por orden de carga, total igual a la suma por categoría y a un cálculo independiente en SQL, productos sin precio aparte y sin duplicarse, grupo «Sin categoría» con kilos y centavos, producto desactivado fuera del reporte, y una salida que baja el total en stock × último precio.
+- **Corrección por la revisión de los commits publicados** (mismo día): la primera versión leía productos y precios con dos consultas independientes, y un ingreso concurrente podía mezclar estados (antes 10 × 100 = 1.000, después 20 × 200 = 4.000, el reporte daba 2.000). Ahora stock y último precio se leen en una sola sentencia SQL (`LEFT JOIN LATERAL`), que ve una única foto de la base. Verificado contra PostgreSQL: con el ingreso entre las dos lecturas, la versión anterior da 2.000; con un escritor que alterna los dos estados mientras cuatro lectores piden el reporte, la versión anterior mezcló 55 a 72 de unas 7.000 lecturas y la corregida 0 de 13.362. Prueba de regresión en `npm test` (una sola consulta); `npm test` 154 correctas; integración completa de nuevo 26/26. El build y el recorrido de pantalla no se repitieron: el frontend no cambió.
+- Recorrido automatizado en el navegador de la app: propietario en escritorio y a 375 px (total, categorías, despliegue de productos, productos sin precio, acceso desde Cuenta, sin desplazamiento horizontal) y empleado (mensaje y sin acceso en Cuenta).
+- **Actualizada con `main` después de integrar HU16** (PR #20): merge sin reescribir los commits publicados; los conflictos fueron solo de documentación. Verificación conjunta: base descartable con las 6 migraciones (incluida `hu16_equivalencias`), `npm test` 166 correctas, `npm run build` correcto y 14 controles de equivalencias y valorización sobre la misma versión (aprendizaje al confirmar, asociación «Recordado» en el siguiente comprobante, valorización con el precio confirmado y el nuevo, total igual a la suma por categoría y al cálculo SQL, 403 del empleado, stock igual a la suma de movimientos). Las pruebas intensivas de concurrencia no se repitieron: esa lógica no cambió.
+- **Pendiente:** revisarlo con los precios reales del comercio y en un celular real.
+
+## Validación de HU16 (14/11/2026, integrada en el PR #20)
 
 - `npm test`: 158 correctas (10 nuevas en `test/equivalencias.test.js`). `npm run build` correcto.
 - Integración contra una base descartable (`remitto_hu16`, migraciones y seed, eliminada al terminar) con la IA simulada: 28 controles correctos. Cubren el registro al confirmar (una fila por línea, descripción normalizada y código), la corrección de la persona registrada, la asociación automática en el siguiente comprobante del mismo proveedor con confianza 1 (criterio 1), la separación entre proveedores, la marca «Recordado» al editar la cantidad y su desaparición al elegir otro producto, el contador de confirmaciones, el cambio de producto con una sola fila por descripción (criterio 2), las líneas descartadas, los productos desactivados, dos confirmaciones simultáneas del mismo proveedor sin filas duplicadas, el stock sin cambios antes de confirmar y la consistencia del stock con la suma de movimientos.
