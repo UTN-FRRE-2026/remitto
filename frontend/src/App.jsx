@@ -16,6 +16,7 @@ import Proveedores from './pages/Proveedores.jsx';
 import Categorias from './pages/Categorias.jsx';
 import Usuarios from './pages/Usuarios.jsx';
 import Comprobantes from './pages/Comprobantes.jsx';
+import PrecisionLectura from './pages/PrecisionLectura.jsx';
 import UsuarioForm from './pages/UsuarioForm.jsx';
 import ProveedorForm from './pages/ProveedorForm.jsx';
 import EnConstruccion from './pages/EnConstruccion.jsx';
@@ -83,6 +84,7 @@ export default function App() {
             }
           />
           <Route path="/comprobantes" element={<Privado><Comprobantes /></Privado>} />
+          <Route path="/comprobantes/precision" element={<Privado><PrecisionLectura /></Privado>} />
           <Route path="/movimientos" element={<Privado><Movimientos /></Privado>} />
           <Route
             path="/precios"

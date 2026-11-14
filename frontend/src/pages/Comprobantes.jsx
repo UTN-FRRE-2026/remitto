@@ -98,6 +98,11 @@ export default function Comprobantes() {
         </Link>
       </header>
 
+      {/* HU19: lo leído por la IA contra lo confirmado. */}
+      <Link to="/comprobantes/precision" className="comprobantes__precision">
+        Precisión de la lectura con IA →
+      </Link>
+
       <div className="input productos__buscar">
         <IconoBuscar size={20} color="var(--texto-suave)" />
         <input placeholder="Buscar por número" value={filtros.numero} onChange={cambiar('numero')} aria-label="Buscar por número" />

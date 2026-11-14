@@ -10,6 +10,7 @@ import { OBJETIVO_RNF2_MS } from './comprobantes.procesamiento.js';
 import { incluirDetalle, validar, exigeRevisionCompleta } from './comprobantes.revision.js';
 import { UMBRAL_CONFIANZA } from './comprobantes.asociacion.js';
 import { anotarEquivalencias, equivalenciasDelProveedor } from './comprobantes.equivalencias.js';
+import { precisionDeComprobante } from './comprobantes.precision.js';
 
 // HU10: valida los datos para confirmar. El aviso de duplicado usa el número
 // definitivo si ya se corrigió; si no, el que leyó la IA.
@@ -102,6 +103,8 @@ export async function obtener(id) {
     umbralConfianza: UMBRAL_CONFIANZA,
     // HU17: manuscrito o de baja calidad → cada línea se marca como revisada.
     revisionCompleta: exigeRevisionCompleta(comprobante),
+    // HU19: lo leído contra lo confirmado (null si no está confirmado o no lo leyó la IA).
+    precision: precisionDeComprobante(comprobante),
   };
 }
 

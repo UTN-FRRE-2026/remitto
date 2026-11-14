@@ -12,7 +12,7 @@ automática de comprobantes de compra mediante Inteligencia Artificial.
 ## Estado actual
 
 Están implementadas las historias del Sprint 1 (HU1 a HU14) y, del
-Sprint 2, HU15 a HU18, HU27 a HU29. La aplicación está desplegada en producción con Coolify, a partir
+Sprint 2, HU15 a HU20 y HU27 a HU29. La aplicación está desplegada en producción con Coolify, a partir
 de `main`. La instalación de la PWA en Android (HU7) todavía no se probó.
 
 Ya implementado:
@@ -22,13 +22,13 @@ Ya implementado:
 | **RF1** Usuarios y acceso | HU1 (login), HU2 (roles), HU3 (admin usuarios) | ✅ Backend y pantallas |
 | **RF2** Catálogo | HU4 (productos), HU5 (categorías), HU6 (proveedores) | ✅ Backend y pantallas |
 | **RNF4** PWA móvil | HU7 (instalable) | ✅ Base |
-| **RF3** Ingesta de comprobantes | HU8 (carga), HU9 (lectura con IA), HU10 (revisión), HU11 (entradas de stock), HU15 (asociación automática), HU16 (equivalencias por proveedor), HU17 (revisión obligatoria), HU18 (comprobantes archivados) | ✅ Backend y pantallas M3/M4/M5 y Comprobantes |
+| **RF3** Ingesta de comprobantes | HU8 (carga), HU9 (lectura con IA), HU10 (revisión), HU11 (entradas de stock), HU15 (asociación automática), HU16 (equivalencias por proveedor), HU17 (revisión obligatoria), HU18 (comprobantes archivados), HU19 (precisión de la lectura) | ✅ Backend y pantallas M3/M4/M5, Comprobantes y Precisión |
 | **Existencias** | HU12 (movimientos y existencias) | ✅ Backend y pantalla Movimientos |
 | **Salidas** | HU13 (carrito de salida) | ✅ Backend y pantalla Nueva salida |
 | **Recuento** | HU14 (ajuste por recuento) | ✅ Backend y pantalla Recuento |
 | **RF6** Reposición | HU27 (sugerencia de reposición) | ✅ Backend y pantalla Precios y reportes |
-| **RF8** Reportes | HU28 (valorización de existencias), HU29 (productos sin movimiento) | ✅ Backend y pantalla Precios y reportes |
-| Frontend | Login, Tablero, Comprobantes, Productos (alta y edición), Proveedores, Categorías, Usuarios, Cargar remito, Lectura con IA, Revisar remito, Movimientos, Nueva salida, Recuento, Precios y reportes | ✅ Vistas base |
+| **RF8** Reportes | HU20 (evolución de precios), HU28 (valorización de existencias), HU29 (productos sin movimiento) | ✅ Backend y pantalla Precios y reportes |
+| Frontend | Login, Tablero, Comprobantes, Precisión de la lectura, Productos (alta y edición), Proveedores, Categorías, Usuarios, Cargar remito, Lectura con IA, Revisar remito, Movimientos, Nueva salida, Recuento, Precios y reportes | ✅ Vistas base |
 
 Están completos el flujo de ingreso (cargar → leer con IA → revisar →
 confirmar), el de salida (carrito → confirmar) y el recuento (contar →
@@ -283,8 +283,8 @@ formulario; el empleado puede buscar otro producto).
   productos y 1,8 s con 5.000. El cálculo es síncrono y no entra en la medición
   de tiempo del RNF2.
 - Al corregir una propuesta no se conserva cuál había sido (el producto y la
-  confianza se reemplazan). Si HU19 necesita medir los aciertos de la
-  asociación, hará falta guardarla aparte.
+  confianza se reemplazan). Por eso HU19 mide la lectura de la IA y no los
+  aciertos de la asociación; medirlos requeriría guardar la propuesta aparte.
 
 ### Equivalencias por proveedor (HU16)
 
@@ -529,6 +529,47 @@ en el Inicio, «Para reponer» → **Ver sugerencia** abre la reposición.
 - Stock, precio y salidas se leen en una sola sentencia SQL, como la
   valorización.
 
+### Precisión de la lectura (HU19)
+
+**Comprobantes › Precisión de la lectura con IA** (`/comprobantes/precision`,
+`GET /api/comprobantes/precision`) compara lo que leyó la IA (columnas
+`*_extraido`, que no se modifican) con lo que se confirmó. Lo consultan los
+dos roles.
+
+- Solo cuentan los comprobantes **confirmados con lectura de IA**. Cada línea
+  del comprobante es **correcta** (se confirmó con la cantidad y el precio
+  leídos), **corregida** (cambió la cantidad o el precio), **descartada** (la
+  IA leyó un renglón que se descartó) o **agregada a mano** (la IA no la leyó).
+- **Precisión = líneas correctas / líneas contadas.** El general suma las
+  líneas de todos los comprobantes (no promedia porcentajes).
+- **Meta del plan:** 85 % sobre 20 comprobantes. Hasta tener 20 se informa
+  cuántos faltan, sin veredicto.
+- Las **lecturas simuladas** (`modelo_ia` = `simulado:…`) se listan, marcadas,
+  pero no entran en el general ni en la meta.
+- La revisión de un comprobante confirmado muestra su propio indicador
+  (`precision` en `GET /api/comprobantes/:id`).
+- La asociación con el catálogo (HU15) no entra: es local, no de la IA, y la
+  propuesta original no se conserva al corregirla.
+
+### Evolución de los precios de compra (HU20)
+
+Pestaña **Evolución de precios** en Precios y reportes (`?vista=precios`).
+Solo el propietario.
+
+- **Lista** (`GET /api/reportes/precios?desde=&hasta=`): productos con precios
+  de compra en el período, los que **más aumentaron primero**. La variación es
+  del primer al último precio del período con el proveedor del último precio.
+  Período por defecto: el último año (atajos de 3, 6 y 12 meses o fechas).
+- **Detalle** (`GET /api/reportes/precios/:productoId`): gráfico con una línea
+  por proveedor y un punto por compra, **ordenados por fecha de vigencia**
+  (fecha de emisión del comprobante). El cursor (o las flechas del teclado)
+  muestra el precio vigente de cada proveedor en esa fecha.
+- **Comparación entre proveedores:** el último precio de cada uno, del más
+  barato al más caro, con cuánto más caro es que el más barato y su variación
+  en el período. Una tabla con todos los precios complementa el gráfico.
+- Gráfico SVG propio (`components/GraficoPrecios.jsx`), sin bibliotecas; la
+  variación se indica con flecha y texto, no solo con color.
+
 ### Backend en Docker (opcional)
 
 El servicio `backend` usa el perfil `app`, así que `docker compose up -d`
@@ -611,6 +652,7 @@ POSTGRES_PASSWORD=prueba123 JWT_SECRET=prueba CORS_ORIGIN=http://localhost:8088 
 | `POST/PATCH/DELETE` | `/api/productos/:id` | propietario |
 | `POST` | `/api/comprobantes` (multipart: `archivo`, `proveedorId`, `tipo?`) | autenticado |
 | `GET` | `/api/comprobantes` · `?proveedorId=&estado=&desde=&hasta=&numero=&pagina=&limite=` (HU18) | autenticado |
+| `GET` | `/api/comprobantes/precision` (lectura de la IA contra lo confirmado) (HU19) | autenticado |
 | `GET` | `/api/comprobantes/:id` · `/api/comprobantes/:id/archivo` | autenticado |
 | `POST` | `/api/comprobantes/:id/procesar` (202; lectura con IA) | autenticado |
 | `GET` | `/api/comprobantes/:id/estado` (progreso de la lectura) | autenticado |
@@ -624,6 +666,7 @@ POSTGRES_PASSWORD=prueba123 JWT_SECRET=prueba CORS_ORIGIN=http://localhost:8088 
 | `GET` | `/api/recuentos/producto/:id` (stock y versión para el recuento) | autenticado |
 | `POST` | `/api/recuentos` (201 con ajustes, 200 sin diferencias, 409 si hubo movimientos desde la lectura) | autenticado |
 | `GET` | `/api/reportes/valorizacion` (valor del stock a último precio de compra, por categoría) | propietario |
+| `GET` | `/api/reportes/precios` · `?desde=&hasta=` · `/api/reportes/precios/:productoId` (evolución de precios de compra) (HU20) | propietario |
 | `GET` | `/api/reportes/reposicion` (qué pedir y cuánto, por último proveedor) (HU27) | propietario |
 | `GET` | `/api/reportes/sin-movimiento` · `?desde=&hasta=` (productos con stock sin salidas) (HU29) | propietario |
 
