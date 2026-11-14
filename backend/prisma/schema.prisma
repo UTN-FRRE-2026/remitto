@@ -308,6 +308,9 @@ model DetalleComprobante {
   cantidad       Decimal?      @db.Decimal(12, 3)
   precioUnitario Decimal?      @map("precio_unitario") @db.Decimal(12, 2)
   estado         EstadoDetalle @default(PROPUESTO)
+  /// HU17: en un comprobante manuscrito o de baja calidad, la persona
+  /// marca cada línea como revisada antes de poder confirmar el ingreso.
+  revisada       Boolean       @default(false)
 
   comprobante  Comprobante      @relation(fields: [comprobanteId], references: [id], onDelete: Cascade)
   producto     Producto?        @relation(fields: [productoId], references: [id], onDelete: SetNull)

@@ -1,6 +1,6 @@
 # Manual del usuario de Remitto
 
-Versión del 14/11/2026, correspondiente a `main` con las historias HU1 a HU15 y HU18. Las capturas usan los datos ficticios de ejemplo («Almacén Don Carlos») y una lectura con IA simulada.
+Versión del 14/11/2026, correspondiente a `main` con las historias HU1 a HU15, HU17 y HU18. Las capturas usan los datos ficticios de ejemplo («Almacén Don Carlos») y una lectura con IA simulada.
 
 ## Contenido
 
@@ -126,7 +126,7 @@ La revisión muestra el archivo original (**Ver archivo** lo abre en grande), lo
 
 Los cambios se guardan solos («Guardado»): podés salir y retomar la revisión más tarde.
 
-Si el remito está escrito a mano o la foto es de baja calidad, aparece un aviso para revisar todas las líneas con más cuidado.
+**Remitos escritos a mano o con mala foto.** Si Remitto detecta que el remito está escrito a mano, que la foto es de baja calidad o que no se lee bien, aparece el aviso **Revisión línea por línea obligatoria** con la cuenta de líneas revisadas. Compará cada línea con el original y tocá **Marcar como revisada** (si te equivocaste, **deshacer**). Las líneas que faltan quedan destacadas, y el ingreso no se puede confirmar hasta revisarlas todas. Las líneas descartadas no hace falta marcarlas y las que agregás a mano ya cuentan como revisadas.
 
 ### Paso 4: validar y confirmar
 

@@ -4,6 +4,7 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
 import { rangoFechas } from '../movimientos/movimientos.service.js';
+import { exigeRevisionCompleta } from './comprobantes.revision.js';
 
 // Filtro de estado: EN_PROCESO agrupa PENDIENTE y PROCESANDO.
 export function filtroEstado(estado) {
@@ -68,8 +69,11 @@ export async function listar(filtros = {}) {
   const ids = filas.map((c) => c.id);
   const [leidos, unidades] = ids.length
     ? await Promise.all([
-        // Número leído por la IA: referencia mientras el definitivo no se cargó.
-        prisma.$queryRaw`SELECT id, respuesta_ia->'normalizada'->'cabecera'->>'numero' AS numero
+        // Número leído por la IA (referencia mientras el definitivo no se
+        // cargó) y lo que indicó sobre el documento (HU17), sin traer toda la respuesta.
+        prisma.$queryRaw`SELECT id,
+            respuesta_ia->'normalizada'->'cabecera'->>'numero' AS numero,
+            respuesta_ia->'lectura'->'documento' AS documento
           FROM comprobantes WHERE id IN (${Prisma.join(ids)})`,
         prisma.detalleComprobante.groupBy({
           by: ['comprobanteId'],
@@ -80,6 +84,9 @@ export async function listar(filtros = {}) {
       ])
     : [[], []];
   const numeroLeido = new Map(leidos.map((f) => [f.id, f.numero]));
+  const revisionCompleta = new Map(
+    leidos.map((f) => [f.id, exigeRevisionCompleta({ respuestaIa: { lectura: { documento: f.documento } } })]),
+  );
   const unidadesIngresadas = new Map(unidades.map((u) => [u.comprobanteId, decimal(u._sum.cantidad)]));
 
   const porEstado = Object.fromEntries(grupos.map((g) => [g.estado, g._count._all]));
@@ -96,6 +103,8 @@ export async function listar(filtros = {}) {
       totalDeclarado: decimal(c.totalDeclarado),
       estado: c.estado,
       requiereRevision: c.requiereRevision,
+      // HU17: manuscrito o de baja calidad (cada línea se marca como revisada).
+      revisionCompleta: revisionCompleta.get(c.id) ?? false,
       esPdf: c.archivoMime === 'application/pdf',
       proveedor: c.proveedor,
       cargadoEn: c.cargadoEn,

@@ -137,6 +137,7 @@ erDiagram
     decimal_12_3 cantidad
     decimal_12_2 precio_unitario
     EstadoDetalle estado
+    boolean revisada
   }
   salidas {
     integer id PK
@@ -365,6 +366,7 @@ Cada línea guarda por separado lo que leyó la IA y lo que confirmó el usuario
 | `cantidad` | decimal(12,3) | sí | — | — |
 | `precio_unitario` | decimal(12,2) | sí | — | — |
 | `estado` | enum EstadoDetalle | no | = PROPUESTO | — |
+| `revisada` | boolean | no | = false | HU17: en un comprobante manuscrito o de baja calidad, la persona marca cada línea como revisada antes de poder confirmar el ingreso. |
 
 - Único: (comprobante_id, nro_linea)
 - Índice: (producto_id)

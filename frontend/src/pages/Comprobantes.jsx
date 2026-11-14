@@ -189,8 +189,8 @@ export default function Comprobantes() {
                       ? ` · ${c.lineas} ${c.lineas === 1 ? 'línea' : 'líneas'}`
                       : ''}
                 </span>
-                {c.requiereRevision && c.estado === 'EN_REVISION' && (
-                  <span className="comprobante__aviso">Manuscrito o de baja calidad: revisar todas las líneas.</span>
+                {c.revisionCompleta && c.estado === 'EN_REVISION' && (
+                  <span className="comprobante__aviso">Manuscrito o de baja calidad: revisar cada línea.</span>
                 )}
               </div>
               <div className="comprobante__lado">

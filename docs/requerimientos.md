@@ -14,8 +14,8 @@ Para el detalle de lo verificado en cada entrega, ver [estado-proyecto.md](estad
 
 | | Historias | Puntos del plan |
 | --- | --- | --- |
-| Implementadas | 16 (HU1 a HU15 y HU18) | 55 de 100 obligatorios |
-| Parciales | 2 (HU17, HU26) | 5 |
+| Implementadas | 17 (HU1 a HU15, HU17 y HU18) | 57 de 100 obligatorios |
+| Parciales | 1 (HU26) | 3 |
 | Pendientes obligatorias | 11 (HU16, HU19 a HU25, HU27 a HU29) | 40 |
 | Deseables pendientes | 2 (HU30, HU31) | 5 (fuera de los 100) |
 
@@ -46,7 +46,7 @@ Para el detalle de lo verificado en cada entrega, ver [estado-proyecto.md](estad
 | RF3.3 | Asociar los ítems al catálogo con nivel de confianza | HU15 | Implementado | Propuesta y confianza en la revisión. Falta calibrarla con remitos reales |
 | RF3.4 | Revisar y confirmar, con alta de productos nuevos | HU10 | Implementado | Pantalla Revisar remito |
 | RF3.5 | Reconocer equivalencias por proveedor | HU16 | Pendiente | La tabla `codigos_proveedor` existe pero no se usa |
-| RF3.6 | Exigir revisión completa en comprobantes dudosos | HU17 | Parcial | La IA detecta si es manuscrito o de baja calidad y se muestra un aviso. Falta exigir la confirmación línea por línea |
+| RF3.6 | Exigir revisión completa en comprobantes dudosos | HU17 | Implementado | Aviso de revisión obligatoria y «Marcar como revisada» por línea; no se confirma hasta revisarlas todas |
 | RF3.7 | Consultar los comprobantes archivados | HU18 | Implementado | Pantalla Comprobantes, con filtros y acceso desde la ficha del proveedor · `GET /api/comprobantes` |
 | RF3.8 | Medir la precisión de la extracción | HU19 | Pendiente | Lo leído y lo confirmado ya se guardan por separado |
 
