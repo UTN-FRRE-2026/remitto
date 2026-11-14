@@ -13,7 +13,7 @@ automática de comprobantes de compra mediante Inteligencia Artificial.
 
 Están implementadas las historias del Sprint 1 (HU1 a HU14) y, del
 Sprint 2, HU15 a HU20 y HU27 a HU29. La aplicación está desplegada en producción con Coolify, a partir
-de `main`. La instalación de la PWA en Android (HU7) todavía no se probó.
+de `main`. El equipo probó la instalación de la PWA en un Android real (HU7) y funciona.
 
 Ya implementado:
 
