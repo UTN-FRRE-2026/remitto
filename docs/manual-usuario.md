@@ -327,6 +327,6 @@ Puede estar desactivado: el propietario lo ve con el filtro **Desactivados** y l
 - Las capturas se tomaron el 13/11/2026 contra una base descartable con el seed y `IA_SIMULACION=ok`, con Chromium sin interfaz (390 px de ancho y 1366 px en escritorio). En la preparación, «Gaseosa cola 500 ml» se renombró a «Gaseosa cola» y se desactivó la galletita del seed, para mostrar una línea dudosa y una sin coincidencia.
 - Los campos de fecha aparecen en formato mm/dd/aaaa porque el navegador de las capturas estaba en inglés; en un celular en castellano se ven como dd/mm/aaaa.
 - La campana del Inicio todavía no tiene función (las alertas son de HU24).
-- La sección de instalación describe el procedimiento estándar de Chrome; la instalación en un Android real todavía no se probó (HU7).
+- La sección de instalación describe el procedimiento estándar de Chrome; el equipo instaló la aplicación en un Android real y funciona (HU7, 14/11/2026).
 - Las capturas de precisión y evolución de precios (14/11) usan tres remitos simulados confirmados con fechas de emisión de junio, agosto y septiembre; para la precisión se marcaron como lecturas reales en la base descartable.
 - Al implementar más historias, agregar sus secciones (Asistente, Integraciones) y actualizar la lista de «En construcción».
