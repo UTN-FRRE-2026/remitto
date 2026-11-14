@@ -1,6 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluarRevision, fechaVigencia, lineasAIngresar } from '../src/modules/comprobantes/comprobantes.revision.js';
+import {
+  evaluarRevision,
+  fechaVigencia,
+  lineasAIngresar,
+  exigeRevisionCompleta,
+  cambiosDeDetalle,
+} from '../src/modules/comprobantes/comprobantes.revision.js';
 import {
   actualizarDetalleSchema,
   agregarDetalleSchema,
@@ -38,6 +44,8 @@ test('datos completos: sin problemas, con resumen de unidades e importe', () => 
     importe: 34200,
     totalImpreso: 34200,
     coincideTotal: true,
+    revisionCompleta: false,
+    sinRevisar: 0,
   });
 });
 
@@ -149,4 +157,46 @@ test('líneas a ingresar: sin descartadas y ordenadas por producto para bloquear
       [4, 7],
     ],
   );
+});
+
+// --- HU17: revisión completa en comprobantes dudosos ---
+
+const conDocumento = (documento, extra = {}) =>
+  comprobante({ respuestaIa: { lectura: { documento: { legible: true, manuscrito: false, bajaCalidad: false, ...documento } } }, ...extra });
+
+test('HU17: se exige revisión completa si la IA indica manuscrito, baja calidad o poco legible', () => {
+  assert.equal(exigeRevisionCompleta(conDocumento({})), false);
+  assert.equal(exigeRevisionCompleta(conDocumento({ manuscrito: true })), true);
+  assert.equal(exigeRevisionCompleta(conDocumento({ bajaCalidad: true })), true);
+  assert.equal(exigeRevisionCompleta(conDocumento({ legible: false })), true);
+  // Sin lectura (por ejemplo, un comprobante cargado antes de leerse) no se exige.
+  assert.equal(exigeRevisionCompleta(comprobante()), false);
+  assert.equal(exigeRevisionCompleta({ respuestaIa: null }), false);
+});
+
+test('HU17: en un comprobante dudoso, cada línea sin revisar impide confirmar', () => {
+  const dos = [linea(), linea({ nroLinea: 2, revisada: true }), linea({ nroLinea: 3, estado: 'DESCARTADO' })];
+  const r = evaluarRevision(conDocumento({ manuscrito: true }, { detalles: dos, totalDeclarado: null }));
+  assert.equal(r.completo, false);
+  const deRevision = r.problemas.filter((p) => p.campo === 'revisada');
+  // La 2 está revisada y la 3 se descartó: solo falta la 1.
+  assert.deepEqual(deRevision.map((p) => p.nroLinea), [1]);
+  assert.match(deRevision[0].mensaje, /marcala como revisada/);
+  assert.equal(r.resumen.revisionCompleta, true);
+  assert.equal(r.resumen.sinRevisar, 1);
+});
+
+test('HU17: con todas las líneas revisadas se puede confirmar; un comprobante normal no lo exige', () => {
+  const revisadas = evaluarRevision(conDocumento({ bajaCalidad: true }, { detalles: [linea({ revisada: true })] }));
+  assert.equal(revisadas.completo, true);
+  const normal = evaluarRevision(conDocumento({}, { detalles: [linea({ revisada: false })] }));
+  assert.equal(normal.completo, true);
+  assert.equal(normal.resumen.revisionCompleta, false);
+});
+
+test('HU17: la marca de revisada se guarda y se puede quitar', () => {
+  assert.deepEqual(cambiosDeDetalle({ revisada: true }), { revisada: true });
+  assert.deepEqual(cambiosDeDetalle({ revisada: false }), { revisada: false });
+  assert.equal(actualizarDetalleSchema.safeParse({ revisada: true }).success, true);
+  assert.equal(actualizarDetalleSchema.safeParse({ revisada: 'si' }).success, false);
 });

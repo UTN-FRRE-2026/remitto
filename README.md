@@ -12,7 +12,7 @@ automática de comprobantes de compra mediante Inteligencia Artificial.
 ## Estado actual
 
 Están implementadas las historias del Sprint 1 (HU1 a HU14) y, del
-Sprint 2, HU15 y HU18. La aplicación está desplegada en producción con Coolify, a partir
+Sprint 2, HU15, HU17 y HU18. La aplicación está desplegada en producción con Coolify, a partir
 de `main`. La instalación de la PWA en Android (HU7) todavía no se probó.
 
 Ya implementado:
@@ -145,6 +145,23 @@ original junto a las líneas leídas, para corregir antes de ingresar.
 - **"Validar datos"** informa si falta algo (producto, cantidad > 0, número,
   al menos una línea) y muestra avisos (sin precio, sin fecha, total distinto,
   posible duplicado). No modifica nada; si está todo, habilita "Confirmar ingreso".
+
+### Revisión obligatoria en comprobantes dudosos (HU17)
+
+Si la IA indica que el comprobante está **escrito a mano**, que la imagen es de
+**baja calidad** o que **no se lee bien** (`respuesta_ia.lectura.documento`),
+la revisión muestra el aviso «Revisión línea por línea obligatoria» con la
+cuenta de líneas revisadas, y cada línea a ingresar tiene el botón **«Marcar
+como revisada»** (se puede deshacer). Las líneas sin revisar quedan destacadas.
+
+- «Validar datos» y «Confirmar ingreso» exigen que todas las líneas a ingresar
+  estén revisadas (`detalles_comprobante.revisada`); la confirmación lo vuelve
+  a comprobar dentro de su transacción. Las descartadas no cuentan y las
+  agregadas a mano nacen revisadas.
+- En un comprobante normal no se pide la marca. El listado de Comprobantes
+  (HU18) señala los que exigen esta revisión.
+- Migración `20261114120000_hu17_revision_lineas`: agrega la columna con valor
+  `false`; producción la aplica al arrancar (`prisma migrate deploy`).
 
 ### Confirmación del ingreso y entradas de stock (HU11)
 

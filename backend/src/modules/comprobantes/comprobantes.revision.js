@@ -61,6 +61,14 @@ export async function actualizarCabecera(id, datos) {
   });
 }
 
+// HU17: el comprobante exige revisar cada línea si la IA indicó que está
+// escrito a mano, que la imagen es de baja calidad o que no se lee bien.
+// Se deriva de la lectura guardada (respuesta_ia), sin otra columna.
+export function exigeRevisionCompleta(c) {
+  const d = c?.respuestaIa?.lectura?.documento;
+  return Boolean(d && (d.manuscrito === true || d.bajaCalidad === true || d.legible === false));
+}
+
 // Columnas que cambia una edición de la línea (pura). Si la persona elige o
 // quita el producto, la confianza pasa a null: la asociación es suya y ya no
 // se marca como propuesta (HU15). Nada vuelve a proponer sobre esa línea.
@@ -71,6 +79,7 @@ export function cambiosDeDetalle(datos) {
   }
   if ('productoId' in datos) data.confianza = null;
   if ('descartada' in datos) data.estado = datos.descartada ? 'DESCARTADO' : 'PROPUESTO';
+  if ('revisada' in datos) data.revisada = datos.revisada;
   return data;
 }
 
@@ -96,6 +105,8 @@ export async function agregarDetalle(id, datos) {
           comprobanteId: id,
           nroLinea: (max._max.nroLinea ?? 0) + 1,
           agregadaManualmente: true,
+          // La cargó una persona: ya está revisada (HU17).
+          revisada: true,
           productoId: datos.productoId ?? null,
           cantidad: datos.cantidad ?? null,
           precioUnitario: datos.precioUnitario ?? null,
@@ -129,6 +140,17 @@ export function evaluarRevision(c, { duplicados = [] } = {}) {
 
   const activas = c.detalles.filter((d) => d.estado !== 'DESCARTADO');
   if (activas.length === 0) problemas.push({ campo: 'lineas', mensaje: 'No hay líneas para ingresar.' });
+
+  // HU17: comprobante dudoso → cada línea a ingresar tiene que estar revisada.
+  const revisionCompleta = exigeRevisionCompleta(c);
+  const sinRevisar = revisionCompleta ? activas.filter((d) => !d.revisada) : [];
+  for (const d of sinRevisar) {
+    problemas.push({
+      nroLinea: d.nroLinea,
+      campo: 'revisada',
+      mensaje: `Línea ${d.nroLinea}: marcala como revisada (el comprobante es manuscrito o de baja calidad).`,
+    });
+  }
 
   let unidades = 0;
   let importe = 0;
@@ -189,6 +211,9 @@ export function evaluarRevision(c, { duplicados = [] } = {}) {
       importe: importeRedondeado,
       totalImpreso,
       coincideTotal,
+      // HU17
+      revisionCompleta,
+      sinRevisar: sinRevisar.length,
     },
   };
 }

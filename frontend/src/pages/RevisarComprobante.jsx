@@ -156,6 +156,9 @@ export default function RevisarComprobante() {
   const activas = comprobante.detalles.filter((d) => d.estado !== 'DESCARTADO');
   const umbral = comprobante.umbralConfianza ?? 0.8;
   const paraRevisar = comprobante.detalles.filter((d) => asociacion(d, umbral).dudosa).length;
+  // HU17: manuscrito o de baja calidad → cada línea a ingresar se marca como revisada.
+  const revisionCompleta = Boolean(comprobante.revisionCompleta);
+  const revisadas = activas.filter((d) => d.revisada).length;
   const unidades = activas.reduce((s, d) => s + (d.cantidad != null ? Number(d.cantidad) : 0), 0);
   const importe = activas.reduce(
     (s, d) => s + (d.cantidad != null && d.precioUnitario != null ? Number(d.cantidad) * Number(d.precioUnitario) : 0),
@@ -220,6 +223,18 @@ export default function RevisarComprobante() {
               {comprobante.posibleDuplicado.map((d) => `#${d.id}`).join(', ')} de este proveedor. Revisá el número.
             </p>
           )}
+          {revisionCompleta && editable && (
+            <div className="revisar__obligatoria" role="status">
+              <strong>Revisión línea por línea obligatoria</strong>
+              <p>
+                El remito está escrito a mano o la imagen es de baja calidad. Compará cada línea con el original y
+                marcala como revisada: el ingreso se habilita cuando estén todas.
+              </p>
+              <span className="revisar__obligatoria-cuenta">
+                {revisadas} de {activas.length} {activas.length === 1 ? 'línea revisada' : 'líneas revisadas'}
+              </span>
+            </div>
+          )}
           {normalizada?.motivosRevision?.length > 0 && (
             <ul className="revisar__motivos">
               {normalizada.motivosRevision.map((m) => (
@@ -244,6 +259,7 @@ export default function RevisarComprobante() {
                 umbral={umbral}
                 registrar={registrar}
                 onCambio={reemplazarLinea}
+                revisionCompleta={revisionCompleta}
               />
             ))}
           </div>
@@ -419,7 +435,7 @@ function Cabecera({ comprobante, editable, registrar, onGuardado }) {
   );
 }
 
-function Linea({ comprobanteId, detalle: d, leida, editable, esPropietario, umbral, registrar, onCambio }) {
+function Linea({ comprobanteId, detalle: d, leida, editable, esPropietario, umbral, registrar, onCambio, revisionCompleta }) {
   const a = asociacion(d, umbral);
   const [cantidad, setCantidad] = useState(d.cantidad != null ? mostrarNumero(d.cantidad) : '');
   const [precio, setPrecio] = useState(d.precioUnitario != null ? mostrarNumero(d.precioUnitario, 2) : '');
@@ -465,7 +481,9 @@ function Linea({ comprobanteId, detalle: d, leida, editable, esPropietario, umbr
 
   return (
     <article
-      className={`revisar__linea card ${descartada ? 'revisar__linea--descartada' : ''} ${editable && a.dudosa ? 'revisar__linea--dudosa' : ''}`}
+      className={`revisar__linea card ${descartada ? 'revisar__linea--descartada' : ''} ${
+        editable && (a.dudosa || (revisionCompleta && !descartada && !d.revisada)) ? 'revisar__linea--dudosa' : ''
+      }`}
     >
       <div className="revisar__linea-cabeza">
         <span className="revisar__nro">{d.nroLinea}</span>
@@ -584,6 +602,24 @@ function Linea({ comprobanteId, detalle: d, leida, editable, esPropietario, umbr
               <strong>{pesos(subtotal)}</strong>
             </div>
           </div>
+
+          {/* HU17: confirmación explícita de cada línea en un comprobante dudoso. */}
+          {revisionCompleta && editable && (
+            <button
+              type="button"
+              className={`revisar__revisada ${d.revisada ? 'revisar__revisada--hecha' : ''}`}
+              onClick={() => guardar({ revisada: !d.revisada })}
+              disabled={guardando}
+              aria-pressed={Boolean(d.revisada)}
+            >
+              <IconoCheck size={16} /> {d.revisada ? 'Revisada · deshacer' : 'Marcar como revisada'}
+            </button>
+          )}
+          {revisionCompleta && !editable && d.revisada && (
+            <span className="revisar__revisada-nota">
+              <IconoCheck size={14} /> Revisada línea por línea
+            </span>
+          )}
         </>
       )}
       {guardando && <small className="revisar__nota">Guardando…</small>}

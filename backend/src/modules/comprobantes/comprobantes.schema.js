@@ -44,6 +44,8 @@ export const actualizarDetalleSchema = z
     cantidad: cantidad.nullable().optional(),
     precioUnitario: precio.nullable().optional(),
     descartada: z.boolean().optional(),
+    // HU17: la persona confirma que revisó la línea.
+    revisada: z.boolean().optional(),
   })
   .strict()
   .refine((d) => Object.keys(d).length > 0, 'No hay cambios para guardar');

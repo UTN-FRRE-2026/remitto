@@ -430,3 +430,51 @@
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
+
+/* HU17 · Revisión línea por línea en comprobantes dudosos. */
+.revisar__obligatoria {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radio);
+  background: var(--bg-stock-bajo);
+  color: var(--fg-stock-bajo);
+  border: 1px solid var(--dorado);
+}
+.revisar__obligatoria p {
+  font-size: var(--fs-detalle);
+  color: var(--oscuro);
+}
+.revisar__obligatoria-cuenta {
+  font-size: var(--fs-detalle);
+  font-weight: 800;
+}
+.revisar__revisada {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 9px 14px;
+  border-radius: var(--radio-pill);
+  border: 1px solid var(--dorado);
+  background: var(--superficie);
+  color: var(--fg-stock-bajo);
+  font-weight: 700;
+  font-size: var(--fs-detalle);
+}
+.revisar__revisada--hecha {
+  border-color: var(--salvia);
+  background: var(--bg-en-stock);
+  color: var(--fg-en-stock);
+}
+.revisar__revisada-nota {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  font-size: var(--fs-detalle);
+  color: var(--fg-en-stock);
+  font-weight: 700;
+}
