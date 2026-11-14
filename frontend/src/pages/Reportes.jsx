@@ -1,25 +1,53 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { api } from '../lib/api.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { mostrarNumero, pesos } from '../lib/numeros.js';
 import { unidadCorta } from '../lib/unidades.js';
+import ReportesReposicion from './ReportesReposicion.jsx';
+import ReportesSinMovimiento from './ReportesSinMovimiento.jsx';
 import './Reportes.css';
+
+// Vistas de la pantalla (HU27, HU28, HU29); la elegida queda en la URL (?vista=).
+const VISTAS = [
+  { id: 'valorizacion', texto: 'Valorización', Componente: Valorizacion },
+  { id: 'reposicion', texto: 'Reposición', Componente: ReportesReposicion },
+  { id: 'sin-movimiento', texto: 'Sin movimiento', Componente: ReportesSinMovimiento },
+];
 
 const ZONA = 'America/Argentina/Buenos_Aires';
 const fecha = (f) => new Date(f).toLocaleDateString('es-AR', { timeZone: 'UTC', day: '2-digit', month: '2-digit', year: 'numeric' });
 const momento = (f) =>
   new Date(f).toLocaleString('es-AR', { timeZone: ZONA, day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 
-// Precios y reportes. HU28: valorización de existencias a precio de compra.
-// Solo el propietario: el reporte muestra costos (el backend lo vuelve a
-// comprobar en cada pedido).
+// Precios y reportes: valorización (HU28), sugerencia de reposición (HU27) y
+// productos sin movimiento (HU29). Solo el propietario: los reportes muestran
+// costos (el backend lo vuelve a comprobar en cada pedido).
 export default function Reportes() {
   const { esPropietario } = useAuth();
+  const [params, setParams] = useSearchParams();
+  const vista = VISTAS.find((v) => v.id === params.get('vista')) ?? VISTAS[0];
+  const { Componente } = vista;
   return (
     <div className="reportes">
       <h1 className="reportes__titulo">Precios y reportes</h1>
       {esPropietario ? (
-        <Valorizacion />
+        <>
+          <div className="chips reportes__vistas" role="tablist" aria-label="Reportes">
+            {VISTAS.map((v) => (
+              <button
+                key={v.id}
+                role="tab"
+                aria-selected={v.id === vista.id}
+                className={`chip ${v.id === vista.id ? 'chip--activo' : ''}`}
+                onClick={() => setParams(v.id === VISTAS[0].id ? {} : { vista: v.id }, { replace: true })}
+              >
+                {v.texto}
+              </button>
+            ))}
+          </div>
+          <Componente key={vista.id} />
+        </>
       ) : (
         <p className="card reportes__vacio">Solo el propietario consulta los reportes con costos de compra.</p>
       )}
@@ -130,7 +158,7 @@ function Valorizacion() {
         </section>
       )}
 
-      <p className="reportes__pie">La evolución de precios (HU20) y los productos sin movimiento (HU29) se agregan en próximas entregas.</p>
+      <p className="reportes__pie">La evolución de los precios de compra (HU20) se agrega en una próxima entrega.</p>
     </>
   );
 }

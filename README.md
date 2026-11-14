@@ -12,7 +12,7 @@ automática de comprobantes de compra mediante Inteligencia Artificial.
 ## Estado actual
 
 Están implementadas las historias del Sprint 1 (HU1 a HU14) y, del
-Sprint 2, HU15 a HU18 y HU28. La aplicación está desplegada en producción con Coolify, a partir
+Sprint 2, HU15 a HU18, HU27 a HU29. La aplicación está desplegada en producción con Coolify, a partir
 de `main`. La instalación de la PWA en Android (HU7) todavía no se probó.
 
 Ya implementado:
@@ -26,7 +26,8 @@ Ya implementado:
 | **Existencias** | HU12 (movimientos y existencias) | ✅ Backend y pantalla Movimientos |
 | **Salidas** | HU13 (carrito de salida) | ✅ Backend y pantalla Nueva salida |
 | **Recuento** | HU14 (ajuste por recuento) | ✅ Backend y pantalla Recuento |
-| **RF8** Reportes | HU28 (valorización de existencias) | ✅ Backend y pantalla Precios y reportes |
+| **RF6** Reposición | HU27 (sugerencia de reposición) | ✅ Backend y pantalla Precios y reportes |
+| **RF8** Reportes | HU28 (valorización de existencias), HU29 (productos sin movimiento) | ✅ Backend y pantalla Precios y reportes |
 | Frontend | Login, Tablero, Comprobantes, Productos (alta y edición), Proveedores, Categorías, Usuarios, Cargar remito, Lectura con IA, Revisar remito, Movimientos, Nueva salida, Recuento, Precios y reportes | ✅ Vistas base |
 
 Están completos el flujo de ingreso (cargar → leer con IA → revisar →
@@ -496,6 +497,38 @@ compra (`GET /api/reportes/valorizacion`, lógica en
   confirma mientras tanto entra completo o no entra: nunca stock anterior con
   precio nuevo.
 
+
+### Sugerencia de reposición y productos sin movimiento (HU27, HU29)
+
+Dos vistas más en **Precios y reportes** (pestañas Valorización · Reposición ·
+Sin movimiento; la elegida queda en la URL, `?vista=`). Solo el propietario;
+en el Inicio, «Para reponer» → **Ver sugerencia** abre la reposición.
+
+**Reposición** (`GET /api/reportes/reposicion`):
+- Entran los productos activos con stock mínimo definido y el stock **en el
+  mínimo o por debajo** (el mismo criterio de «stock bajo» del Inicio y
+  Productos).
+- **Cantidad sugerida = stock deseado − stock actual** (también si el stock es
+  negativo); unidades y paquetes se redondean hacia arriba, kilos y litros a 3
+  decimales.
+- Se agrupa por el **proveedor del último precio de compra** (el mismo
+  «último» que la valorización), con el costo estimado a ese precio. Sin
+  compras registradas: «Sin proveedor registrado», sin costo.
+- Sin stock deseado (o con un deseado que no supera el stock) se informan
+  aparte, con un enlace para completarlo en el producto.
+
+**Sin movimiento** (`GET /api/reportes/sin-movimiento?desde=&hasta=`):
+- Productos activos con stock **sin ninguna salida** (venta, consumo interno,
+  rotura, vencimiento, otro) en el período; los ingresos y los ajustes por
+  recuento no cuentan. El período se elige con fechas o con «Últimos 30, 60 o
+  90 días»; por defecto, los últimos 30 días con hoy incluido (hora de
+  Argentina).
+- Cada producto muestra su stock, su valor a último precio de compra (el
+  capital inmovilizado) y la fecha de su última salida, o «Nunca tuvo
+  salidas». Se ordena por valor; los sin precio van al final y no suman.
+- Stock, precio y salidas se leen en una sola sentencia SQL, como la
+  valorización.
+
 ### Backend en Docker (opcional)
 
 El servicio `backend` usa el perfil `app`, así que `docker compose up -d`
@@ -591,6 +624,8 @@ POSTGRES_PASSWORD=prueba123 JWT_SECRET=prueba CORS_ORIGIN=http://localhost:8088 
 | `GET` | `/api/recuentos/producto/:id` (stock y versión para el recuento) | autenticado |
 | `POST` | `/api/recuentos` (201 con ajustes, 200 sin diferencias, 409 si hubo movimientos desde la lectura) | autenticado |
 | `GET` | `/api/reportes/valorizacion` (valor del stock a último precio de compra, por categoría) | propietario |
+| `GET` | `/api/reportes/reposicion` (qué pedir y cuánto, por último proveedor) (HU27) | propietario |
+| `GET` | `/api/reportes/sin-movimiento` · `?desde=&hasta=` (productos con stock sin salidas) (HU29) | propietario |
 
 ---
 

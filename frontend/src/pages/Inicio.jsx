@@ -25,7 +25,7 @@ function fechaLarga() {
 }
 
 export default function Inicio() {
-  const { usuario } = useAuth();
+  const { usuario, esPropietario } = useAuth();
   const navegar = useNavigate();
   const [resumen, setResumen] = useState(null);
   const [reponer, setReponer] = useState([]);
@@ -123,8 +123,12 @@ export default function Inicio() {
       {/* Para reponer */}
       <div className="seccion__titulo">
         <h3>Para reponer</h3>
-        <button className="seccion__link" onClick={() => navegar('/productos?estado=STOCK_BAJO')}>
-          Ver todo
+        {/* HU27: el propietario ve cuánto pedir a cada proveedor. */}
+        <button
+          className="seccion__link"
+          onClick={() => navegar(esPropietario ? '/precios?vista=reposicion' : '/productos?estado=STOCK_BAJO')}
+        >
+          {esPropietario ? 'Ver sugerencia' : 'Ver todo'}
         </button>
       </div>
 

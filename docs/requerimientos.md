@@ -14,9 +14,9 @@ Para el detalle de lo verificado en cada entrega, ver [estado-proyecto.md](estad
 
 | | Historias | Puntos del plan |
 | --- | --- | --- |
-| Implementadas | 19 (HU1 a HU18 y HU28) | 62 de 100 obligatorios |
+| Implementadas | 21 (HU1 a HU18 y HU27 a HU29) | 66 de 100 obligatorios |
 | Parciales | 1 (HU26) | 3 |
-| Pendientes obligatorias | 9 (HU19 a HU25, HU27 y HU29) | 35 |
+| Pendientes obligatorias | 7 (HU19 a HU25) | 31 |
 | Deseables pendientes | 2 (HU30, HU31) | 5 (fuera de los 100) |
 
 ## Requerimientos funcionales
@@ -72,7 +72,7 @@ Para el detalle de lo verificado en cada entrega, ver [estado-proyecto.md](estad
 | Sub. | Descripción | HU | Estado | Qué falta |
 | --- | --- | --- | --- | --- |
 | RF6.1 | Generar alertas de stock bajo, sin stock y negativo | HU24 | Pendiente | La tabla `alertas_stock` existe, con una sola alerta activa por producto y tipo |
-| RF6.2 | Sugerir la reposición | HU27 | Pendiente | El stock deseado ya se carga en cada producto |
+| RF6.2 | Sugerir la reposición | HU27 | Implementado | Precios y reportes › Reposición: cantidad hasta el stock deseado, agrupada por último proveedor · `GET /api/reportes/reposicion` |
 
 ### RF7 Agente de consultas · Mandatoria
 
@@ -85,7 +85,7 @@ Para el detalle de lo verificado en cada entrega, ver [estado-proyecto.md](estad
 | Sub. | Descripción | HU | Estado | Qué falta |
 | --- | --- | --- | --- | --- |
 | RF8.1 | Valorización de existencias | HU28 | Implementado | Pantalla Precios y reportes: valor por categoría a último precio de compra y productos sin precio aparte · `GET /api/reportes/valorizacion` |
-| RF8.2 | Productos sin movimiento | HU29 | Pendiente | — |
+| RF8.2 | Productos sin movimiento | HU29 | Implementado | Precios y reportes › Sin movimiento: período elegible, stock, valor y última salida · `GET /api/reportes/sin-movimiento` |
 | RF8.3 | Evolución de precios de compra | HU20 | Pendiente | Los datos se registran en `precios_compra` |
 | RF8.4 | Tablero de situación | HU26 | Parcial | El tablero muestra indicadores de stock, productos para reponer y remitos por revisar. Faltan las alertas activas y el valor del stock |
 
