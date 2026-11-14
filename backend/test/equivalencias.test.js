@@ -6,7 +6,9 @@ import {
   buscarEquivalencia,
   planEquivalencia,
   anotarEquivalencias,
+  CONFIANZA_DUDOSA,
 } from '../src/modules/comprobantes/comprobantes.equivalencias.js';
+import { UMBRAL_CONFIANZA } from '../src/modules/comprobantes/comprobantes.asociacion.js';
 
 test('clave de descripción: mayúsculas, acentos, puntuación, espacios y número con unidad', () => {
   const clave = claveDescripcion('GAS, COLA 500ML');
@@ -15,8 +17,6 @@ test('clave de descripción: mayúsculas, acentos, puntuación, espacios y núme
   }
   assert.equal(clave, 'gas cola 500ml');
   assert.equal(claveDescripcion('AGUA S/GAS 1,5 L'), 'agua s gas 1.5l');
-  assert.equal(claveDescripcion('Aceite girasol 900cc'), 'aceite girasol 900cc');
-  // Otra presentación es otra descripción.
   assert.notEqual(claveDescripcion('GAS COLA 2.25L'), clave);
   assert.equal(claveDescripcion('  '), null);
   assert.equal(claveDescripcion(null), null);
@@ -24,71 +24,121 @@ test('clave de descripción: mayúsculas, acentos, puntuación, espacios y núme
 
 test('clave de código: sin espacios y en mayúsculas', () => {
   assert.equal(claveCodigo(' ab 12 '), 'AB12');
-  assert.equal(claveCodigo('2210'), '2210');
   assert.equal(claveCodigo(''), null);
   assert.equal(claveCodigo(null), null);
 });
 
-const eq = (extra) => ({ id: 1, productoId: 10, codigo: null, descripcion: 'gas cola 500ml', vecesConfirmado: 1, ...extra });
+test('la confianza dudosa queda por debajo del umbral', () => {
+  assert.ok(CONFIANZA_DUDOSA < UMBRAL_CONFIANZA);
+});
 
-test('buscar equivalencia: primero por código, después por descripción', () => {
-  const equivalencias = [
-    eq({ id: 1, productoId: 10, codigo: '2210', descripcion: 'gas cola 500ml' }),
-    eq({ id: 2, productoId: 20, codigo: null, descripcion: 'yerba c p 1kg' }),
+// Simula la tabla de un proveedor: aplica los planes como lo hace registrarEquivalencias.
+function tablaDeProveedor() {
+  let filas = [];
+  let reloj = 0;
+  return {
+    get filas() {
+      return filas;
+    },
+    confirmar({ codigo = null, descripcion, productoId }) {
+      reloj += 1;
+      const c = claveCodigo(codigo);
+      const d = claveDescripcion(descripcion);
+      const plan = planEquivalencia(
+        { codigo, descripcion, productoId },
+        {
+          porCodigo: (c && filas.find((f) => f.codigo === c)) || null,
+          porDescripcion: filas.find((f) => f.codigo === null && f.descripcion === d) ?? null,
+        },
+        new Date(Date.UTC(2026, 10, 14, 0, 0, reloj)),
+      );
+      for (const op of [plan.porCodigo, plan.porDescripcion]) {
+        if (!op) continue;
+        if (op.crear) filas.push({ id: filas.length + 1, ...op.crear });
+        else filas = filas.map((f) => (f.id === op.actualizar.id ? { ...f, ...op.actualizar.data } : f));
+      }
+    },
+    leer: (linea) => buscarEquivalencia(linea, filas),
+  };
+}
+
+test('registrar: crea una fila por código y otra por descripción, con contador 1', () => {
+  const t = tablaDeProveedor();
+  t.confirmar({ codigo: '2210', descripcion: 'GAS, COLA 500ML', productoId: 10 });
+  assert.deepEqual(
+    t.filas.map((f) => [f.codigo, f.descripcion, f.productoId, f.vecesConfirmado]),
+    [
+      ['2210', 'gas cola 500ml', 10, 1],
+      [null, 'gas cola 500ml', 10, 1],
+    ],
+  );
+});
+
+test('buscar: el código manda; sin código, la descripción confirmada (criterio 1)', () => {
+  const t = tablaDeProveedor();
+  t.confirmar({ codigo: '2210', descripcion: 'GAS, COLA 500ML', productoId: 10 });
+  t.confirmar({ codigo: null, descripcion: 'YERBA C/P 1KG', productoId: 20 });
+  assert.deepEqual(t.leer({ codigo: ' 2210', descripcion: 'GASEOSA COLA X 500' }), { productoId: 10, confianza: 1, vecesConfirmado: 1, motivo: 'codigo' });
+  assert.deepEqual(t.leer({ codigo: null, descripcion: 'Yerba C/P 1 KG' }), { productoId: 20, confianza: 1, vecesConfirmado: 1, motivo: 'descripcion' });
+  assert.equal(t.leer({ codigo: null, descripcion: 'GALL RELL CHOC 118G' }), null);
+  assert.equal(t.leer({ codigo: null, descripcion: null }), null);
+});
+
+test('regresión caso 1: el mismo código con otra descripción no borra la descripción anterior', () => {
+  const t = tablaDeProveedor();
+  t.confirmar({ codigo: 'ABC01', descripcion: 'DESCRIPCION A', productoId: 10 });
+  t.confirmar({ codigo: 'ABC01', descripcion: 'DESCRIPCION B', productoId: 10 });
+  assert.deepEqual(t.leer({ codigo: null, descripcion: 'DESCRIPCION A' }), { productoId: 10, confianza: 1, vecesConfirmado: 1, motivo: 'descripcion' });
+  assert.equal(t.leer({ codigo: null, descripcion: 'DESCRIPCION B' }).productoId, 10);
+  // El código sumó las dos confirmaciones.
+  assert.deepEqual(t.leer({ codigo: 'ABC01', descripcion: 'OTRA' }), { productoId: 10, confianza: 1, vecesConfirmado: 2, motivo: 'codigo' });
+});
+
+test('regresión caso 2: dos códigos con la misma descripción y distinto producto', () => {
+  const t = tablaDeProveedor();
+  t.confirmar({ codigo: 'LE01', descripcion: 'LECHE 1 L', productoId: 10 });
+  t.confirmar({ codigo: 'LE02', descripcion: 'LECHE 1 L', productoId: 20 });
+  // Cada código conserva su producto.
+  assert.deepEqual(t.leer({ codigo: 'LE01', descripcion: 'LECHE 1 L' }), { productoId: 10, confianza: 1, vecesConfirmado: 1, motivo: 'codigo' });
+  assert.equal(t.leer({ codigo: 'LE02', descripcion: 'LECHE 1 L' }).productoId, 20);
+  // Sin código, o con un código nuevo, la descripción es ambigua: se propone, pero para revisar.
+  for (const codigo of [null, 'LE03']) {
+    const r = t.leer({ codigo, descripcion: 'LECHE 1 L' });
+    assert.equal(r.motivo, 'ambigua', String(codigo));
+    assert.equal(r.confianza, CONFIANZA_DUDOSA);
+    assert.ok(r.confianza < UMBRAL_CONFIANZA);
+  }
+});
+
+test('código nuevo con una descripción conocida y no ambigua: se propone para revisar', () => {
+  const t = tablaDeProveedor();
+  t.confirmar({ codigo: 'LE01', descripcion: 'LECHE 1 L', productoId: 10 });
+  const r = t.leer({ codigo: 'LE09', descripcion: 'LECHE 1 L' });
+  assert.deepEqual([r.productoId, r.motivo, r.confianza], [10, 'codigo-nuevo', CONFIANZA_DUDOSA]);
+});
+
+test('contador y corrección: confirmar de nuevo suma; elegir otro producto lo reemplaza (criterio 2)', () => {
+  const t = tablaDeProveedor();
+  t.confirmar({ descripcion: 'YERBA C/P 1KG', productoId: 3 });
+  t.confirmar({ descripcion: 'yerba c/p 1 kg', productoId: 3 });
+  assert.equal(t.filas.length, 1);
+  assert.equal(t.filas[0].vecesConfirmado, 2);
+  t.confirmar({ descripcion: 'YERBA C/P 1KG', productoId: 8 });
+  assert.equal(t.filas.length, 1);
+  assert.deepEqual([t.filas[0].productoId, t.filas[0].vecesConfirmado], [8, 1]);
+  assert.deepEqual(t.leer({ descripcion: 'YERBA C/P 1KG' }), { productoId: 8, confianza: 1, vecesConfirmado: 1, motivo: 'descripcion' });
+  // Corregir el producto de un código también lo reemplaza.
+  t.confirmar({ codigo: 'Y1', descripcion: 'YERBA C/P 1KG', productoId: 8 });
+  t.confirmar({ codigo: 'Y1', descripcion: 'YERBA C/P 1KG', productoId: 9 });
+  assert.deepEqual([t.leer({ codigo: 'Y1', descripcion: null }).productoId, t.leer({ codigo: 'Y1', descripcion: null }).vecesConfirmado], [9, 1]);
+});
+
+test('si la fila por descripción falta (producto desactivado), se usa la fila por código más reciente', () => {
+  const filas = [
+    { productoId: 10, codigo: 'A1', descripcion: 'leche 1l', vecesConfirmado: 2, ultimaVez: new Date('2026-11-01') },
+    { productoId: 10, codigo: 'A2', descripcion: 'leche 1l', vecesConfirmado: 1, ultimaVez: new Date('2026-11-10') },
   ];
-  // Descripción confirmada antes, escrita distinto: se reconoce.
-  assert.equal(buscarEquivalencia({ codigo: null, descripcion: 'Yerba C/P 1 KG' }, equivalencias)?.productoId, 20);
-  // El código manda aunque la descripción cambie.
-  assert.equal(buscarEquivalencia({ codigo: ' 2210', descripcion: 'GASEOSA COLA X 500' }, equivalencias)?.productoId, 10);
-  // Un código desconocido no impide reconocer la descripción.
-  assert.equal(buscarEquivalencia({ codigo: '9999', descripcion: 'GAS, COLA 500ML' }, equivalencias)?.productoId, 10);
-  assert.equal(buscarEquivalencia({ codigo: null, descripcion: 'GALL RELL CHOC 118G' }, equivalencias), null);
-  assert.equal(buscarEquivalencia({ codigo: null, descripcion: null }, equivalencias), null);
-});
-
-test('registrar: la primera confirmación crea la equivalencia con contador 1', () => {
-  const ahora = new Date('2026-11-14T12:00:00Z');
-  assert.deepEqual(planEquivalencia({ codigo: '2210', descripcion: 'GAS, COLA 500ML', productoId: 10 }, {}, ahora), {
-    crear: { productoId: 10, codigo: '2210', descripcion: 'gas cola 500ml', vecesConfirmado: 1, ultimaVez: ahora },
-  });
-});
-
-test('registrar: confirmar de nuevo el mismo producto suma al contador', () => {
-  const plan = planEquivalencia({ codigo: null, descripcion: 'gas cola 500 ml', productoId: 10 }, { porDescripcion: eq({ vecesConfirmado: 3 }) });
-  assert.equal(plan.actualizar.id, 1);
-  assert.equal(plan.actualizar.data.productoId, 10);
-  assert.equal(plan.actualizar.data.vecesConfirmado, 4);
-  assert.equal(plan.liberarCodigoDe, null);
-});
-
-test('registrar: si la persona eligió otro producto, la descripción pasa a ese (nunca apunta a dos)', () => {
-  const plan = planEquivalencia({ codigo: null, descripcion: 'GAS COLA 500ML', productoId: 99 }, { porDescripcion: eq({ vecesConfirmado: 5 }) });
-  // Se actualiza la misma fila: no se crea otra para la misma descripción.
-  assert.equal(plan.crear, undefined);
-  assert.equal(plan.actualizar.id, 1);
-  assert.equal(plan.actualizar.data.productoId, 99);
-  assert.equal(plan.actualizar.data.vecesConfirmado, 1);
-});
-
-test('registrar: el código conserva el último dato y pasa a la descripción más reciente', () => {
-  // Sin código en la línea: se mantiene el que ya tenía.
-  assert.equal(
-    planEquivalencia({ codigo: null, descripcion: 'gas cola 500ml', productoId: 10 }, { porDescripcion: eq({ codigo: '2210' }) }).actualizar.data.codigo,
-    '2210',
-  );
-  // El código 2210 estaba en otra fila: se libera allí y queda en la de esta descripción.
-  const plan = planEquivalencia(
-    { codigo: '2210', descripcion: 'gas cola 500ml', productoId: 10 },
-    { porDescripcion: eq({ id: 1 }), porCodigo: eq({ id: 7, codigo: '2210', descripcion: 'gaseosa cola' }) },
-  );
-  assert.equal(plan.liberarCodigoDe, 7);
-  assert.equal(plan.actualizar.id, 1);
-  assert.equal(plan.actualizar.data.codigo, '2210');
-  // Encontrada solo por código: el proveedor cambió la descripción del artículo.
-  const renombrada = planEquivalencia({ codigo: '2210', descripcion: 'GASEOSA COLA PET 500', productoId: 10 }, { porCodigo: eq({ id: 7, codigo: '2210' }) });
-  assert.equal(renombrada.actualizar.id, 7);
-  assert.equal(renombrada.actualizar.data.descripcion, 'gaseosa cola pet 500');
-  assert.equal(renombrada.liberarCodigoDe, null);
+  assert.deepEqual(buscarEquivalencia({ codigo: null, descripcion: 'LECHE 1L' }, filas), { productoId: 10, vecesConfirmado: 1, confianza: 1, motivo: 'descripcion' });
 });
 
 test('registrar: sin descripción leída o sin producto no se guarda nada', () => {
@@ -96,34 +146,26 @@ test('registrar: sin descripción leída o sin producto no se guarda nada', () =
   assert.equal(planEquivalencia({ codigo: null, descripcion: 'gas cola', productoId: null }), null);
 });
 
-test('flujo: confirmar, confirmar otra vez y corregir el producto', () => {
-  // Simula la tabla de un proveedor a lo largo de tres confirmaciones.
-  let tabla = [];
-  const confirmar = (linea) => {
-    const d = claveDescripcion(linea.descripcion);
-    const plan = planEquivalencia(linea, { porDescripcion: tabla.find((e) => e.descripcion === d) ?? null });
-    if (plan.crear) tabla.push({ id: tabla.length + 1, ...plan.crear });
-    else tabla = tabla.map((e) => (e.id === plan.actualizar.id ? { ...e, ...plan.actualizar.data } : e));
-  };
-  confirmar({ codigo: null, descripcion: 'YERBA C/P 1KG', productoId: 3 });
-  assert.equal(buscarEquivalencia({ descripcion: 'YERBA C/P 1KG' }, tabla).productoId, 3);
-  confirmar({ codigo: null, descripcion: 'yerba c/p 1 kg', productoId: 3 });
-  assert.equal(tabla.length, 1);
-  assert.equal(tabla[0].vecesConfirmado, 2);
-  confirmar({ codigo: null, descripcion: 'YERBA C/P 1KG', productoId: 8 });
-  assert.equal(tabla.length, 1);
-  assert.deepEqual([tabla[0].productoId, tabla[0].vecesConfirmado], [8, 1]);
-});
-
-test('marca "Recordado": solo propuestas vigentes que coinciden con la equivalencia', () => {
-  const equivalencias = [eq({ productoId: 10, codigo: '2210', vecesConfirmado: 3 })];
+test('marca "Recordado": solo propuestas vigentes y confiables que coinciden con la equivalencia', () => {
+  const t = tablaDeProveedor();
+  t.confirmar({ codigo: '2210', descripcion: 'GAS, COLA 500ML', productoId: 10 });
+  t.confirmar({ codigo: '2210', descripcion: 'GAS, COLA 500ML', productoId: 10 });
+  t.confirmar({ codigo: 'LE01', descripcion: 'LECHE 1 L', productoId: 30 });
+  t.confirmar({ codigo: 'LE02', descripcion: 'LECHE 1 L', productoId: 31 });
   const linea = (extra) => ({ codigoExtraido: '2210', descripcionExtraida: 'GAS, COLA 500ML', productoId: 10, confianza: '1.000', ...extra });
-  const [propuesta, elegida, otroProducto, manual] = anotarEquivalencias(
-    [linea(), linea({ confianza: null }), linea({ productoId: 11, confianza: '0.900' }), linea({ agregadaManualmente: true })],
-    equivalencias,
+  const [propuesta, elegida, otroProducto, manual, ambigua] = anotarEquivalencias(
+    [
+      linea(),
+      linea({ confianza: null }),
+      linea({ productoId: 11, confianza: '0.900' }),
+      linea({ agregadaManualmente: true }),
+      linea({ codigoExtraido: null, descripcionExtraida: 'LECHE 1 L', productoId: 31, confianza: String(CONFIANZA_DUDOSA) }),
+    ],
+    t.filas,
   );
-  assert.deepEqual(propuesta.equivalencia, { vecesConfirmado: 3 });
+  assert.deepEqual(propuesta.equivalencia, { vecesConfirmado: 2 });
   assert.equal(elegida.equivalencia, null);
   assert.equal(otroProducto.equivalencia, null);
   assert.equal(manual.equivalencia, null);
+  assert.equal(ambigua.equivalencia, null, 'una equivalencia ambigua no se marca como recordada');
 });

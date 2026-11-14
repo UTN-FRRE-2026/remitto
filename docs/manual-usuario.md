@@ -116,7 +116,7 @@ La revisión muestra el archivo original (**Ver archivo** lo abre en grande), lo
 | **Propuesto · 85 %** (celeste) | Remitto encontró el producto con seguridad | Nada, salvo que no sea el correcto |
 | **Revisar · 73 %** (dorado, línea destacada) | Encontró un producto parecido, pero no está seguro: otra variante, otra marca o una descripción incompleta | Tocá **Es correcto** si lo es, o **Cambiar** para elegir otro |
 | «No encontramos un producto parecido en el catálogo» | No hay coincidencia | Buscá el producto o, si es nuevo, dalo de alta |
-| **Recordado · 3 veces** (celeste) | Este proveedor ya nombró así a este producto en ingresos confirmados (el número cuenta cuántas veces) | Nada; si no es el correcto, **Cambiar**. Remitto recuerda tu elección para el próximo remito de ese proveedor |
+| **Recordado · 3 veces** (celeste) | Este proveedor ya nombró así a este producto en ingresos confirmados (el número cuenta cuántas veces) | Nada; si no es el correcto, **Cambiar**. Remitto recuerda tu elección para el próximo remito de ese proveedor. Si el proveedor imprime igual dos productos distintos, la línea aparece como **Revisar** |
 | **Asociado** (verde) | Lo eligió una persona | — |
 
 - **Cambiar** abre un buscador del catálogo para elegir otro producto.

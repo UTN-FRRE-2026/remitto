@@ -241,7 +241,8 @@ async function proponerAsociaciones(comprobanteId, lineas) {
     ]);
     return lineas.map((l) => {
       const equivalencia = buscarEquivalencia(l, equivalencias);
-      return equivalencia ? { productoId: equivalencia.productoId, confianza: 1 } : proponerAsociacion(l, productos);
+      // Confianza 1, o dudosa si la equivalencia es ambigua (HU16).
+      return equivalencia ? { productoId: equivalencia.productoId, confianza: equivalencia.confianza } : proponerAsociacion(l, productos);
     });
   } catch (err) {
     console.warn(`[IA] No se pudieron proponer asociaciones: ${err.message}`);

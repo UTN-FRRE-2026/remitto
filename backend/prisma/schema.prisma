@@ -211,12 +211,13 @@ model Proveedor {
 
 /// Cómo nombra cada proveedor a cada producto en sus remitos.
 /// Se alimenta con cada confirmación y mejora la asociación
-/// automática en los comprobantes siguientes.
+/// automática en los comprobantes siguientes. Dos tipos de fila:
+/// por código (codigo no nulo) y por descripción (codigo nulo).
 model CodigoProveedor {
   id              Int      @id @default(autoincrement())
   proveedorId     Int      @map("proveedor_id")
   productoId      Int      @map("producto_id")
-  codigo          String?  // código impreso en el remito, sin espacios y en mayúsculas (HU16)
+  codigo          String?  // código impreso, sin espacios y en mayúsculas; nulo en las filas por descripción (HU16)
   descripcion     String   // descripción leída, normalizada: "GAS, COLA 500 ML" → "gas cola 500ml" (HU16)
   vecesConfirmado Int      @default(1) @map("veces_confirmado") // vuelve a 1 si la persona cambia el producto
   ultimaVez       DateTime @default(now()) @map("ultima_vez")
@@ -225,7 +226,9 @@ model CodigoProveedor {
   producto  Producto  @relation(fields: [productoId], references: [id], onDelete: Cascade)
 
   @@unique([proveedorId, codigo])
-  @@unique([proveedorId, descripcion])
+  // Única solo en las filas por descripción: índice parcial en la migración
+  // de HU16. En las filas por código se repite (LE01 y LE02 pueden imprimirse igual).
+  @@index([proveedorId, descripcion])
   @@index([productoId])
   @@map("codigos_proveedor")
 }

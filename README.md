@@ -287,20 +287,32 @@ Remitto recuerda cómo nombra cada proveedor a cada producto (tabla
 `codigos_proveedor`, lógica en
 `backend/src/modules/comprobantes/comprobantes.equivalencias.js`):
 
+- **Dos tipos de fila:** por **código** (código impreso → producto, con la
+  última descripción vista) y por **descripción** (descripción normalizada →
+  producto, código nulo). Cada una tiene su contador de confirmaciones. Un
+  código y una descripción tienen una sola fila cada uno (índices únicos; el de
+  la descripción es parcial y vale para las filas sin código), así que nunca
+  apuntan a dos productos.
 - **Se aprenden al confirmar un ingreso.** Cada línea leída por la IA y no
-  descartada registra su descripción normalizada (`GAS, COLA 500 ML` →
-  `gas cola 500ml`) y el código impreso, si hay, apuntando al producto que
-  confirmó la persona. Confirmar de nuevo lo mismo suma al contador de
-  confirmaciones; si la persona eligió otro producto, la equivalencia pasa a
-  ese y el contador vuelve a 1. Una descripción de un proveedor nunca apunta a
-  dos productos (también lo asegura el índice único de la tabla). Se registra
-  en la misma transacción que la confirmación, con el proveedor bloqueado, así
-  dos ingresos simultáneos del mismo proveedor no duplican filas.
+  descartada actualiza la fila de su código (si tiene) y la de su descripción
+  normalizada (`GAS, COLA 500 ML` → `gas cola 500ml`), apuntando al producto
+  que confirmó la persona. Confirmar de nuevo lo mismo suma al contador; si la
+  persona eligió otro producto, la fila pasa a ese y el contador vuelve a 1. Se
+  registra en la misma transacción que la confirmación, con el proveedor
+  bloqueado, así dos ingresos simultáneos del mismo proveedor no duplican
+  filas. Un mismo código con otra descripción no borra la descripción anterior.
 - **Se usan al leer el siguiente comprobante de ese proveedor**, antes de buscar
-  productos parecidos: primero por código y después por descripción. La línea
-  queda asociada con confianza 1 y en la revisión aparece **«Recordado · 3
-  veces»**. Si la persona elige otro producto, la marca desaparece (pasa a
-  «Asociado») y esa elección es la que se aprende al confirmar.
+  productos parecidos:
+  1. Si el código impreso ya se confirmó, manda el código: confianza 1.
+  2. Si no, se mira la descripción: si todo lo confirmado con ella apunta al
+     mismo producto, confianza 1. Si apunta a más de uno (dos códigos que se
+     imprimen igual, como `LE01` y `LE02` con «LECHE 1 L»), o si la línea trae
+     un código nuevo con una descripción ya vista, se propone el último
+     producto confirmado con confianza 0,79: la línea se destaca para revisar.
+
+  Con confianza 1 la revisión muestra **«Recordado · 3 veces»**. Si la persona
+  elige otro producto, la marca desaparece (pasa a «Asociado») y esa elección
+  es la que se aprende al confirmar.
 - Cada proveedor tiene sus propias equivalencias, y las que apuntan a un
   producto desactivado se ignoran (se vuelve al cálculo de HU15). Las líneas
   agregadas a mano o sin descripción leída no se registran.
