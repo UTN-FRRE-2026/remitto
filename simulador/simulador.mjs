@@ -68,17 +68,32 @@ export function generarVentas({ semilla, catalogo, ventas = 120, reenvios = 30 }
     lista.push({ referencia: `SIM-${semilla}-${String(i).padStart(4, '0')}`, lineas });
   }
 
-  const tandas = [];
-  for (let i = 0; i < lista.length; i += TAMANO_TANDA) {
-    tandas.push(lista.slice(i, i + TAMANO_TANDA).map((venta) => ({ venta, tipo: 'primero', invertir: false })));
-  }
+  // Primero se eligen los reenvíos: la mitad acompaña al primer envío de su
+  // venta (en la misma tanda) y el resto sale al final.
+  const paralelos = new Map(); // índice de la venta → reenvíos que la acompañan
   const tardios = [];
   for (let r = 0; r < reenvios; r += 1) {
-    const indice = entero(lista.length);
+    const enParalelo = r < Math.ceil(reenvios / 2);
+    let indice = entero(lista.length);
+    // Una venta con sus reenvíos tiene que entrar en una tanda.
+    while (enParalelo && (paralelos.get(indice)?.length ?? 0) >= TAMANO_TANDA - 1) indice = entero(lista.length);
     const envio = { venta: lista[indice], tipo: 'reenvio', invertir: r % 3 === 0 };
-    if (r < Math.ceil(reenvios / 2)) tandas[Math.floor(indice / TAMANO_TANDA)].push(envio);
+    if (enParalelo) paralelos.set(indice, [...(paralelos.get(indice) ?? []), envio]);
     else tardios.push(envio);
   }
+  // Tandas de hasta TAMANO_TANDA envíos: cada venta entra junto con sus
+  // reenvíos paralelos; si no caben, empiezan una tanda nueva.
+  const tandas = [];
+  let actual = [];
+  lista.forEach((venta, indice) => {
+    const grupo = [{ venta, tipo: 'primero', invertir: false }, ...(paralelos.get(indice) ?? [])];
+    if (actual.length + grupo.length > TAMANO_TANDA) {
+      tandas.push(actual);
+      actual = [];
+    }
+    actual.push(...grupo);
+  });
+  if (actual.length) tandas.push(actual);
   for (let i = 0; i < tardios.length; i += TAMANO_TANDA) tandas.push(tardios.slice(i, i + TAMANO_TANDA));
   return { ventas: lista, tandas };
 }

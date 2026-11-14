@@ -9,6 +9,7 @@ import {
   simular,
   verificarRespuestas,
   segundosDeEspera,
+  TAMANO_TANDA,
 } from '../../simulador/simulador.mjs';
 import { ventaSchema } from '../src/modules/integracion/integracion.schema.js';
 
@@ -136,6 +137,41 @@ test('reintento: 503 sin fin agota el límite y el envío queda incompleto', asy
   assert.equal(r.incompletos[0].status, 503);
   assert.equal(segundosDeEspera('abc'), 1);
   assert.equal(segundosDeEspera('3'), 3);
+});
+
+test('nunca hay más de ocho envíos simultáneos (fetch simulado que mide la concurrencia)', async () => {
+  const catalogoCompleto = [1, 2, 3, 4, 5, 6].map((i) => ({ productoId: i, codigoBarras: `C${i}`, unidadMedida: i === 6 ? 'KILOGRAMO' : 'UNIDAD' }));
+  for (const semilla of [2026, 7, 1]) {
+    const { tandas } = generarVentas({ semilla, catalogo: catalogoCompleto });
+    assert.ok(tandas.every((t) => t.length <= TAMANO_TANDA), `semilla ${semilla}: tandas de hasta ${TAMANO_TANDA}`);
+    // Se conservan los 120 primeros envíos, los 30 reenvíos y los 15 que
+    // comparten tanda con su primer envío.
+    const envios = tandas.flat();
+    assert.equal(envios.filter((e) => e.tipo === 'primero').length, 120);
+    assert.equal(envios.filter((e) => e.tipo === 'reenvio').length, 30);
+    const juntos = envios.filter((e) => e.tipo === 'reenvio' && tandas.some((t) => t.includes(e) && t.some((o) => o.tipo === 'primero' && o.venta === e.venta)));
+    assert.equal(juntos.length, 15, `semilla ${semilla}`);
+
+    // Máximo real de llamadas en curso a la vez.
+    let enCurso = 0;
+    let maximo = 0;
+    const ids = new Map();
+    const fetch = async (url, { body }) => {
+      enCurso += 1;
+      maximo = Math.max(maximo, enCurso);
+      await new Promise((r) => setTimeout(r, 1));
+      enCurso -= 1;
+      const { referencia } = JSON.parse(body);
+      const repetida = ids.has(referencia);
+      if (!repetida) ids.set(referencia, ids.size + 1);
+      return { status: repetida ? 200 : 201, headers: { get: () => null }, json: async () => ({ id: ids.get(referencia), repetida }) };
+    };
+    const r = await simular({ base: 'http://x/api', clave: 'k', tandas, fetch, esperar: async () => {} });
+    assert.ok(maximo <= TAMANO_TANDA, `semilla ${semilla}: ${maximo} llamadas simultáneas`);
+    assert.equal(maximo, TAMANO_TANDA, `semilla ${semilla}: se usa el paralelismo completo`);
+    assert.equal(r.enviosLogicos, 150);
+    assert.deepEqual(r.incompletos, []);
+  }
 });
 
 test('respuestas por referencia: un 201, el resto 200 repetida con el mismo id', () => {

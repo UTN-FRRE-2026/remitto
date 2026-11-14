@@ -27,7 +27,7 @@ Requiere el PostgreSQL de desarrollo encendido (`docker compose up -d db`). Vari
    - a veces el mismo producto se repite en dos líneas.
 2. **Reenvíos:** repiten la misma referencia y contenido, a veces con las líneas en otro orden. La mitad sale en paralelo con el primer envío de esa venta y la otra mitad, al final.
 3. **Envío** (`simular`):
-   - en tandas de 8 pedidos en paralelo;
+   - en tandas de hasta 8 pedidos en paralelo (cada venta con sus reenvíos paralelos en la misma tanda);
    - ante un 503 reenvía la misma petición después de `Retry-After`, hasta 3 reintentos;
    - si algún envío no termina en 201 o 200, queda **incompleto** y la corrida falla.
 4. **Stock esperado** (`stockEsperado`), sin mirar las respuestas:
