@@ -1,0 +1,173 @@
+erDiagram
+  usuarios ||--o{ claves_integracion : "creadaPor"
+  categorias |o--o{ productos : "categoria"
+  proveedores ||--o{ codigos_proveedor : "proveedor"
+  productos ||--o{ codigos_proveedor : "producto"
+  proveedores ||--o{ comprobantes : "proveedor"
+  usuarios ||--o{ comprobantes : "cargadoPor"
+  usuarios |o--o{ comprobantes : "confirmadoPor"
+  comprobantes ||--o{ detalles_comprobante : "comprobante"
+  productos |o--o{ detalles_comprobante : "producto"
+  usuarios |o--o{ salidas : "usuario"
+  claves_integracion |o--o{ salidas : "claveIntegracion"
+  productos ||--o{ movimientos_stock : "producto"
+  usuarios |o--o{ movimientos_stock : "usuario"
+  detalles_comprobante |o--o| movimientos_stock : "detalleComprobante"
+  salidas |o--o{ movimientos_stock : "salida"
+  productos ||--o{ precios_compra : "producto"
+  proveedores ||--o{ precios_compra : "proveedor"
+  detalles_comprobante |o--o| precios_compra : "detalleComprobante"
+  productos ||--o{ alertas_stock : "producto"
+  usuarios ||--o{ consultas_agente : "usuario"
+  usuarios {
+    integer id PK
+    text nombre
+    text email UK
+    text password_hash
+    Rol rol
+    boolean activo
+    timestamp_3 creado_en
+    timestamp_3 actualizado_en
+  }
+  claves_integracion {
+    integer id PK
+    text nombre
+    text prefijo UK
+    text hash_clave UK
+    boolean activa
+    integer creada_por_id FK
+    timestamp_3 creada_en
+    timestamp_3 ultimo_uso_en
+    timestamp_3 revocada_en
+  }
+  categorias {
+    integer id PK
+    text nombre UK
+  }
+  productos {
+    integer id PK
+    text codigo_barras UK
+    text nombre
+    text descripcion
+    integer categoria_id FK
+    UnidadMedida unidad_medida
+    decimal_12_3 stock_actual
+    decimal_12_3 stock_minimo
+    decimal_12_3 stock_deseado
+    boolean activo
+    timestamp_3 creado_en
+    timestamp_3 actualizado_en
+  }
+  proveedores {
+    integer id PK
+    text razon_social
+    text cuit UK
+    text telefono
+    text email
+    text direccion
+    text contacto
+    boolean activo
+    timestamp_3 creado_en
+    timestamp_3 actualizado_en
+  }
+  codigos_proveedor {
+    integer id PK
+    integer proveedor_id FK
+    integer producto_id FK
+    text codigo
+    text descripcion
+    integer veces_confirmado
+    timestamp_3 ultima_vez
+  }
+  comprobantes {
+    integer id PK
+    integer proveedor_id FK
+    TipoComprobante tipo
+    text numero
+    date fecha_emision
+    decimal_14_2 total_declarado
+    text archivo_url
+    text archivo_mime
+    OrigenArchivo origen_archivo
+    EstadoComprobante estado
+    boolean requiere_revision
+    jsonb respuesta_ia
+    text modelo_ia
+    text error_procesamiento
+    integer ia_intentos
+    text ia_trabajo_id
+    timestamp_3 ia_solicitado_en
+    timestamp_3 procesando_desde
+    timestamp_3 ia_vigente_hasta
+    integer cargado_por_id FK
+    integer confirmado_por_id FK
+    timestamp_3 cargado_en
+    timestamp_3 confirmado_en
+  }
+  detalles_comprobante {
+    integer id PK
+    integer comprobante_id FK
+    integer nro_linea
+    boolean agregada_manualmente
+    text codigo_extraido
+    text descripcion_extraida
+    decimal_12_3 cantidad_extraida
+    decimal_12_2 precio_unitario_extraido
+    integer producto_id FK
+    decimal_4_3 confianza
+    decimal_12_3 cantidad
+    decimal_12_2 precio_unitario
+    EstadoDetalle estado
+  }
+  salidas {
+    integer id PK
+    OrigenSalida origen
+    MotivoMovimiento motivo
+    text observacion
+    integer usuario_id FK
+    integer clave_integracion_id FK
+    text referencia_externa
+    timestamp_3 fecha_externa
+    timestamp_3 registrada_en
+  }
+  movimientos_stock {
+    integer id PK
+    integer producto_id FK
+    TipoMovimiento tipo
+    MotivoMovimiento motivo
+    decimal_12_3 cantidad
+    decimal_12_3 stock_anterior
+    text observacion
+    timestamp_3 fecha
+    integer usuario_id FK
+    integer detalle_comprobante_id FK,UK
+    integer salida_id FK
+  }
+  precios_compra {
+    integer id PK
+    integer producto_id FK
+    integer proveedor_id FK
+    decimal_12_2 precio_unitario
+    date fecha_vigencia
+    integer detalle_comprobante_id FK,UK
+    timestamp_3 creado_en
+  }
+  alertas_stock {
+    integer id PK
+    integer producto_id FK
+    TipoAlerta tipo
+    EstadoAlerta estado
+    decimal_12_3 stock_al_generar
+    timestamp_3 creada_en
+    timestamp_3 resuelta_en
+  }
+  consultas_agente {
+    integer id PK
+    integer usuario_id FK
+    text pregunta
+    text respuesta
+    jsonb herramientas
+    boolean exitosa
+    integer duracion_ms
+    timestamp_3 creada_en
+  }

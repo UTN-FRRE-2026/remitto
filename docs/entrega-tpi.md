@@ -35,8 +35,8 @@ Estado al 13/11/2026, según el repositorio. Lo que se prepara fuera del repo (a
 | Informe Final del Alumno | No está en el repo | Bajar el modelo del aula y completarlo |
 | Informe del Tutor | No corresponde si el trabajo no se hace en una organización | Confirmar si aplica (el plan describe un comercio, «Almacén Don Carlos») |
 | Video de presentación | No está en el repo | 4 a 5 minutos, en inglés con subtítulos en castellano. Deben aparecer todos los integrantes con su cara. Subirlo a YouTube y compartir el enlace |
-| Lista de Requerimientos | RF y RNF en el [plan](plan-de-trabajo.md#enunciado-de-los-requerimientos) | Armarla como documento probatorio |
-| Diseño de la Base de Datos | Modelo en `backend/prisma/schema.prisma` (13 tablas) | Generar el diagrama entidad-relación; previsto en [docs/README.md](README.md#documentación-prevista) |
+| Lista de Requerimientos | [requerimientos.md](requerimientos.md), con el estado de cada uno | Exportarla en el formato de entrega |
+| Diseño de la Base de Datos | [base-de-datos.md](base-de-datos.md) y diagrama [der-remitto.png](referencias/der-remitto.png) | Exportarlo en el formato de entrega |
 | Maquetación de la Aplicación | [maquetacion.html](referencias/maquetacion.html) y [guía](maquetacion.md) | Exportarla en el formato de entrega |
 | Manual del Usuario | No existe | Redactarlo |
 | Infografía (exposición) | No existe | Vertical, con el contenido del plan de trabajo |

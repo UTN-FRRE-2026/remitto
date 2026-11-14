@@ -12,6 +12,7 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "seed": "node prisma/seed.js",
+    "doc-bd": "node scripts/generar-doc-bd.js",
     "reset-intentos": "node scripts/reset-intentos.js",
     "conciliar-stock": "node scripts/conciliar-stock.js",
     "db:reset": "prisma migrate reset --force"
