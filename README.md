@@ -12,7 +12,7 @@ automática de comprobantes de compra mediante Inteligencia Artificial.
 ## Estado actual
 
 Están implementadas las historias del Sprint 1 (HU1 a HU14) y, del
-Sprint 2, HU15, HU17, HU18 y HU28. La aplicación está desplegada en producción con Coolify, a partir
+Sprint 2, HU15 a HU18 y HU28. La aplicación está desplegada en producción con Coolify, a partir
 de `main`. La instalación de la PWA en Android (HU7) todavía no se probó.
 
 Ya implementado:
@@ -22,7 +22,7 @@ Ya implementado:
 | **RF1** Usuarios y acceso | HU1 (login), HU2 (roles), HU3 (admin usuarios) | ✅ Backend y pantallas |
 | **RF2** Catálogo | HU4 (productos), HU5 (categorías), HU6 (proveedores) | ✅ Backend y pantallas |
 | **RNF4** PWA móvil | HU7 (instalable) | ✅ Base |
-| **RF3** Ingesta de comprobantes | HU8 (carga), HU9 (lectura con IA), HU10 (revisión), HU11 (entradas de stock), HU15 (asociación automática), HU18 (comprobantes archivados) | ✅ Backend y pantallas M3/M4/M5 y Comprobantes |
+| **RF3** Ingesta de comprobantes | HU8 (carga), HU9 (lectura con IA), HU10 (revisión), HU11 (entradas de stock), HU15 (asociación automática), HU16 (equivalencias por proveedor), HU17 (revisión obligatoria), HU18 (comprobantes archivados) | ✅ Backend y pantallas M3/M4/M5 y Comprobantes |
 | **Existencias** | HU12 (movimientos y existencias) | ✅ Backend y pantalla Movimientos |
 | **Salidas** | HU13 (carrito de salida) | ✅ Backend y pantalla Nueva salida |
 | **Recuento** | HU14 (ajuste por recuento) | ✅ Backend y pantalla Recuento |
@@ -273,14 +273,51 @@ formulario; el empleado puede buscar otro producto).
   La propuesta se calcula una sola vez, al leer; un comprobante en revisión no
   se puede volver a leer.
 - El stock sigue entrando solo con «Confirmar ingreso» (HU11).
-- Los comprobantes leídos antes de HU15 no tienen propuestas. Las equivalencias
-  aprendidas por proveedor son de HU16.
+- Los comprobantes leídos antes de HU15 no tienen propuestas. Antes de este
+  cálculo se consultan las equivalencias aprendidas del proveedor (HU16).
 - Rendimiento medido con catálogos sintéticos y 40 líneas: 0,3 s con 1.000
   productos y 1,8 s con 5.000. El cálculo es síncrono y no entra en la medición
   de tiempo del RNF2.
 - Al corregir una propuesta no se conserva cuál había sido (el producto y la
   confianza se reemplazan). Si HU19 necesita medir los aciertos de la
   asociación, hará falta guardarla aparte.
+
+### Equivalencias por proveedor (HU16)
+
+Remitto recuerda cómo nombra cada proveedor a cada producto (tabla
+`codigos_proveedor`, lógica en
+`backend/src/modules/comprobantes/comprobantes.equivalencias.js`):
+
+- **Dos tipos de fila:** por **código** (código impreso → producto, con la
+  última descripción vista) y por **descripción** (descripción normalizada →
+  producto, código nulo). Cada una tiene su contador de confirmaciones. Un
+  código y una descripción tienen una sola fila cada uno (índices únicos; el de
+  la descripción es parcial y vale para las filas sin código), así que nunca
+  apuntan a dos productos.
+- **Se aprenden al confirmar un ingreso.** Cada línea leída por la IA y no
+  descartada actualiza la fila de su código (si tiene) y la de su descripción
+  normalizada (`GAS, COLA 500 ML` → `gas cola 500ml`), apuntando al producto
+  que confirmó la persona. Confirmar de nuevo lo mismo suma al contador; si la
+  persona eligió otro producto, la fila pasa a ese y el contador vuelve a 1. Se
+  registra en la misma transacción que la confirmación, con el proveedor
+  bloqueado, así dos ingresos simultáneos del mismo proveedor no duplican
+  filas. Un mismo código con otra descripción no borra la descripción anterior.
+- **Se usan al leer el siguiente comprobante de ese proveedor**, antes de buscar
+  productos parecidos:
+  1. Si el código impreso ya se confirmó, manda el código: confianza 1.
+  2. Si no, se mira la descripción: si todo lo confirmado con ella apunta al
+     mismo producto, confianza 1. Si apunta a más de uno (dos códigos que se
+     imprimen igual, como `LE01` y `LE02` con «LECHE 1 L»), o si la línea trae
+     un código nuevo con una descripción ya vista, se propone el último
+     producto confirmado con confianza 0,79: la línea se destaca para revisar.
+
+  Con confianza 1 la revisión muestra **«Recordado · 3 veces»**. Si la persona
+  elige otro producto, la marca desaparece (pasa a «Asociado») y esa elección
+  es la que se aprende al confirmar.
+- Cada proveedor tiene sus propias equivalencias, y las que apuntan a un
+  producto desactivado se ignoran (se vuelve al cálculo de HU15). Las líneas
+  agregadas a mano o sin descripción leída no se registran.
+- El stock sigue entrando solo con «Confirmar ingreso».
 
 ### Comprobantes archivados (HU18)
 

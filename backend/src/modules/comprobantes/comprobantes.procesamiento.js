@@ -7,6 +7,7 @@ import { ErrorIa, formatearError } from '../../ia/errores.js';
 import { VERSION_ESQUEMA } from '../../ia/esquemaComprobante.js';
 import { leerArchivo } from './comprobantes.archivos.js';
 import { proponerAsociacion } from './comprobantes.asociacion.js';
+import { buscarEquivalencia, equivalenciasDelProveedor } from './comprobantes.equivalencias.js';
 
 // HU9: lectura con IA en segundo plano, sin infraestructura extra.
 //
@@ -226,16 +227,23 @@ function cerrarMetricas(ejecucion, exito) {
 
 const liberar = { iaTrabajoId: null, procesandoDesde: null, iaVigenteHasta: null };
 
-// HU15: propuesta de producto y confianza para cada línea leída. Si falla, las
-// líneas quedan sin propuesta y se asocian a mano: no se pierde la lectura.
-async function proponerAsociaciones(lineas) {
+// HU15/HU16: propuesta de producto y confianza para cada línea leída. Primero
+// las equivalencias que el proveedor ya tiene confirmadas (confianza 1) y, si
+// no hay, el producto más parecido. Si falla, las líneas quedan sin propuesta
+// y se asocian a mano: no se pierde la lectura.
+async function proponerAsociaciones(comprobanteId, lineas) {
   if (lineas.length === 0) return [];
   try {
-    const productos = await prisma.producto.findMany({
-      where: { activo: true },
-      select: { id: true, nombre: true, codigoBarras: true },
+    const { proveedorId } = await prisma.comprobante.findUnique({ where: { id: comprobanteId }, select: { proveedorId: true } });
+    const [productos, equivalencias] = await Promise.all([
+      prisma.producto.findMany({ where: { activo: true }, select: { id: true, nombre: true, codigoBarras: true } }),
+      equivalenciasDelProveedor(prisma, proveedorId),
+    ]);
+    return lineas.map((l) => {
+      const equivalencia = buscarEquivalencia(l, equivalencias);
+      // Confianza 1, o dudosa si la equivalencia es ambigua (HU16).
+      return equivalencia ? { productoId: equivalencia.productoId, confianza: equivalencia.confianza } : proponerAsociacion(l, productos);
     });
-    return lineas.map((l) => proponerAsociacion(l, productos));
   } catch (err) {
     console.warn(`[IA] No se pudieron proponer asociaciones: ${err.message}`);
     return lineas.map(() => ({ productoId: null, confianza: null }));
@@ -245,7 +253,7 @@ async function proponerAsociaciones(lineas) {
 async function finalizarConExito(trabajo, { versionEsquema, original, lectura, normalizada }, modelo, ejecucion) {
   cerrarMetricas(ejecucion, true);
   const { cabecera, lineas } = normalizada;
-  const propuestas = await proponerAsociaciones(lineas);
+  const propuestas = await proponerAsociaciones(trabajo.id, lineas);
   try {
     await prisma.$transaction(async (tx) => {
       const r = await tx.comprobante.updateMany({

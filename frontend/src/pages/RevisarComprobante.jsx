@@ -525,6 +525,14 @@ function Linea({ comprobanteId, detalle: d, leida, editable, esPropietario, umbr
               <div className="revisar__producto-elegido">
                 {!d.producto.activo ? (
                   <span className="badge badge--sin-stock">Desactivado</span>
+                ) : a.propuesta && d.equivalencia ? (
+                  // HU16: el proveedor ya lo nombró así en ingresos confirmados.
+                  <span
+                    className="badge badge--ia"
+                    title="Este proveedor ya nombró así a este producto en ingresos confirmados"
+                  >
+                    Recordado · {d.equivalencia.vecesConfirmado} {d.equivalencia.vecesConfirmado === 1 ? 'vez' : 'veces'}
+                  </span>
                 ) : a.propuesta ? (
                   <span
                     className={`badge ${editable && a.dudosa ? 'badge--stock-bajo' : 'badge--ia'}`}

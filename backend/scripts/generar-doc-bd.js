@@ -64,7 +64,9 @@ const dirMigraciones = join(raiz, 'prisma', 'migrations');
 for (const dir of readdirSync(dirMigraciones).sort()) {
   let sql;
   try {
-    sql = readFileSync(join(dirMigraciones, dir, 'migration.sql'), 'utf8');
+    // En Windows (core.autocrlf) las migraciones tienen CRLF: sin normalizar,
+    // los comentarios "--" que explican cada regla no se reconocen.
+    sql = readFileSync(join(dirMigraciones, dir, 'migration.sql'), 'utf8').replace(/\r\n/g, '\n');
   } catch {
     continue;
   }
