@@ -21,16 +21,27 @@ export function restarDias(diaTexto, dias) {
 
 export const DIAS_PREDETERMINADOS = 30;
 
-// HU29: período a analizar; por defecto, los últimos 30 días (hoy incluido).
-export const sinMovimientoSchema = z
-  .object({
-    desde: dia.optional(),
-    hasta: dia.optional(),
-  })
-  .strict()
-  .transform((f) => {
-    const hasta = f.hasta ?? hoyArgentina();
-    const desde = f.desde ?? restarDias(hasta, DIAS_PREDETERMINADOS - 1);
-    return { desde, hasta };
-  })
-  .refine((f) => f.desde <= f.hasta, { message: 'La fecha "desde" no puede ser posterior a "hasta"', path: ['desde'] });
+// Período a analizar (desde/hasta, días en hora de Argentina). Si falta
+// «hasta» es hoy; si falta «desde», los últimos «dias» días con hoy incluido.
+const periodoSchema = (dias) =>
+  z
+    .object({
+      desde: dia.optional(),
+      hasta: dia.optional(),
+    })
+    .strict()
+    .transform((f) => {
+      const hasta = f.hasta ?? hoyArgentina();
+      const desde = f.desde ?? restarDias(hasta, dias - 1);
+      return { desde, hasta };
+    })
+    .refine((f) => f.desde <= f.hasta, { message: 'La fecha "desde" no puede ser posterior a "hasta"', path: ['desde'] });
+
+// HU29: por defecto, los últimos 30 días.
+export const sinMovimientoSchema = periodoSchema(DIAS_PREDETERMINADOS);
+
+// HU20: por defecto, el último año.
+export const DIAS_PRECIOS = 365;
+export const preciosSchema = periodoSchema(DIAS_PRECIOS);
+
+export const productoParamSchema = z.object({ productoId: z.coerce.number().int().positive() });

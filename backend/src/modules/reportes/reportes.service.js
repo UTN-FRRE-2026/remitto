@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
+import { ApiError } from '../../lib/errors.js';
 import { rangoFechas } from '../movimientos/movimientos.service.js';
 
 // HU28 (RF8.1): valorización de existencias a precio de compra.
@@ -278,4 +279,102 @@ export async function sinMovimiento({ desde, hasta }, db = prisma) {
     ),
   );
   return { desde, hasta, generadoEn: filas[0]?.generadoEn ?? new Date(), ...inmovilizados(filas, { hasta: rango.lt }) };
+}
+
+// ---------------------------------------------------------------------------
+// HU20 (RF8.3): evolución de los precios de compra.
+// - Historial de precios_compra por producto y proveedor dentro del período
+//   (fecha de vigencia = fecha de emisión del comprobante), ordenado por fecha;
+//   ante la misma fecha, el registrado último va al final (como el «último
+//   precio» de la valorización).
+// - Por proveedor: primer y último precio del período y su variación.
+// - Comparación entre proveedores: el último precio de cada uno y cuánto más
+//   caro es que el más barato.
+
+const variacion = (desde, hasta) =>
+  desde.gt(0) ? hasta.minus(desde).div(desde).times(100).toDecimalPlaces(1, Prisma.Decimal.ROUND_HALF_UP).toNumber() : null;
+
+// Agrupa las filas (ya ordenadas por fecha) por producto y proveedor (pura).
+export function evolucion(filas) {
+  const productos = new Map();
+  for (const [orden, f] of filas.entries()) {
+    if (!productos.has(f.productoId)) {
+      productos.set(f.productoId, { id: f.productoId, nombre: f.nombre, unidadMedida: f.unidadMedida, proveedores: new Map() });
+    }
+    const p = productos.get(f.productoId);
+    if (!p.proveedores.has(f.proveedorId)) p.proveedores.set(f.proveedorId, { id: f.proveedorId, nombre: f.proveedor, puntos: [] });
+    const proveedor = p.proveedores.get(f.proveedorId);
+    proveedor.puntos.push({ fecha: f.fechaVigencia, precio: new Prisma.Decimal(f.precioUnitario) });
+    proveedor.orden = orden; // posición de su último precio en el orden por fecha
+
+  }
+
+  return [...productos.values()].map((p) => {
+    const proveedores = [...p.proveedores.values()].map((pr) => {
+      const primero = pr.puntos[0];
+      const ultimo = pr.puntos[pr.puntos.length - 1];
+      return {
+        ...pr,
+        primero,
+        ultimo,
+        variacion: pr.puntos.length > 1 ? variacion(primero.precio, ultimo.precio) : null,
+      };
+    });
+    const mejor = proveedores.reduce((m, pr) => (pr.ultimo.precio.lt(m) ? pr.ultimo.precio : m), proveedores[0].ultimo.precio);
+    // El último precio del producto: el de fecha más reciente entre todos los proveedores.
+    const masReciente = proveedores.reduce((a, b) => (b.orden > a.orden ? b : a));
+    const numero = (punto) => ({ fecha: punto.fecha, precio: punto.precio.toNumber() });
+    return {
+      id: p.id,
+      nombre: p.nombre,
+      unidadMedida: p.unidadMedida,
+      precios: proveedores.reduce((s, pr) => s + pr.puntos.length, 0),
+      ultimo: { ...numero(masReciente.ultimo), proveedor: masReciente.nombre },
+      // Variación del período con el proveedor del último precio.
+      variacion: masReciente.variacion,
+      proveedores: proveedores
+        .map((pr) => ({
+          id: pr.id,
+          nombre: pr.nombre,
+          puntos: pr.puntos.map(numero),
+          primero: numero(pr.primero),
+          ultimo: numero(pr.ultimo),
+          variacion: pr.variacion,
+          // Cuánto más caro que el más barato (0 = es el más barato).
+          sobreMejor: proveedores.length > 1 ? variacion(mejor, pr.ultimo.precio) : null,
+        }))
+        .sort((a, b) => a.ultimo.precio - b.ultimo.precio || a.nombre.localeCompare(b.nombre, 'es')),
+    };
+  });
+}
+
+function consultaPrecios({ desde, hasta }, productoId) {
+  return Prisma.sql`
+    SELECT pc.producto_id AS "productoId", p.nombre, p.unidad_medida::text AS "unidadMedida",
+           pc.proveedor_id AS "proveedorId", pr.razon_social AS proveedor,
+           pc.precio_unitario AS "precioUnitario", pc.fecha_vigencia AS "fechaVigencia",
+           now() AS "generadoEn"
+    FROM precios_compra pc
+    JOIN productos p ON p.id = pc.producto_id
+    JOIN proveedores pr ON pr.id = pc.proveedor_id
+    WHERE pc.fecha_vigencia BETWEEN ${desde}::date AND ${hasta}::date
+      ${productoId ? Prisma.sql`AND pc.producto_id = ${productoId}` : Prisma.empty}
+    ORDER BY pc.fecha_vigencia, pc.creado_en, pc.id`;
+}
+
+// Productos con precios en el período: los que más aumentaron primero.
+export async function precios(periodo, db = prisma) {
+  const filas = await db.$queryRaw(consultaPrecios(periodo));
+  const productos = evolucion(filas)
+    .map(({ proveedores, ...p }) => ({ ...p, proveedores: proveedores.length }))
+    .sort((a, b) => (b.variacion ?? -Infinity) - (a.variacion ?? -Infinity) || a.nombre.localeCompare(b.nombre, 'es'));
+  return { ...periodo, generadoEn: filas[0]?.generadoEn ?? new Date(), productos };
+}
+
+// Historial de un producto, para el gráfico y la comparación entre proveedores.
+export async function preciosDeProducto(productoId, periodo, db = prisma) {
+  const producto = await db.producto.findUnique({ where: { id: productoId }, select: { id: true, nombre: true, unidadMedida: true } });
+  if (!producto) throw ApiError.noEncontrado('Producto no encontrado');
+  const [resultado] = evolucion(await db.$queryRaw(consultaPrecios(periodo, productoId)));
+  return { ...periodo, producto, precios: resultado?.precios ?? 0, ultimo: resultado?.ultimo ?? null, proveedores: resultado?.proveedores ?? [] };
 }

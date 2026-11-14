@@ -1,0 +1,96 @@
+/* HU20 · Gráfico de evolución de precios. Marcas finas, guías tenues,
+   el texto siempre con los colores de texto (nunca el de la serie). */
+.grafico-precios__leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+  font-size: var(--fs-detalle);
+  color: var(--oscuro);
+}
+.grafico-precios__leyenda li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.grafico-precios__clave {
+  display: inline-block;
+  width: 14px;
+  height: 2px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.grafico-precios__lienzo {
+  position: relative;
+  width: 100%;
+}
+.grafico-precios__lienzo svg {
+  display: block;
+  max-width: 100%;
+  touch-action: pan-y;
+  outline: none;
+}
+.grafico-precios__lienzo svg:focus-visible {
+  outline: 2px solid var(--salvia-oscuro);
+  outline-offset: 2px;
+  border-radius: var(--radio-sm);
+}
+.grafico-precios__guia {
+  stroke: var(--borde);
+  stroke-width: 1;
+}
+.grafico-precios__eje {
+  fill: var(--texto-suave);
+  font-size: 11px;
+  font-family: var(--fuente);
+}
+.grafico-precios__cursor {
+  stroke: var(--texto-suave);
+  stroke-width: 1;
+}
+.grafico-precios__linea {
+  fill: none;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.grafico-precios__punto {
+  stroke: var(--superficie);
+  stroke-width: 2;
+}
+.grafico-precios__tooltip {
+  position: absolute;
+  top: 4px;
+  transform: translateX(10px);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 150px;
+  padding: 8px 10px;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-sm);
+  box-shadow: var(--sombra);
+  font-size: var(--fs-detalle);
+  color: var(--oscuro);
+  pointer-events: none;
+}
+.grafico-precios__tooltip--izq {
+  transform: translateX(calc(-100% - 10px));
+}
+.grafico-precios__tooltip-fecha {
+  color: var(--texto-suave);
+  font-weight: 700;
+}
+.grafico-precios__tooltip-fila {
+  display: grid;
+  grid-template-columns: 14px auto;
+  column-gap: 6px;
+  align-items: center;
+}
+.grafico-precios__tooltip-fila small {
+  grid-column: 2;
+  color: var(--texto-suave);
+}

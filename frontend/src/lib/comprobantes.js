@@ -39,3 +39,14 @@ export function tituloComprobante(c) {
 
 // Día de hoy en Argentina (AAAA-MM-DD): tope de la fecha de emisión.
 export const hoyArgentina = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Argentina/Buenos_Aires' });
+
+// HU19: porcentaje con coma decimal ("87,5 %") y detalle de lo que no coincidió.
+export const porcentaje = (v) => (v == null ? '—' : `${v.toLocaleString('es-AR', { maximumFractionDigits: 1 })} %`);
+
+export function detallePrecision(p) {
+  const partes = [];
+  if (p.corregidas) partes.push(`${p.corregidas} ${p.corregidas === 1 ? 'corregida' : 'corregidas'}`);
+  if (p.descartadas) partes.push(`${p.descartadas} ${p.descartadas === 1 ? 'descartada' : 'descartadas'}`);
+  if (p.omitidas) partes.push(`${p.omitidas} ${p.omitidas === 1 ? 'agregada a mano' : 'agregadas a mano'}`);
+  return partes.join(' · ');
+}

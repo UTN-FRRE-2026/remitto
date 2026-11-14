@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { api } from '../lib/api.js';
 import { leerNumero, mostrarNumero, pesos } from '../lib/numeros.js';
 import { UNIDADES } from '../lib/unidades.js';
-import { TIPO_COMPROBANTE, hoyArgentina } from '../lib/comprobantes.js';
+import { TIPO_COMPROBANTE, hoyArgentina, porcentaje, detallePrecision } from '../lib/comprobantes.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { IconoVolver, IconoBuscar, IconoMas, IconoCheck, IconoComprobantes } from '../components/iconos.jsx';
 import './RevisarComprobante.css';
@@ -192,6 +192,18 @@ export default function RevisarComprobante() {
             Este comprobante no está en revisión (estado: {comprobante.estado}). Se muestra solo para consulta.
           </p>
         )
+      )}
+
+      {/* HU19: lo leído por la IA contra lo confirmado. */}
+      {comprobante.precision && comprobante.precision.lineas > 0 && (
+        <p className="revisar__precision">
+          <strong>Lectura de la IA: {porcentaje(comprobante.precision.porcentaje)}</strong> ·{' '}
+          {comprobante.precision.correctas} de {comprobante.precision.lineas}{' '}
+          {comprobante.precision.lineas === 1 ? 'línea correcta' : 'líneas correctas'}
+          {detallePrecision(comprobante.precision) ? ` (${detallePrecision(comprobante.precision)})` : ''}
+          {comprobante.precision.simulada ? ' · lectura simulada' : ''}.{' '}
+          <Link to="/comprobantes/precision">Ver la precisión general</Link>
+        </p>
       )}
       {error && (
         <p className="revisar__error" role="alert">

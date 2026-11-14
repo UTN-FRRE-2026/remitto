@@ -4,12 +4,12 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 
 ## Referencia verificada (14/11/2026)
 
-- `origin/main` en `a4e0659` (merge del PR #22, correcciones de HU16 y HU28). Todas las ramas remotas están integradas.
+- `origin/main` en `4bee415` (merge del PR #23, HU27 y HU29). Todas las ramas remotas están integradas.
 - **Primera entrega del TPI: lunes 16/11/2026.** Consigna y entregables en [entrega-tpi.md](entrega-tpi.md).
-- **Publicado, pendiente de integrar:** HU27 (sugerencia de reposición) y HU29 (productos sin movimiento) en la rama `feature/HU27-HU29-reposicion-sin-movimiento`, con PR abierto a `main`.
-- Los PDF de la documentación probatoria están fuera del repositorio (`../remitto-entrega/`); se regeneraron el 14/11 con HU16 a HU18 y HU27 a HU29.
+- **Publicado, pendiente de integrar:** HU19 (precisión de la lectura) y HU20 (evolución de precios de compra) en la rama `feature/HU19-HU20-precision-evolucion-precios`, con PR abierto a `main`.
+- Los PDF de la documentación probatoria están fuera del repositorio (`../remitto-entrega/`); se regeneraron el 14/11 con HU16 a HU20 y HU27 a HU29.
 - **Trabajo en pausa, sin commit:** HU21 (claves de integración) quedó guardada solo en la copia local de Maxi: un stash de Git sobre la rama `feature/HU21-claves-integracion` y un patch equivalente en `retomar/HU21-en-progreso.patch`, fuera del repositorio, con las instrucciones para recuperarla. Tiene el backend con sus pruebas y la pantalla sin terminar. No está en `origin`.
-- PR #1 a #22 integrados en `main`.
+- PR #1 a #23 integrados en `main`.
 
 ## Integrado en `main`
 
@@ -38,6 +38,7 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 | HU16 equivalencias por proveedor (con migración `hu16_equivalencias`) | [PR #20](https://github.com/UTN-FRRE-2026/remitto/pull/20) |
 | HU28 valorización de existencias | [PR #21](https://github.com/UTN-FRRE-2026/remitto/pull/21) |
 | Correcciones de HU16 y HU28 (precedencia del catálogo, fecha de emisión no futura) | [PR #22](https://github.com/UTN-FRRE-2026/remitto/pull/22) |
+| HU27 sugerencia de reposición y HU29 productos sin movimiento | [PR #23](https://github.com/UTN-FRRE-2026/remitto/pull/23) |
 
 HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa que se haya comprobado ahora cada criterio de aceptación.
 
@@ -45,13 +46,19 @@ HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa qu
 
 | Estado observado | Historias |
 | --- | --- |
-| Backend y pantalla | HU1 a HU6, HU8 a HU18, HU28 |
-| Implementada en rama local | HU27 sugerencia de reposición y HU29 productos sin movimiento |
+| Backend y pantalla | HU1 a HU6, HU8 a HU18, HU27 a HU29 |
+| Implementada en rama publicada (PR abierto) | HU19 precisión de la lectura y HU20 evolución de precios |
 | En pausa (stash) | HU21 claves de integración |
 | Base existente | HU7 PWA (`vite-plugin-pwa`); instalación en Android no comprobada |
-| Sin implementar | HU19 a HU25 (HU26 parcial) y las deseables HU30 y HU31. `/asistente` e `/integraciones` son `EnConstruccion`; `simulador/` solo tiene un README |
+| Sin implementar | HU21 a HU25 (HU26 parcial) y las deseables HU30 y HU31. `/asistente` e `/integraciones` son `EnConstruccion`; `simulador/` solo tiene un README |
 
-## Validación de HU27 y HU29 (14/11/2026, trabajo local)
+## Validación de HU19 y HU20 (14/11/2026, trabajo local)
+
+- `npm test`: 184 correctas (6 nuevas en `test/precision-evolucion-precios.test.js`). `npm run build` correcto.
+- Contra una base descartable con la IA simulada: tres remitos confirmados con fechas de emisión de junio, agosto y septiembre (precio corregido, línea descartada, línea agregada a mano). 45 controles de API y pantalla correctos con los valores calculados de antemano. Precisión: 66,7 %, 25 % y 100 % por comprobante; general 6 de 10 líneas (60 %) ponderado por líneas; las lecturas simuladas se listan y no entran en el general (para medirlo se marcaron como reales en la base); un comprobante en revisión no cuenta; meta sin veredicto con menos de 20. Evolución: orden por aumento (+18,8 %), historial ordenado por fecha, comparación entre proveedores (5,6 % más caro), período corto, producto sin precios, 404/400, empleado 403. Pantalla: precisión general y por comprobante, gráfico con leyenda, cursor y teclado, tabla de precios, búsqueda, a 390 px y en escritorio.
+- No probado con lecturas reales de Gemini: la meta del 85 % sobre 20 remitos queda por medir con remitos del comercio.
+
+## Validación de HU27 y HU29 (14/11/2026, integrada en el PR #23)
 
 - `npm test`: 178 correctas (6 nuevas en `test/reposicion-sin-movimiento.test.js`). `npm run build` correcto.
 - Contra una base descartable con la IA simulada (un ingreso que registra precios, salidas y un producto sin stock deseado): 32 controles de API y pantalla correctos con los valores calculados de antemano. Reposición: solo productos en el mínimo o por debajo, cantidades al deseado, agrupación por último proveedor con costo, «Sin proveedor registrado», sin deseado aparte. Sin movimiento: excluye los que tuvieron salidas y los sin stock, los recuentos no cuentan como salidas, orden por valor, período por defecto y elegido a mano, rango inválido. Permisos 403/401, pestañas, acceso desde el Inicio, empleado sin acceso y diseño a 390 px y escritorio.

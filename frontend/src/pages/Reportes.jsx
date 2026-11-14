@@ -4,13 +4,15 @@ import { api } from '../lib/api.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { mostrarNumero, pesos } from '../lib/numeros.js';
 import { unidadCorta } from '../lib/unidades.js';
+import ReportesPrecios from './ReportesPrecios.jsx';
 import ReportesReposicion from './ReportesReposicion.jsx';
 import ReportesSinMovimiento from './ReportesSinMovimiento.jsx';
 import './Reportes.css';
 
-// Vistas de la pantalla (HU27, HU28, HU29); la elegida queda en la URL (?vista=).
+// Vistas de la pantalla (HU20, HU27, HU28, HU29); la elegida queda en la URL (?vista=).
 const VISTAS = [
   { id: 'valorizacion', texto: 'Valorización', Componente: Valorizacion },
+  { id: 'precios', texto: 'Evolución de precios', Componente: ReportesPrecios },
   { id: 'reposicion', texto: 'Reposición', Componente: ReportesReposicion },
   { id: 'sin-movimiento', texto: 'Sin movimiento', Componente: ReportesSinMovimiento },
 ];
@@ -20,8 +22,8 @@ const fecha = (f) => new Date(f).toLocaleDateString('es-AR', { timeZone: 'UTC', 
 const momento = (f) =>
   new Date(f).toLocaleString('es-AR', { timeZone: ZONA, day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 
-// Precios y reportes: valorización (HU28), sugerencia de reposición (HU27) y
-// productos sin movimiento (HU29). Solo el propietario: los reportes muestran
+// Precios y reportes: valorización (HU28), evolución de precios (HU20),
+// sugerencia de reposición (HU27) y productos sin movimiento (HU29). Solo el propietario: los reportes muestran
 // costos (el backend lo vuelve a comprobar en cada pedido).
 export default function Reportes() {
   const { esPropietario } = useAuth();
@@ -157,8 +159,6 @@ function Valorizacion() {
           </ul>
         </section>
       )}
-
-      <p className="reportes__pie">La evolución de los precios de compra (HU20) se agrega en una próxima entrega.</p>
     </>
   );
 }

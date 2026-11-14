@@ -478,3 +478,16 @@
   color: var(--fg-en-stock);
   font-weight: 700;
 }
+/* HU19: precisión de la lectura en un comprobante confirmado. */
+.revisar__precision {
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  border-radius: var(--radio-sm);
+  background: var(--bg-ia);
+  color: var(--fg-ia);
+  font-size: var(--fs-detalle);
+}
+.revisar__precision a {
+  color: inherit;
+  font-weight: 700;
+}

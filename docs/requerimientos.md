@@ -14,9 +14,9 @@ Para el detalle de lo verificado en cada entrega, ver [estado-proyecto.md](estad
 
 | | Historias | Puntos del plan |
 | --- | --- | --- |
-| Implementadas | 21 (HU1 a HU18 y HU27 a HU29) | 66 de 100 obligatorios |
+| Implementadas | 23 (HU1 a HU20 y HU27 a HU29) | 72 de 100 obligatorios |
 | Parciales | 1 (HU26) | 3 |
-| Pendientes obligatorias | 7 (HU19 a HU25) | 31 |
+| Pendientes obligatorias | 5 (HU21 a HU25) | 25 |
 | Deseables pendientes | 2 (HU30, HU31) | 5 (fuera de los 100) |
 
 ## Requerimientos funcionales
@@ -48,7 +48,7 @@ Para el detalle de lo verificado en cada entrega, ver [estado-proyecto.md](estad
 | RF3.5 | Reconocer equivalencias por proveedor | HU16 | Implementado | Se aprenden al confirmar y se proponen en el siguiente comprobante del proveedor («Recordado») · tabla `codigos_proveedor` |
 | RF3.6 | Exigir revisión completa en comprobantes dudosos | HU17 | Implementado | Aviso de revisión obligatoria y «Marcar como revisada» por línea; no se confirma hasta revisarlas todas |
 | RF3.7 | Consultar los comprobantes archivados | HU18 | Implementado | Pantalla Comprobantes, con filtros y acceso desde la ficha del proveedor · `GET /api/comprobantes` |
-| RF3.8 | Medir la precisión de la extracción | HU19 | Pendiente | Lo leído y lo confirmado ya se guardan por separado |
+| RF3.8 | Medir la precisión de la extracción | HU19 | Implementado | Comprobantes › Precisión de la lectura: porcentaje de líneas leídas correctamente, general y por comprobante, con la meta del 85 % sobre 20 comprobantes · `GET /api/comprobantes/precision`. Falta medirla con remitos reales |
 
 ### RF4 Gestión de stock · Mandatoria
 
@@ -86,7 +86,7 @@ Para el detalle de lo verificado en cada entrega, ver [estado-proyecto.md](estad
 | --- | --- | --- | --- | --- |
 | RF8.1 | Valorización de existencias | HU28 | Implementado | Pantalla Precios y reportes: valor por categoría a último precio de compra y productos sin precio aparte · `GET /api/reportes/valorizacion` |
 | RF8.2 | Productos sin movimiento | HU29 | Implementado | Precios y reportes › Sin movimiento: período elegible, stock, valor y última salida · `GET /api/reportes/sin-movimiento` |
-| RF8.3 | Evolución de precios de compra | HU20 | Pendiente | Los datos se registran en `precios_compra` |
+| RF8.3 | Evolución de precios de compra | HU20 | Implementado | Precios y reportes › Evolución de precios: productos que más aumentaron, gráfico por proveedor ordenado por fecha y comparación del último precio · `GET /api/reportes/precios` |
 | RF8.4 | Tablero de situación | HU26 | Parcial | El tablero muestra indicadores de stock, productos para reponer y remitos por revisar. Faltan las alertas activas y el valor del stock |
 
 ### RF9 Funcionalidades deseables · Deseable

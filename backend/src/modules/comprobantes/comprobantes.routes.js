@@ -12,6 +12,7 @@ import {
   listarComprobantesSchema,
 } from './comprobantes.schema.js';
 import * as listado from './comprobantes.listado.js';
+import * as precision from './comprobantes.precision.js';
 import * as revision from './comprobantes.revision.js';
 import { recibirArchivo } from './comprobantes.upload.js';
 import * as comprobantes from './comprobantes.service.js';
@@ -35,6 +36,12 @@ router.post(
 // HU18: comprobantes cargados, con filtros por proveedor, estado, fecha y número.
 router.get('/', validar(listarComprobantesSchema, 'query'), asyncHandler(async (req, res) => {
   res.json(await listado.listar(req.query));
+}));
+
+// HU19: precisión de la lectura con IA (general y por comprobante confirmado).
+// Va antes de /:id para que «precision» no se tome como un id.
+router.get('/precision', asyncHandler(async (req, res) => {
+  res.json(await precision.precision());
 }));
 
 router.get('/:id', validar(idParamSchema, 'params'), asyncHandler(async (req, res) => {

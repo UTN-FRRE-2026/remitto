@@ -1,6 +1,6 @@
 # Manual del usuario de Remitto
 
-Versión del 14/11/2026, correspondiente a `main` con las historias HU1 a HU18 y HU27 a HU29. Las capturas usan los datos ficticios de ejemplo («Almacén Don Carlos») y una lectura con IA simulada.
+Versión del 14/11/2026, correspondiente a `main` con las historias HU1 a HU20 y HU27 a HU29. Las capturas usan los datos ficticios de ejemplo («Almacén Don Carlos») y una lectura con IA simulada.
 
 ## Contenido
 
@@ -151,6 +151,17 @@ Arriba queda la constancia de quién confirmó y cuándo, y al pie el detalle **
 - Un remito **confirmado** se abre en modo consulta: el archivo original junto a las líneas ingresadas.
 - Uno sin leer o con error abre la lectura con IA, donde se puede reintentar.
 
+### Precisión de la lectura con IA
+
+<img src="manual/25-precision.png" alt="Precisión de la lectura: porcentaje general, detalle y un renglón por comprobante" width="300">
+
+En **Comprobantes**, el enlace **Precisión de la lectura con IA** muestra qué tan bien lee la IA los remitos, comparando lo que leyó con lo que se confirmó:
+
+- **Líneas leídas correctamente:** el porcentaje de líneas que se confirmaron con la misma cantidad y el mismo precio que leyó la IA. Solo cuentan los remitos confirmados.
+- **Detalle:** cuántas líneas se corrigieron (y si fue en la cantidad o en el precio), cuántas se descartaron y cuántas se agregaron a mano porque la IA no las leyó.
+- **Meta:** 85 % sobre 20 remitos. Mientras no haya 20 confirmados, se indica cuántos faltan.
+- Debajo, cada remito con su porcentaje; tocalo para abrirlo. Un remito confirmado también muestra su precisión en la parte de arriba.
+
 ## 6. Productos
 
 <img src="manual/09-productos.png" alt="Lista de productos" width="300">
@@ -253,7 +264,17 @@ En el menú lateral, **Precios y reportes**; en el celular, desde **Cuenta**. Mu
 - **Productos con stock sin precio de compra** (recuadro dorado): no entran en el total porque todavía no tienen un precio registrado. El precio se guarda al confirmar un remito que lo traiga.
 - Los productos sin stock o desactivados no se valorizan. Solo el propietario ve este reporte.
 
-Arriba de la pantalla, las pestañas **Valorización**, **Reposición** y **Sin movimiento** cambian de reporte.
+Arriba de la pantalla, las pestañas **Valorización**, **Evolución de precios**, **Reposición** y **Sin movimiento** cambian de reporte.
+
+### Evolución de precios: detectar aumentos
+
+<img src="manual/26-evolucion-precios.png" alt="Evolución del precio de la yerba con dos proveedores" width="300">
+
+Muestra cómo cambió el precio de compra de cada producto. Por defecto toma el último año; cambialo con **Últimos 3 o 6 meses** o con las fechas.
+
+- **La lista** muestra los productos con precios en el período, **los que más aumentaron primero**, con su último precio, el proveedor y la variación (▲ aumento, ▼ baja). Buscá un producto por nombre.
+- **Tocá un producto** para ver el gráfico: una línea por proveedor y un punto por cada compra, ordenados por la fecha del remito. Pasá el dedo o el mouse por el gráfico para ver el precio de cada proveedor en esa fecha.
+- **Último precio por proveedor** compara a los proveedores, del más barato al más caro, e indica cuánto más caro es cada uno. **Ver todos los precios** muestra la lista completa.
 
 ### Reposición: qué pedir y cuánto
 
@@ -307,4 +328,5 @@ Puede estar desactivado: el propietario lo ve con el filtro **Desactivados** y l
 - Los campos de fecha aparecen en formato mm/dd/aaaa porque el navegador de las capturas estaba en inglés; en un celular en castellano se ven como dd/mm/aaaa.
 - La campana del Inicio todavía no tiene función (las alertas son de HU24).
 - La sección de instalación describe el procedimiento estándar de Chrome; la instalación en un Android real todavía no se probó (HU7).
-- Al implementar más historias, agregar sus secciones (Asistente, Integraciones, evolución de precios) y actualizar la lista de «En construcción».
+- Las capturas de precisión y evolución de precios (14/11) usan tres remitos simulados confirmados con fechas de emisión de junio, agosto y septiembre; para la precisión se marcaron como lecturas reales en la base descartable.
+- Al implementar más historias, agregar sus secciones (Asistente, Integraciones) y actualizar la lista de «En construcción».
