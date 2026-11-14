@@ -609,9 +609,16 @@ cd backend && npm run e2e -- hu21-claves
 ```
 
 Requiere el PostgreSQL de desarrollo encendido (`docker compose up -d db`).
-Crea `remitto_e2e_<fecha>` en ese servidor (solo si `DATABASE_URL` apunta a
-localhost), aplica migraciones y seed, levanta la API en el puerto 4100 con la
-IA simulada y borra la base al terminar. No toca la base de desarrollo. Detalle
+Crea una base `remitto_e2e_…` con nombre único en ese servidor (solo si
+`DATABASE_URL` apunta a localhost), aplica migraciones y seed, levanta la API
+en un puerto libre con la IA simulada y borra la base al terminar. No toca la
+base de desarrollo.
+
+Antes de enviar cualquier operación, comprueba que la API que responde usa su
+base: escribe una marca aleatoria en la base y la busca por la API. Si no la
+encuentra, o si el puerto pedido está ocupado, la API cae al arrancar o el nombre
+de la base no es de prueba, aborta con código 2 sin correr escenarios. Solo
+borra lo que creó. `npm run e2e:aislamiento` verifica estas garantías. Detalle
 en [`backend/e2e/README.md`](backend/e2e/README.md).
 
 ### Backend en Docker (opcional)
