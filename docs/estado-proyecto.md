@@ -4,15 +4,17 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 
 ## Referencia verificada (14/11/2026)
 
-- `origin/main` en `474b7b0` (merge del PR #26, documentación de la entrega). Las ramas remotas anteriores están integradas; HU21 y HU22 están publicadas sin integrar.
+- `origin/main` en `b822eb9` (merge del PR #28, HU22), comprobado el 14/11/2026. Todas las ramas de trabajo publicadas están integradas.
 - **Primera entrega del TPI: lunes 16/11/2026.** Consigna y entregables en [entrega-tpi.md](entrega-tpi.md).
 - **HU7:** el equipo informó el 14/11 que instaló la PWA en un Android real y funciona (no verificado en esta revisión).
-- Los PDF de la documentación probatoria están fuera del repositorio (`../remitto-entrega/`); se regeneraron el 14/11 con HU16 a HU20 y HU27 a HU29.
-- **Integración externa, publicada en ramas y sin integrar (PR pendientes):**
-  - HU21 (claves de integración): rama `feature/HU21-claves-integracion`, commit `e40cced`, sobre `474b7b0`. Se recuperó del stash `5373a09` con `apply`; el stash y el patch de `retomar/` se conservan hasta integrarla.
-  - HU22 (salidas desde un sistema externo): rama `feature/HU22-salidas-integracion`, **sobre HU21**: integrar primero el PR de HU21.
-  - HU23 (simulador) es el paso siguiente y depende de HU22.
-- PR #1 a #26 integrados en `main`.
+- Los PDF de la documentación probatoria están fuera del repositorio (`../remitto-entrega/`); se regeneraron el 14/11 con HU16 a HU20 y HU27 a HU29. **No incluyen HU21 ni HU22**: hay que regenerarlos.
+- **Integración externa:**
+  - HU21 (claves de integración): integrada por el [PR #27](https://github.com/UTN-FRRE-2026/remitto/pull/27), merge `708f9d9`.
+  - HU22 (salidas desde un sistema externo): integrada por el [PR #28](https://github.com/UTN-FRRE-2026/remitto/pull/28), merge `b822eb9`. El contenido integrado es idéntico al último commit publicado de la rama (`77e614f`).
+  - HU23 (simulador de ventas) es el paso siguiente: depende de HU22 y no está empezada.
+  - El respaldo del avance de HU21 (el stash `5373a09` y el patch de `retomar/`, en la copia local de Maxi) se conserva aunque ya no hace falta.
+- **Migraciones nuevas:** `20261114140000_hu21_claves_integracion` y `20261114150000_hu22_pedido_externo`. Quien use una base local tiene que aplicarlas con `npx prisma migrate deploy` (sin reset). En producción, el contenedor las aplica al arrancar; no se verificó.
+- PR #1 a #28 integrados en `main`.
 
 ## Integrado en `main`
 
@@ -44,6 +46,8 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 | HU27 sugerencia de reposición y HU29 productos sin movimiento | [PR #23](https://github.com/UTN-FRRE-2026/remitto/pull/23) |
 | HU19 precisión de la lectura y HU20 evolución de precios de compra | [PR #24](https://github.com/UTN-FRRE-2026/remitto/pull/24) |
 | Estado de HU7 en Android y de los entregables de la primera entrega (documentación) | [PR #25](https://github.com/UTN-FRRE-2026/remitto/pull/25) y [PR #26](https://github.com/UTN-FRRE-2026/remitto/pull/26) |
+| HU21 claves de integración (con migración `hu21_claves_integracion`) y ejecutor de pruebas de punta a punta | [PR #27](https://github.com/UTN-FRRE-2026/remitto/pull/27) |
+| HU22 salidas desde un sistema externo, contrato OpenAPI (con migración `hu22_pedido_externo`) y corrección de HU28 (stock negativo en la valorización) | [PR #28](https://github.com/UTN-FRRE-2026/remitto/pull/28) |
 
 HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa que se haya comprobado ahora cada criterio de aceptación.
 
@@ -51,11 +55,20 @@ HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa qu
 
 | Estado observado | Historias |
 | --- | --- |
-| Backend y pantalla | HU1 a HU6, HU8 a HU22, HU27 a HU29 (HU21 y HU22 en sus ramas, sin integrar) |
+| Backend y pantalla | HU1 a HU6, HU8 a HU22, HU27 a HU29 |
 | Probada por el equipo | HU7 PWA (`vite-plugin-pwa`): instalada en un Android real y funcionando (informado el 14/11/2026, no verificado en esta revisión) |
 | Sin implementar | HU23 a HU25 (HU26 parcial) y las deseables HU30 y HU31. `/asistente` es `EnConstruccion`; `simulador/` solo tiene un README |
 
-## Validación de HU22 (14/11/2026, rama `feature/HU22-salidas-integracion`, sobre HU21)
+## Actualización documental tras integrar HU21 y HU22 (14/11/2026)
+
+- **Comprobado en esta actualización:**
+  - `origin/main` en `b822eb9`, con los merges `708f9d9` (PR #27) y `b822eb9` (PR #28), y el contenido igual a `77e614f`.
+  - La base de desarrollo local de Maxi (`localhost:5433`, base `remitto`) recibió con `npx prisma migrate deploy` las migraciones `hu16_equivalencias`, `hu21_claves_integracion` y `hu22_pedido_externo`, sin reset ni seed.
+  - `npx prisma migrate status` informa la base al día, con 8 migraciones.
+  - Los conteos de datos son iguales antes y después, ningún producto quedó descuadrado y `chk_clave_revocada` y `chk_pedido_externo` quedaron validados.
+- **No se repitieron pruebas de código:** esta actualización solo cambia documentación. Las pruebas de las dos secciones siguientes se ejecutaron durante el desarrollo, sobre las ramas, antes de integrarlas.
+
+## Validación de HU22 (14/11/2026, integrada en el PR #28; pruebas ejecutadas en la rama `feature/HU22-salidas-integracion`)
 
 - `POST /api/v1/integracion/salidas` reutiliza el núcleo del carrito (`registrarSalida`, extraído de HU13 sin cambiar su comportamiento). Contrato OpenAPI 3.0 en `backend/src/modules/integracion/openapi.json`, publicado en `GET /api/v1/integracion/openapi.json` y enlazado desde la pantalla Integraciones.
 - **Decisiones:** la referencia es única por clave (índice existente desde el diseño inicial); un reenvío igual devuelve 200 y uno distinto 409; la venta se registra aunque deje stock negativo, con aviso; una línea inválida rechaza la venta entera; la clave se vuelve a comprobar dentro de la transacción (`FOR SHARE`) para que ninguna venta entre después de revocarla.
@@ -77,7 +90,7 @@ HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa qu
   - **Colisión de firmas (segunda revisión):** la primera firma concatenaba texto, y una línea con el código «a=1|c:b» y cantidad 1 equivalía a dos líneas «a» y «b». Ahora es una lista de tuplas `[tipo, identificador, cantidad]` ordenada y serializada con JSON, inequívoca para cualquier código, sin restringir los códigos y con la misma normalización. Prueba unitaria y regresión contra PostgreSQL: venta con la línea «COL-a=1|c:COL-b», reenvío de la misma referencia con «COL-a» y «COL-b» → 409 sin cambiar stock ni movimientos, y el reenvío original sigue en 200. `npm test` 205 correctas; `npm run e2e -- hu21-claves hu22-salidas` 101/101 (38 + 63). Mutación con la firma anterior: falla la prueba unitaria y la regresión da 200.
   - El control de la revocación con 120 ventas en curso dependía de los tiempos (en una corrida la revocación llegó después de todas): ahora repite hasta 3 rondas con otra clave hasta que se superponen, y comprueba las garantías en todas.
 
-## Validación de HU21 (14/11/2026, rama `feature/HU21-claves-integracion`)
+## Validación de HU21 (14/11/2026, integrada en el PR #27; pruebas ejecutadas en la rama `feature/HU21-claves-integracion`)
 
 - Se recuperó el avance del 13/11 y se adaptó a `main` (`474b7b0`): conflicto en `routes.js` con los reportes; la migración pasó a `20261114140000_hu21_claves_integracion` para quedar después de las de HU16 y HU17. Se completaron la pantalla (estilos, ruta solo para el propietario, acceso desde Cuenta), el esquema `bearer` sin distinguir mayúsculas y la documentación. Las pruebas históricas no se tomaron como válidas: todo se volvió a correr.
 - `npm test`: 196 correctas (12 de `test/claves.test.js`). `npm run build` correcto.
