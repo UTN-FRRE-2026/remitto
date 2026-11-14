@@ -9,6 +9,7 @@
     "start": "node src/server.js",
     "test": "node --test",
     "e2e": "node e2e/correr.mjs",
+    "e2e:aislamiento": "node e2e/verificar-aislamiento.mjs",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
