@@ -9,6 +9,7 @@ import { validarArchivo, guardarArchivo, eliminarArchivo, rutaAbsoluta } from '.
 import { OBJETIVO_RNF2_MS } from './comprobantes.procesamiento.js';
 import { incluirDetalle, validar, exigeRevisionCompleta } from './comprobantes.revision.js';
 import { UMBRAL_CONFIANZA } from './comprobantes.asociacion.js';
+import { anotarEquivalencias, equivalenciasDelProveedor } from './comprobantes.equivalencias.js';
 
 // HU10: valida los datos para confirmar. El aviso de duplicado usa el número
 // definitivo si ya se corrigió; si no, el que leyó la IA.
@@ -64,6 +65,25 @@ export async function crear({ proveedorId, tipo }, archivo, usuarioId) {
   }
 }
 
+// HU16: marca las líneas en revisión cuya propuesta sale de una equivalencia
+// confirmada del proveedor ("Recordado"). Fuera de la revisión no se marca.
+async function conEquivalencias(comprobante, detalles) {
+  if (comprobante.estado !== 'EN_REVISION' || !detalles.some((d) => d.confianza != null)) {
+    return detalles.map((d) => ({ ...d, equivalencia: null }));
+  }
+  return anotarEquivalencias(detalles, await equivalenciasDelProveedor(prisma, comprobante.proveedorId));
+}
+
+// Una línea recién editada, con la misma marca que en el comprobante completo.
+export async function anotarDetalle(comprobanteId, detalle) {
+  const comprobante = await prisma.comprobante.findUnique({
+    where: { id: comprobanteId },
+    select: { estado: true, proveedorId: true },
+  });
+  const [anotado] = await conEquivalencias(comprobante, [detalle]);
+  return anotado;
+}
+
 export async function obtener(id) {
   const comprobante = await prisma.comprobante.findUnique({
     where: { id },
@@ -74,6 +94,7 @@ export async function obtener(id) {
   const { respuestaIa } = comprobante;
   return {
     ...comprobante,
+    detalles: await conEquivalencias(comprobante, comprobante.detalles),
     respuestaIa: respuestaIa?.error ? { ...respuestaIa, error: { codigo: respuestaIa.error.codigo } } : respuestaIa,
     error: leerError(comprobante.errorProcesamiento),
     posibleDuplicado: await buscarPosiblesDuplicados(comprobante),
