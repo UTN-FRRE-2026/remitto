@@ -79,7 +79,7 @@ for (const dir of readdirSync(dirMigraciones).sort()) {
       .map((l) => l.replace(/^--\s*/, '').trim())
       .filter(Boolean)
       .join(' ');
-  for (const m of sql.matchAll(/((?:--.*\n)*)ALTER TABLE "(\w+)" ADD CONSTRAINT "(\w+)" CHECK \(([\s\S]*?)\);/g)) {
+  for (const m of sql.matchAll(/((?:--.*\n)*)ALTER TABLE "(\w+)" ADD CONSTRAINT "(\w+)" CHECK \(([\s\S]*?)\)(?: NOT VALID)?;/g)) {
     restricciones.push({ tabla: m[2], nombre: m[3], tipo: 'CHECK', regla: unaLinea(m[4]), comentario: comentario(m[1]) });
   }
   for (const m of sql.matchAll(/((?:--.*\n)*)CREATE UNIQUE INDEX "(\w+)" ON "(\w+)" \(([^)]*)\)\s*WHERE ([\s\S]*?);/g)) {

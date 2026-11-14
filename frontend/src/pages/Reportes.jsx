@@ -72,7 +72,7 @@ function Valorizacion() {
   if (error) return <p className="error-texto">{error}</p>;
   if (!datos) return <p className="card reportes__vacio">Calculando…</p>;
 
-  const { total, productosValorizados, categorias, sinPrecio, generadoEn } = datos;
+  const { total, productosValorizados, categorias, sinPrecio, stockNegativo = [], generadoEn } = datos;
   return (
     <>
       <section className="card reportes__total" aria-labelledby="valorizacion-titulo">
@@ -136,6 +136,30 @@ function Valorizacion() {
             <span>Total</span>
             <strong>{pesos(total)}</strong>
           </footer>
+        </section>
+      )}
+
+      {stockNegativo.length > 0 && (
+        <section className="card reportes__sin-precio reportes__negativo" aria-labelledby="negativo-titulo">
+          <h2 id="negativo-titulo">
+            {stockNegativo.length} {stockNegativo.length === 1 ? 'producto' : 'productos'} con stock negativo
+          </h2>
+          <p>
+            No se incluyen en el total. Suele pasar cuando la caja informa ventas de mercadería que todavía no se ingresó:
+            confirmá el remito pendiente o hacé un recuento.
+          </p>
+          <ul>
+            {stockNegativo.map((p) => (
+              <li key={p.id}>
+                <span>
+                  {p.nombre} <small>· {p.categoria}</small>
+                </span>
+                <span>
+                  {mostrarNumero(p.stockActual)} {unidadCorta(p.unidadMedida)}
+                </span>
+              </li>
+            ))}
+          </ul>
         </section>
       )}
 

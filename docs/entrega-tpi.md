@@ -30,7 +30,7 @@ Estado al 14/11/2026, según el repositorio (`main` en `bfd995e`, PR #1 a #25 in
 
 | Entregable | Estado en el repo | Pendiente |
 | --- | --- | --- |
-| Producto final (aplicación) | Están implementadas HU1 a HU21 y HU27 a HU29 (75 de 100 puntos del plan) y HU26 en parte. La PWA se instaló en un Android real (informado por el equipo). Ver [estado](estado-proyecto.md) y [requerimientos](requerimientos.md#resumen) | **HU22 a HU25 sin implementar** (22 puntos) y **HU26 incompleta** (faltan las alertas activas, que dependen de HU24, y el valor del stock). La consigna exige cumplir todos los requerimientos del plan. HU22 depende de HU21, y HU23 de HU22 |
+| Producto final (aplicación) | Están implementadas HU1 a HU22 y HU27 a HU29 (83 de 100 puntos del plan) y HU26 en parte. La PWA se instaló en un Android real (informado por el equipo). Ver [estado](estado-proyecto.md) y [requerimientos](requerimientos.md#resumen) | **HU23 a HU25 sin implementar** (14 puntos) y **HU26 incompleta** (faltan las alertas activas, que dependen de HU24, y el valor del stock). La consigna exige cumplir todos los requerimientos del plan. HU23 (simulador) depende de HU22 |
 | Plan de Trabajo | [plan-de-trabajo.md](plan-de-trabajo.md) | Definir el formato de entrega (¿el documento original del equipo?) |
 | Informe Final del Alumno | No está en el repo | Bajar el modelo del aula y completarlo |
 | Informe del Tutor | No corresponde si el trabajo no se hace en una organización | Confirmar si aplica (el plan describe un comercio, «Almacén Don Carlos») |
@@ -38,7 +38,7 @@ Estado al 14/11/2026, según el repositorio (`main` en `bfd995e`, PR #1 a #25 in
 | Lista de Requerimientos | [requerimientos.md](requerimientos.md), con el estado de cada uno. PDF generado el 14/11 | Regenerar el PDF cuando se integren las historias que faltan |
 | Diseño de la Base de Datos | [base-de-datos.md](base-de-datos.md) y diagrama [der-remitto.png](referencias/der-remitto.png). PDF del diseño y del diagrama (también en A3) generados el 14/11 | Regenerarlos si HU21 a HU25 cambian el esquema |
 | Maquetación de la Aplicación | [maquetacion.html](referencias/maquetacion.html) y [guía](maquetacion.md). PDF generado el 14/11 | — |
-| Manual del Usuario | [manual-usuario.md](manual-usuario.md), con capturas de HU1 a HU20 y HU27 a HU29; HU21 descrita, sin captura. PDF generado el 14/11 | Agregar las historias que falten (y la captura de Integraciones) y regenerar el PDF |
+| Manual del Usuario | [manual-usuario.md](manual-usuario.md), con capturas de HU1 a HU20 y HU27 a HU29; HU21 y HU22 descritas, sin captura. PDF generado el 14/11 | Agregar las historias que falten (y la captura de Integraciones) y regenerar el PDF |
 | Infografía (exposición) | No existe | Vertical, con el contenido del plan de trabajo |
 | Exposición y defensa oral | — | Preparar la demo en vivo y repartir la participación entre los tres integrantes |
 

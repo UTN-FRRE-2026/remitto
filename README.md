@@ -12,7 +12,7 @@ automática de comprobantes de compra mediante Inteligencia Artificial.
 ## Estado actual
 
 Están implementadas las historias del Sprint 1 (HU1 a HU14) y, del
-Sprint 2, HU15 a HU21 y HU27 a HU29. La aplicación está desplegada en producción con Coolify, a partir
+Sprint 2, HU15 a HU22 y HU27 a HU29. La aplicación está desplegada en producción con Coolify, a partir
 de `main`. El equipo probó la instalación de la PWA en un Android real (HU7) y funciona.
 
 Ya implementado:
@@ -26,7 +26,7 @@ Ya implementado:
 | **Existencias** | HU12 (movimientos y existencias) | ✅ Backend y pantalla Movimientos |
 | **Salidas** | HU13 (carrito de salida) | ✅ Backend y pantalla Nueva salida |
 | **Recuento** | HU14 (ajuste por recuento) | ✅ Backend y pantalla Recuento |
-| **RF5** Integración | HU21 (claves de integración) | ✅ Backend y pantalla Integraciones |
+| **RF5** Integración | HU21 (claves de integración), HU22 (salidas desde un sistema externo, con contrato OpenAPI) | ✅ Backend y pantalla Integraciones |
 | **RF6** Reposición | HU27 (sugerencia de reposición) | ✅ Backend y pantalla Precios y reportes |
 | **RF8** Reportes | HU20 (evolución de precios), HU28 (valorización de existencias), HU29 (productos sin movimiento) | ✅ Backend y pantalla Precios y reportes |
 | Frontend | Login, Tablero, Comprobantes, Precisión de la lectura, Productos (alta y edición), Proveedores, Categorías, Usuarios, Cargar remito, Lectura con IA, Revisar remito, Movimientos, Nueva salida, Recuento, Precios y reportes, Integraciones | ✅ Vistas base |
@@ -490,8 +490,9 @@ compra (`GET /api/reportes/valorizacion`, lógica en
 - Cada producto se redondea a centavos y los totales se suman en centavos: el
   **total coincide exactamente con la suma por categoría**.
 - Los productos **con stock y sin precio registrado se informan aparte** y no
-  entran en el total. Los productos sin stock, con stock negativo o
-  desactivados no se valorizan.
+  entran en el total. Los productos **con stock negativo** (por ejemplo, ventas
+  de la caja de mercadería todavía no ingresada, HU22) también se informan
+  aparte y no suman. Los productos sin stock o desactivados no se valorizan.
 - El empleado recibe 403: el reporte muestra costos de compra.
 - **Lectura consistente:** stock y último precio se leen en una sola sentencia
   SQL, que en PostgreSQL ve una única foto de la base. Un ingreso que se
@@ -599,13 +600,60 @@ externo, como la caja del comercio, se autentica ante la API de integración
 Las comprobaciones de punta a punta están en `backend/e2e/hu21-claves.mjs`
 (ver [Pruebas de punta a punta](#pruebas-de-punta-a-punta)).
 
+### Salidas desde un sistema externo (HU22)
+
+La caja del comercio informa cada venta con
+`POST /api/v1/integracion/salidas`, autenticada con una clave de HU21. El
+**contrato OpenAPI** se publica en `GET /api/v1/integracion/openapi.json`
+(público; fuente en `backend/src/modules/integracion/openapi.json`) y la
+pantalla Integraciones lo enlaza con un ejemplo.
+
+```json
+{ "referencia": "CAJA1-0001-00004512", "fecha": "2026-11-14T18:32:05-03:00",
+  "lineas": [{ "codigoBarras": "7790001000012", "cantidad": 2 }, { "productoId": 4, "cantidad": 1.25 }] }
+```
+
+- **Mismo servicio que el carrito:** `registrarSalida` (HU13) crea la
+  cabecera `Salida` con origen `INTEGRACION`, la clave y la referencia, y un
+  movimiento `SALIDA` por producto, sin usuario, en una transacción que bloquea
+  los productos en orden de id. Las líneas del mismo producto se suman.
+- **Reenvíos:** la referencia es única por clave
+  (`@@unique [clave_integracion_id, referencia_externa]`). Cada venta guarda
+  su petición normalizada en `salidas.pedido_externo` (migración
+  `hu22_pedido_externo`, `CHECK chk_pedido_externo`). Para reconocer un
+  reenvío se comparan **las líneas normalizadas con sus identificadores
+  originales** (cada `productoId` o `codigoBarras` tal como se envió, con las
+  cantidades sumadas y sin importar el orden); **`fecha` no participa**. No se
+  consulta el catálogo: el reenvío exacto devuelve la venta original (200,
+  `repetida: true`) sin descontar, aunque después se haya cambiado o borrado el
+  código de barras o desactivado el producto. Con otras líneas, o con el mismo
+  producto identificado de otra forma, 409. Dos envíos simultáneos de la misma
+  venta: el segundo choca con el índice único y recibe la del primero. Si se
+  cambia de clave, los reenvíos pendientes deben salir con la clave anterior.
+- **Stock insuficiente:** la venta ya ocurrió, así que se registra igual; el
+  stock queda negativo y la respuesta lo avisa en `advertencias`. La
+  valorización (HU28) lista esos productos aparte. El carrito, en cambio, sigue
+  rechazando la salida.
+- **Atomicidad:** un código de barras desconocido, un producto inexistente o
+  desactivado, o una fracción de algo que se vende por unidad rechazan la venta
+  entera (400) sin descontar nada.
+- **Revocación:** la clave se vuelve a comprobar dentro de la transacción con
+  `FOR SHARE`. Una venta en curso termina antes de que la revocación se
+  confirme, y ninguna venta entra después.
+- **Carga:** las transacciones de salida esperan hasta 10 s una conexión libre
+  (`maxWait`); con la espera por defecto (2 s) una ráfaga de ventas sobre los
+  mismos productos terminaba en 500. Si aun así no hay conexión, la API
+  responde 503 con `Retry-After` (antes, 500), documentado en el contrato.
+  Un JSON mal formado ahora da 400, y un cuerpo demasiado grande, 413.
+- Las ventas aparecen en Movimientos como «Punto de venta (nombre de la clave)».
+
 ### Pruebas de punta a punta
 
 `npm test` no usa base de datos. Las comprobaciones contra PostgreSQL
 (permisos, SQL, reenvíos y concurrencia) se corren con una base descartable:
 
 ```bash
-cd backend && npm run e2e -- hu21-claves
+cd backend && npm run e2e -- hu21-claves hu22-salidas
 ```
 
 Requiere el PostgreSQL de desarrollo encendido (`docker compose up -d db`).
@@ -723,6 +771,8 @@ POSTGRES_PASSWORD=prueba123 JWT_SECRET=prueba CORS_ORIGIN=http://localhost:8088 
 | `GET/POST` | `/api/claves-integracion` (listado; alta con la clave completa una sola vez) (HU21) | propietario |
 | `DELETE` | `/api/claves-integracion/:id` (revoca; no borra) (HU21) | propietario |
 | `GET` | `/api/v1/integracion/estado` (comprueba la clave) (HU21) | clave de integración |
+| `POST` | `/api/v1/integracion/salidas` (venta del punto de venta; 201, 200 si se reenvía, 409 si la referencia ya se usó con otro contenido) (HU22) | clave de integración |
+| `GET` | `/api/v1/integracion/openapi.json` (contrato OpenAPI de la integración) (HU22) | público |
 
 ---
 

@@ -350,6 +350,10 @@ model Salida {
   referenciaExterna  String?   @map("referencia_externa")
   /// Momento en que ocurrió la venta según el sistema externo.
   fechaExterna       DateTime? @map("fecha_externa")
+  /// INTEGRACION (HU22): petición original normalizada (líneas con su
+  /// identificador productoId o codigoBarras y cantidades sumadas). Reconoce
+  /// un reenvío aunque cambie el catálogo. CHECK chk_pedido_externo.
+  pedidoExterno      Json?     @map("pedido_externo")
   registradaEn       DateTime  @default(now()) @map("registrada_en")
 
   usuario          Usuario?          @relation(fields: [usuarioId], references: [id])

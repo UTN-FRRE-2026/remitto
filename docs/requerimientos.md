@@ -14,9 +14,9 @@ Para el detalle de lo verificado en cada entrega, ver [estado-proyecto.md](estad
 
 | | Historias | Puntos del plan |
 | --- | --- | --- |
-| Implementadas | 24 (HU1 a HU21 y HU27 a HU29) | 75 de 100 obligatorios |
+| Implementadas | 25 (HU1 a HU22 y HU27 a HU29) | 83 de 100 obligatorios |
 | Parciales | 1 (HU26) | 3 |
-| Pendientes obligatorias | 4 (HU22 a HU25) | 22 |
+| Pendientes obligatorias | 3 (HU23 a HU25) | 14 |
 | Deseables pendientes | 2 (HU30, HU31) | 5 (fuera de los 100) |
 
 ## Requerimientos funcionales
@@ -64,8 +64,8 @@ Para el detalle de lo verificado en cada entrega, ver [estado-proyecto.md](estad
 | Sub. | Descripción | HU | Estado | Qué falta |
 | --- | --- | --- | --- | --- |
 | RF5.1 | Administrar claves de integración | HU21 | Implementado | Pantalla Integraciones · `/api/claves-integracion`. La clave se muestra una vez; en la base quedan su prefijo y su hash SHA-256. Revocación y último uso. Verificado de punta a punta (`backend/e2e/hu21-claves.mjs`) |
-| RF5.2 | Recibir salidas por el endpoint, sin duplicados y con contrato OpenAPI | HU22 | Pendiente | Depende de HU21. El servicio de salidas y la base ya contemplan la referencia externa |
-| RF5.3 | Validar la integración con un simulador de ventas | HU23 | Pendiente | `simulador/` solo tiene un README |
+| RF5.2 | Recibir salidas por el endpoint, sin duplicados y con contrato OpenAPI | HU22 | Implementado | `POST /api/v1/integracion/salidas` con la clave de HU21, el mismo servicio que el carrito, reenvíos sin duplicar (índice único por clave y referencia) y contrato en `GET /api/v1/integracion/openapi.json`. Verificado de punta a punta con concurrencia (`backend/e2e/hu22-salidas.mjs`) |
+| RF5.3 | Validar la integración con un simulador de ventas | HU23 | Pendiente | Depende de HU22. `simulador/` solo tiene un README; `backend/e2e/hu22-salidas.mjs` ya ejercita reenvíos y concurrencia, pero no es el simulador de cien operaciones |
 
 ### RF6 Alertas y reposición · Mandatoria
 
@@ -118,5 +118,5 @@ Para el detalle de lo verificado en cada entrega, ver [estado-proyecto.md](estad
 | Maquetación | Figma | Maqueta en [referencias/maquetacion.html](referencias/maquetacion.html) |
 | Gestión | GitHub y Trello | Repositorio con PR por historia en GitHub |
 | Inteligencia Artificial | API de modelo multimodal con capa gratuita | Gemini, mediante el adaptador de `backend/src/ia/` |
-| Documentación de la API | OpenAPI (Swagger) | Pendiente; corresponde a HU22 |
+| Documentación de la API | OpenAPI (Swagger) | Contrato OpenAPI 3.0 de la integración (HU22), publicado en `/api/v1/integracion/openapi.json`. La API interna se documenta en el README |
 | Despliegue | Docker sobre VPS | Docker Compose en Coolify |
