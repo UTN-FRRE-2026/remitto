@@ -9,7 +9,9 @@ import {
   actualizarDetalleSchema,
   agregarDetalleSchema,
   actualizarCabeceraSchema,
+  listarComprobantesSchema,
 } from './comprobantes.schema.js';
+import * as listado from './comprobantes.listado.js';
 import * as revision from './comprobantes.revision.js';
 import { recibirArchivo } from './comprobantes.upload.js';
 import * as comprobantes from './comprobantes.service.js';
@@ -29,6 +31,11 @@ router.post(
     res.status(201).json(await comprobantes.crear(req.body, req.file, req.usuario.id));
   }),
 );
+
+// HU18: comprobantes cargados, con filtros por proveedor, estado, fecha y número.
+router.get('/', validar(listarComprobantesSchema, 'query'), asyncHandler(async (req, res) => {
+  res.json(await listado.listar(req.query));
+}));
 
 router.get('/:id', validar(idParamSchema, 'params'), asyncHandler(async (req, res) => {
   res.json(await comprobantes.obtener(req.params.id));

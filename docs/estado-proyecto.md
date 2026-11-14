@@ -4,11 +4,12 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 
 ## Referencia verificada (14/11/2026)
 
-- `origin/main` en `9a43f74` (merge del PR #16, requerimientos y base de datos). Todas las ramas remotas anteriores están integradas.
+- `origin/main` en `63d609a` (merge del PR #17, manual del usuario). Todas las ramas remotas anteriores están integradas.
 - **Primera entrega del TPI: lunes 16/11/2026.** Consigna y entregables en [entrega-tpi.md](entrega-tpi.md).
-- **Publicado, pendiente de integrar:** manual del usuario ([manual-usuario.md](manual-usuario.md), con capturas en `manual/`) en la rama `docs/manual-usuario`, con PR abierto a `main`.
+- **Publicado, pendiente de integrar:** HU18 (comprobantes archivados) en la rama `feature/HU18-comprobantes-archivados`, con PR abierto a `main`.
+- Los PDF de la documentación probatoria se generaron el 14/11 fuera del repositorio (`../remitto-entrega/`) y se regeneraron con HU18 (manual y requerimientos).
 - **Trabajo en pausa, sin commit:** HU21 (claves de integración) quedó guardada solo en la copia local de Maxi: un stash de Git sobre la rama `feature/HU21-claves-integracion` y un patch equivalente en `retomar/HU21-en-progreso.patch`, fuera del repositorio, con las instrucciones para recuperarla. Tiene el backend con sus pruebas y la pantalla sin terminar. No está en `origin`.
-- PR #1 a #16 integrados en `main`; los PR se crean con la CLI `gh`.
+- PR #1 a #17 integrados en `main`; los PR se crean con la CLI `gh`.
 
 ## Integrado en `main`
 
@@ -31,6 +32,7 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 | Ajuste de la asociación de HU15 | [PR #14](https://github.com/UTN-FRRE-2026/remitto/pull/14) |
 | Consigna de la primera entrega | [PR #15](https://github.com/UTN-FRRE-2026/remitto/pull/15) |
 | Lista de requerimientos y diseño de la base de datos | [PR #16](https://github.com/UTN-FRRE-2026/remitto/pull/16) |
+| Manual del usuario | [PR #17](https://github.com/UTN-FRRE-2026/remitto/pull/17) |
 
 HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa que se haya comprobado ahora cada criterio de aceptación.
 
@@ -39,9 +41,15 @@ HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa qu
 | Estado observado | Historias |
 | --- | --- |
 | Backend y pantalla | HU1 a HU6, HU8 a HU15 |
+| Implementada en rama con PR abierto | HU18 comprobantes archivados |
 | En pausa (stash) | HU21 claves de integración |
 | Base existente | HU7 PWA (`vite-plugin-pwa`); instalación en Android no comprobada |
-| Sin implementar | HU16 a HU20 y HU22 a HU31. `/comprobantes`, `/asistente`, `/precios` e `/integraciones` son `EnConstruccion`; `simulador/` solo tiene un README |
+| Sin implementar | HU16, HU17 (parcial), HU19, HU20 y HU22 a HU31. `/asistente`, `/precios` e `/integraciones` son `EnConstruccion`; `simulador/` solo tiene un README |
+
+## Validación de HU18 (14/11/2026, rama `feature/HU18-comprobantes-archivados`)
+
+- `npm test`: 144 correctas (4 nuevas en `test/listado-comprobantes.test.js`). `npm run build` correcto.
+- Contra una base descartable con la IA simulada (eliminada al terminar): 31 controles de API y pantalla correctos, con comprobantes confirmado, en revisión de baja calidad, con error y sin leer. Cubren filtros por estado, proveedor, fecha y número, conteos, paginación, permisos, retomar la revisión, consulta del confirmado, acceso desde el Inicio y la ficha del proveedor, y diseño a 390 px y escritorio.
 
 ## Ajuste de la asociación de HU15 (13/11/2026, integrado en el PR #14)
 

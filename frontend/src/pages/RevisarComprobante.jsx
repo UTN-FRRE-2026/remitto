@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { api } from '../lib/api.js';
 import { leerNumero, mostrarNumero, pesos } from '../lib/numeros.js';
 import { UNIDADES } from '../lib/unidades.js';
+import { TIPO_COMPROBANTE } from '../lib/comprobantes.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { IconoVolver, IconoBuscar, IconoMas, IconoCheck, IconoComprobantes } from '../components/iconos.jsx';
 import './RevisarComprobante.css';
@@ -168,7 +169,8 @@ export default function RevisarComprobante() {
           <IconoVolver size={20} />
         </Link>
         <div>
-          <h1>Revisar remito</h1>
+          {/* HU18: un comprobante confirmado se consulta desde el archivo. */}
+          <h1>{editable ? 'Revisar remito' : `${TIPO_COMPROBANTE[comprobante.tipo] ?? 'Comprobante'} ${comprobante.numero ?? ''}`.trim()}</h1>
           <p>
             {comprobante.proveedor?.razonSocial} · #{comprobante.id}
           </p>

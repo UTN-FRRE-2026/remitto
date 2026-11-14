@@ -15,6 +15,7 @@ import ProductoForm from './pages/ProductoForm.jsx';
 import Proveedores from './pages/Proveedores.jsx';
 import Categorias from './pages/Categorias.jsx';
 import Usuarios from './pages/Usuarios.jsx';
+import Comprobantes from './pages/Comprobantes.jsx';
 import UsuarioForm from './pages/UsuarioForm.jsx';
 import ProveedorForm from './pages/ProveedorForm.jsx';
 import EnConstruccion from './pages/EnConstruccion.jsx';
@@ -80,18 +81,7 @@ export default function App() {
               </Privado>
             }
           />
-          <Route
-            path="/comprobantes"
-            element={
-              <Privado>
-                <EnConstruccion
-                  titulo="Comprobantes"
-                  descripcion="Listado de remitos cargados, con su archivo original y las líneas confirmadas."
-                  hu="HU18 (Sprint 2)"
-                />
-              </Privado>
-            }
-          />
+          <Route path="/comprobantes" element={<Privado><Comprobantes /></Privado>} />
           <Route path="/movimientos" element={<Privado><Movimientos /></Privado>} />
           <Route
             path="/precios"

@@ -191,6 +191,13 @@
 .reponer__item:last-child {
   border-bottom: none;
 }
+/* HU18: fila que abre un comprobante. */
+.reponer__item--boton {
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+}
 .reponer__icono {
   width: 40px;
   height: 40px;
