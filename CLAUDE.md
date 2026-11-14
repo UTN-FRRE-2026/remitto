@@ -30,7 +30,7 @@ TFI de UTN FRRe (Tecnicatura Universitaria en Programación): PWA de gestión de
 - Backend (`backend/`): JavaScript ESM, Express, Prisma y PostgreSQL. Módulos en `src/modules/<módulo>/` (rutas, esquemas Zod, servicios), IA en `src/ia/`, migraciones en `prisma/migrations/`, pruebas en `test/` con `node --test`.
 - Frontend (`frontend/`): React + Vite + `vite-plugin-pwa`. Páginas en `src/pages/`, componentes en `src/components/`, tokens visuales en `src/styles/tokens.css`. Las vistas pendientes usan `EnConstruccion` en `src/App.jsx`.
 - npm con un `package.json` y lockfile por aplicación; no hay uno en la raíz. `simulador/` todavía solo tiene un README (HU23).
-- `backend/`: `npm run dev`, `npm test`, `npm run prisma:generate`, `npm run prisma:migrate`, `npm run seed`, `npm run conciliar-stock`.
+- `backend/`: `npm run dev`, `npm test`, `npm run prisma:generate`, `npm run prisma:migrate`, `npm run seed`, `npm run conciliar-stock`, `npm run doc-bd` (regenera `docs/base-de-datos.md` desde Prisma).
 - `frontend/`: `npm run dev`, `npm run build`, `npm run preview`. No hay lint ni pruebas de frontend.
 - Desarrollo: PostgreSQL de Docker en `localhost:5433` (`docker compose up -d db`), API en `4000`, Vite en `5173` con proxy `/api`. Confirmá puertos y procesos antes de arrancar o detener servicios.
 - `npm run db:reset` ejecuta `prisma migrate reset --force` y borra la base local; `reset-intentos` modifica comprobantes. No los ejecutes sin autorización. Si `prisma migrate dev` propone resetear, detenete y consultá.
