@@ -4,6 +4,7 @@ import { ApiError } from '../../lib/errors.js';
 import { normalizarNumero } from '../../ia/normalizar.js';
 import { registrarMovimiento } from '../stock/stock.service.js';
 import { esDudosa } from './comprobantes.asociacion.js';
+import { registrarEquivalencias } from './comprobantes.equivalencias.js';
 
 // HU10: revisión del comprobante leído por la IA (estado EN_REVISION).
 // - Las correcciones se guardan como borrador en las columnas confirmables
@@ -322,6 +323,8 @@ export async function confirmar(id, usuarioId) {
             stockNuevo,
           });
         }
+        // HU16: el proveedor queda recordado para el próximo comprobante.
+        await registrarEquivalencias(tx, c.proveedorId, lineasAIngresar(c.detalles));
         lineas.sort((a, b) => a.nroLinea - b.nroLinea);
         return { id, estado: 'CONFIRMADO', confirmadoEn, lineas, resumen: evaluacion.resumen, avisos: evaluacion.avisos };
       },

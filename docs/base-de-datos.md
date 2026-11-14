@@ -204,7 +204,7 @@ Notación: `||` uno obligatorio, `|o` cero o uno, `o{` cero o muchos. PK clave p
 | [categorias](#categorias) | Agrupación de productos para la navegación y los reportes. Un producto puede no tener categoría. |
 | [productos](#productos) | Catálogo del comercio, con unidad de medida, stock mínimo y deseado. No se borra: se desactiva. |
 | [proveedores](#proveedores) | Proveedores que envían los comprobantes. El CUIT, si se informa, es único. No se borra: se desactiva. |
-| [codigos_proveedor](#codigos_proveedor) | Cómo nombra cada proveedor a cada producto en sus remitos. Se alimenta con cada confirmación y mejora la asociación automática en los comprobantes siguientes. |
+| [codigos_proveedor](#codigos_proveedor) | Cómo nombra cada proveedor a cada producto en sus remitos. Se alimenta con cada confirmación y mejora la asociación automática en los comprobantes siguientes. Dos tipos de fila: por código (codigo no nulo) y por descripción (codigo nulo). |
 | [comprobantes](#comprobantes) | Remito o factura de compra cargado como imagen o PDF, con su estado, la respuesta original de la IA y quién lo cargó y confirmó. |
 | [detalles_comprobante](#detalles_comprobante) | Cada línea guarda por separado lo que leyó la IA y lo que confirmó el usuario. Nada con estado PROPUESTO genera movimientos. |
 | [salidas](#salidas) | Cabecera que agrupa los movimientos de salida confirmados juntos. - CARRITO: usuarioId obligatorio, claveIntegracionId nulo. - INTEGRACION: claveIntegracionId y referenciaExterna obligatorios, usuarioId nulo. (Reglas aplicadas con CHECK en la migración SQL.) |
@@ -294,7 +294,7 @@ Proveedores que envían los comprobantes. El CUIT, si se informa, es único. No 
 
 ### codigos_proveedor
 
-Cómo nombra cada proveedor a cada producto en sus remitos. Se alimenta con cada confirmación y mejora la asociación automática en los comprobantes siguientes.
+Cómo nombra cada proveedor a cada producto en sus remitos. Se alimenta con cada confirmación y mejora la asociación automática en los comprobantes siguientes. Dos tipos de fila: por código (codigo no nulo) y por descripción (codigo nulo).
 
 | Columna | Tipo | Nulo | Clave / predeterminado | Descripción |
 | --- | --- | --- | --- | --- |
@@ -307,8 +307,9 @@ Cómo nombra cada proveedor a cada producto en sus remitos. Se alimenta con cada
 | `ultima_vez` | timestamp(3) | no | = now() | — |
 
 - Único: (proveedor_id, codigo)
-- Único: (proveedor_id, descripcion)
+- Índice: (proveedor_id, descripcion)
 - Índice: (producto_id)
+- UNIQUE parcial `uq_codigo_proveedor_descripcion`: `("proveedor_id", "descripcion") WHERE "codigo" IS NULL` — Una descripción de un proveedor tiene una sola fila por descripción.
 
 ### comprobantes
 
@@ -530,3 +531,4 @@ Prisma no expresa estas reglas; se agregaron en las migraciones (`backend/prisma
 | detalles_comprobante | `chk_detalle_precio` | CHECK | `"precio_unitario" IS NULL OR "precio_unitario" >= 0` | El precio unitario confirmado nunca es negativo. |
 | comprobantes | `chk_comprobante_confirmado` | CHECK | `"estado" <> 'CONFIRMADO' OR ( "confirmado_por_id" IS NOT NULL AND "confirmado_en" IS NOT NULL AND "numero" IS NOT NULL )` | Un comprobante confirmado registra quién y cuándo, y tiene número. |
 | salidas | `uq_salida_carrito_operacion` | UNIQUE parcial | `("usuario_id", "referencia_externa") WHERE "origen" = 'CARRITO' AND "referencia_externa" IS NOT NULL` | Un reintento del mismo carrito (mismo id de operación generado por la app) no descuenta dos veces. Las salidas de integración ya son únicas por (clave_integracion_id, referencia_externa); en el carrito esa clave es nula, por eso la unicidad es por usuario. |
+| codigos_proveedor | `uq_codigo_proveedor_descripcion` | UNIQUE parcial | `("proveedor_id", "descripcion") WHERE "codigo" IS NULL` | Una descripción de un proveedor tiene una sola fila por descripción. |

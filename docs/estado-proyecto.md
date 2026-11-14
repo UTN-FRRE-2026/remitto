@@ -4,12 +4,12 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 
 ## Referencia verificada (14/11/2026)
 
-- `origin/main` en `31fd649` (merge del PR #18, HU18). Todas las ramas remotas anteriores están integradas.
+- `origin/main` en `c203c4e` (merge del PR #19, HU17). Todas las ramas remotas están integradas.
 - **Primera entrega del TPI: lunes 16/11/2026.** Consigna y entregables en [entrega-tpi.md](entrega-tpi.md).
-- **Publicado, pendiente de integrar:** HU17 (revisión obligatoria en comprobantes dudosos) en la rama `feature/HU17-revision-obligatoria`, con PR abierto a `main`. Incluye una migración (columna `revisada`).
-- Los PDF de la documentación probatoria se generaron el 14/11 fuera del repositorio (`../remitto-entrega/`) y se regeneraron con HU17 y HU18 (manual y requerimientos).
+- **Trabajo local, con commit y sin publicar:** HU16 (equivalencias por proveedor) en la rama `feature/HU16-equivalencias-proveedor`, a nombre de Agostina Jara. No se publicó porque en la máquina donde se hizo solo hay credenciales de GitHub de otro integrante.
+- Los PDF de la documentación probatoria se generaron el 14/11 fuera del repositorio (`../remitto-entrega/`).
 - **Trabajo en pausa, sin commit:** HU21 (claves de integración) quedó guardada solo en la copia local de Maxi: un stash de Git sobre la rama `feature/HU21-claves-integracion` y un patch equivalente en `retomar/HU21-en-progreso.patch`, fuera del repositorio, con las instrucciones para recuperarla. Tiene el backend con sus pruebas y la pantalla sin terminar. No está en `origin`.
-- PR #1 a #18 integrados en `main`; los PR se crean con la CLI `gh`.
+- PR #1 a #19 integrados en `main`.
 
 ## Integrado en `main`
 
@@ -34,6 +34,7 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 | Lista de requerimientos y diseño de la base de datos | [PR #16](https://github.com/UTN-FRRE-2026/remitto/pull/16) |
 | Manual del usuario | [PR #17](https://github.com/UTN-FRRE-2026/remitto/pull/17) |
 | HU18 comprobantes archivados | [PR #18](https://github.com/UTN-FRRE-2026/remitto/pull/18) |
+| HU17 revisión obligatoria en comprobantes dudosos (con migración: columna `revisada`) | [PR #19](https://github.com/UTN-FRRE-2026/remitto/pull/19) |
 
 HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa que se haya comprobado ahora cada criterio de aceptación.
 
@@ -41,18 +42,27 @@ HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa qu
 
 | Estado observado | Historias |
 | --- | --- |
-| Backend y pantalla | HU1 a HU6, HU8 a HU15, HU18 |
-| Implementada en rama con PR abierto | HU17 revisión obligatoria en comprobantes dudosos |
+| Backend y pantalla | HU1 a HU6, HU8 a HU15, HU17, HU18 |
+| Implementada en rama local, sin publicar | HU16 equivalencias por proveedor |
 | En pausa (stash) | HU21 claves de integración |
 | Base existente | HU7 PWA (`vite-plugin-pwa`); instalación en Android no comprobada |
-| Sin implementar | HU16, HU19, HU20 y HU22 a HU31 (HU26 parcial). `/asistente`, `/precios` e `/integraciones` son `EnConstruccion`; `simulador/` solo tiene un README |
+| Sin implementar | HU19, HU20 y HU22 a HU31 (HU26 parcial). `/asistente`, `/precios` e `/integraciones` son `EnConstruccion`; `simulador/` solo tiene un README |
 
-## Validación de HU17 (14/11/2026, rama `feature/HU17-revision-obligatoria`)
+## Validación de HU16 (14/11/2026, rama local `feature/HU16-equivalencias-proveedor`)
+
+- `npm test`: 158 correctas (10 nuevas en `test/equivalencias.test.js`). `npm run build` correcto.
+- Integración contra una base descartable (`remitto_hu16`, migraciones y seed, eliminada al terminar) con la IA simulada: 28 controles correctos. Cubren el registro al confirmar (una fila por línea, descripción normalizada y código), la corrección de la persona registrada, la asociación automática en el siguiente comprobante del mismo proveedor con confianza 1 (criterio 1), la separación entre proveedores, la marca «Recordado» al editar la cantidad y su desaparición al elegir otro producto, el contador de confirmaciones, el cambio de producto con una sola fila por descripción (criterio 2), las líneas descartadas, los productos desactivados, dos confirmaciones simultáneas del mismo proveedor sin filas duplicadas, el stock sin cambios antes de confirmar y la consistencia del stock con la suma de movimientos.
+- Recorrido automatizado en el navegador de la app, en escritorio y a 375 px: «Recordado · N veces» con su explicación, editar la cantidad conserva la marca, cambiar el producto pasa a «Asociado», persistencia al recargar y sin desplazamiento horizontal.
+- **Corrección por la revisión de los commits publicados** (mismo día): el primer diseño guardaba código y descripción en la misma fila y perdía aprendizaje. (1) `ABC01`/A y después `ABC01`/B → la descripción A dejaba de reconocerse. (2) `LE01`/«LECHE 1 L» → producto 10 y `LE02`/«LECHE 1 L» → producto 20 → `LE01` se perdía y se proponía el producto 20 con confianza 1. Ahora hay filas por código y filas por descripción (migración `hu16_equivalencias`: la descripción es única solo en las filas sin código, con un índice parcial), el código manda, y una descripción ambigua o un código nuevo con una descripción ya vista se proponen con 0,79 para revisar. Verificado: los dos casos reproducidos contra PostgreSQL antes y después del arreglo (4 fallas → 15/15 controles), la base rechaza una segunda fila por descripción, `prisma migrate diff` sin diferencias, `npm test` 160 correctas (regresiones de ambos casos), la integración completa de nuevo 28/28 y una descripción ambigua de punta a punta (propuesta con 0,79, sin «Recordado», aviso al validar). El recorrido de pantalla no se repitió: el frontend no cambió.
+- Además corrige `npm run doc-bd` en Windows: con fin de línea CRLF se perdían las explicaciones de las restricciones SQL.
+- **Pendiente:** probarlo con remitos reales leídos por Gemini y en un celular real.
+
+## Validación de HU17 (14/11/2026, integrada en el PR #19)
 
 - `npm test`: 148 correctas (4 nuevas en `test/revision.test.js`). `npm run build` correcto.
 - Migración aplicada en una base descartable; `prisma migrate diff` contra el esquema sin diferencias.
 - 23 controles de API y pantalla con la IA simulada: un comprobante de baja calidad exige marcar cada línea (validar y confirmar dan 400 sin las marcas, sin cambiar el estado), marcar y deshacer, línea manual revisada, confirmación con todas revisadas, marca bloqueada después de confirmar, comprobante normal sin exigencia, aviso y cuenta en pantalla a 390 px.
-- **Al integrar:** quien trabaje con base local tiene que aplicar la migración (`npx prisma migrate deploy` o `npm run prisma:migrate`).
+- **Base local:** quien trabaje con base local tiene que aplicar la migración (`npx prisma migrate deploy` o `npm run prisma:migrate`).
 
 ## Validación de HU18 (14/11/2026, integrada en el PR #18)
 

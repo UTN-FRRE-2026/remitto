@@ -68,7 +68,8 @@ router.patch(
   validar(detalleParamSchema, 'params'),
   validar(actualizarDetalleSchema),
   asyncHandler(async (req, res) => {
-    res.json(await revision.actualizarDetalle(req.params.id, req.params.detalleId, req.body));
+    const detalle = await revision.actualizarDetalle(req.params.id, req.params.detalleId, req.body);
+    res.json(await comprobantes.anotarDetalle(req.params.id, detalle));
   }),
 );
 
