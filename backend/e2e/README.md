@@ -6,7 +6,7 @@ Comprobaciones contra PostgreSQL real: permisos, SQL, reenvíos y concurrencia. 
 npm run e2e -- hu21-claves
 ```
 
-Se pueden pasar varios escenarios: `npm run e2e -- hu21-claves hu22-salidas`.
+Se pueden pasar varios escenarios: `npm run e2e -- hu21-claves hu22-salidas hu23-simulador`.
 
 ## Qué hace `correr.mjs`
 
@@ -61,5 +61,6 @@ Termina con código 0 si todos los controles pasaron, 1 si alguno falló y 2 si 
 | --- | --- | --- |
 | `hu21-claves.mjs` | HU21 | Permisos, la clave completa solo en el alta, el hash SHA-256 en la base, el último uso, la revocación (incluso con pedidos en curso) y `CHECK chk_clave_revocada`. |
 | `hu22-salidas.mjs` | HU22 | Contrato publicado, autenticación, validación y atomicidad, venta por código de barras e id, reenvíos (200 y 409), reenvíos con el catálogo cambiado (código cambiado, borrado o pasado a otro producto, producto desactivado, fecha distinta, 10 en paralelo), `CHECK chk_pedido_externo`, stock negativo y su aviso en la valorización, kilos, carrito sin cambios, 25 reenvíos simultáneos, 52 operaciones simultáneas de dos cajas y carritos, revocación con 120 ventas en curso y el orden determinístico venta → revocación. |
+| `hu23-simulador.mjs` | HU23 | El simulador de ventas (`simulador/simulador.mjs`). **Corrida válida:** 120 ventas y 30 reenvíos (`SIM_SEMILLA`, `SIM_VENTAS`, `SIM_REENVIOS`); un 201 por referencia y el resto 200 con `repetida`; ningún envío incompleto; 120 salidas en la base; 0 diferencias entre el stock esperado (en milésimas) y el registrado; stock igual a la suma de movimientos. **Control negativo separado:** un descuento adicional introducido a propósito tiene que aparecer como diferencia exacta. |
 
 Para agregar uno, crear `e2e/<nombre>.mjs` con una función por defecto que recibe `{ api, check, db, login, dueño, empleado, base }`. `db` es un `PrismaClient` conectado a la base descartable.

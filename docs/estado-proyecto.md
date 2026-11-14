@@ -4,17 +4,17 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 
 ## Referencia verificada (14/11/2026)
 
-- `origin/main` en `b822eb9` (merge del PR #28, HU22), comprobado el 14/11/2026. Todas las ramas de trabajo publicadas están integradas.
+- `origin/main` en `6d63ce6` (merge del PR #29, documentación del estado), comprobado el 14/11/2026. **En `main`:** hasta HU22. **Solo en la rama `feature/HU23-simulador-ventas`, sin integrar:** HU23.
 - **Primera entrega del TPI: lunes 16/11/2026.** Consigna y entregables en [entrega-tpi.md](entrega-tpi.md).
 - **HU7:** el equipo informó el 14/11 que instaló la PWA en un Android real y funciona (no verificado en esta revisión).
 - Los PDF de la documentación probatoria están fuera del repositorio (`../remitto-entrega/`); se regeneraron el 14/11 con HU16 a HU20 y HU27 a HU29. **No incluyen HU21 ni HU22**: hay que regenerarlos.
 - **Integración externa:**
   - HU21 (claves de integración): integrada por el [PR #27](https://github.com/UTN-FRRE-2026/remitto/pull/27), merge `708f9d9`.
   - HU22 (salidas desde un sistema externo): integrada por el [PR #28](https://github.com/UTN-FRRE-2026/remitto/pull/28), merge `b822eb9`. El contenido integrado es idéntico al último commit publicado de la rama (`77e614f`).
-  - HU23 (simulador de ventas) es el paso siguiente: depende de HU22 y no está empezada.
+  - HU23 (simulador de ventas): implementada en la rama `feature/HU23-simulador-ventas`, desde `6d63ce6`, **pendiente de PR y de integración**. Depende de HU22, ya integrada.
   - El respaldo del avance de HU21 (el stash `5373a09` y el patch de `retomar/`, en la copia local de Maxi) se conserva aunque ya no hace falta.
 - **Migraciones nuevas:** `20261114140000_hu21_claves_integracion` y `20261114150000_hu22_pedido_externo`. Quien use una base local tiene que aplicarlas con `npx prisma migrate deploy` (sin reset). En producción, el contenedor las aplica al arrancar; no se verificó.
-- PR #1 a #28 integrados en `main`.
+- PR #1 a #29 integrados en `main`.
 
 ## Integrado en `main`
 
@@ -56,8 +56,32 @@ HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa qu
 | Estado observado | Historias |
 | --- | --- |
 | Backend y pantalla | HU1 a HU6, HU8 a HU22, HU27 a HU29 |
+| Implementada en su rama, sin integrar | HU23 simulador de ventas (`simulador/simulador.mjs`, escenario `hu23-simulador`) |
 | Probada por el equipo | HU7 PWA (`vite-plugin-pwa`): instalada en un Android real y funcionando (informado el 14/11/2026, no verificado en esta revisión) |
-| Sin implementar | HU23 a HU25 (HU26 parcial) y las deseables HU30 y HU31. `/asistente` es `EnConstruccion`; `simulador/` solo tiene un README |
+| Sin implementar | HU24 y HU25 (HU26 parcial) y las deseables HU30 y HU31. `/asistente` es `EnConstruccion` |
+
+## Validación de HU23 (14/11/2026, rama `feature/HU23-simulador-ventas`, sin integrar)
+
+- **Qué hay:**
+  - `simulador/simulador.mjs`, sin dependencias: genera ventas reproducibles con semilla, las envía por la API de HU22 con una clave de HU21 en tandas paralelas, reintenta ante un 503 con `Retry-After` (la misma referencia y el mismo contenido) y compara el stock.
+  - El escenario `backend/e2e/hu23-simulador.mjs` lo corre contra la base descartable del ejecutor; la base de desarrollo no se toca.
+  - No hay cambios en la aplicación ni migraciones.
+- **Stock esperado independiente:**
+  - se calcula en enteros de milésimas desde el stock inicial leído de la base como texto;
+  - cada referencia descuenta una sola vez;
+  - los códigos de barras se resuelven con el catálogo de prueba conocido;
+  - no usa cantidades, stocks ni ids de las respuestas.
+- **Pruebas ejecutadas en esta rama:**
+  - `npm test`: 213 correctas, 8 nuevas en `test/simulador.test.js`. Cubren la reproducibilidad, 120 referencias y 30 reenvíos, cantidades válidas, milésimas exactas, el esperado contando cada referencia una vez (contar un reenvío cambia el resultado), los cuerpos válidos para HU22, el 503 seguido de 201 (2 intentos HTTP, 1 venta, la espera de `Retry-After` y la misma petición), el límite de reintentos agotado (envío incompleto) y la regla de respuestas por referencia.
+  - `npm run e2e -- hu21-claves hu22-salidas hu23-simulador`: 111 controles correctos (38 + 63 + 10).
+  - **Corrida válida (semilla 2026):**
+    - 150 envíos lógicos (120 ventas únicas y 30 reenvíos) y 150 intentos HTTP;
+    - 120 respuestas 201 y 30 respuestas 200 con `repetida`, 0 incompletos y un 201 por referencia con el mismo id en sus reenvíos;
+    - 120 salidas y 257 movimientos en la base;
+    - **0 diferencias** en los 6 productos y el stock igual a la suma de movimientos.
+  - **Control negativo, separado:** la venta `SIM-2026-0007` registrada otra vez como `SIM-2026-0007-BIS`; el comparador detecta exactamente la diferencia introducida (6 unidades del producto #13).
+  - **Corrida adicional** con la semilla 7, 200 ventas y 60 reenvíos: 260 operaciones, 0 diferencias y el control negativo detectado.
+- **No probado:** contra un punto de venta real ni contra producción. El simulador solo corre en el ejecutor de punta a punta, no contra una API arbitraria.
 
 ## Actualización documental tras integrar HU21 y HU22 (14/11/2026)
 
