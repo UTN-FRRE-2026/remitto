@@ -6,6 +6,7 @@ import {
   buscarEquivalencia,
   planEquivalencia,
   anotarEquivalencias,
+  elegirPropuesta,
   CONFIANZA_DUDOSA,
 } from '../src/modules/comprobantes/comprobantes.equivalencias.js';
 import { UMBRAL_CONFIANZA } from '../src/modules/comprobantes/comprobantes.asociacion.js';
@@ -168,4 +169,31 @@ test('marca "Recordado": solo propuestas vigentes y confiables que coinciden con
   assert.equal(otroProducto.equivalencia, null);
   assert.equal(manual.equivalencia, null);
   assert.equal(ambigua.equivalencia, null, 'una equivalencia ambigua no se marca como recordada');
+});
+
+// --- Precedencia entre equivalencias (HU16) y catálogo (HU15) ---
+
+test('una equivalencia segura manda sobre el catálogo', () => {
+  const segura = { productoId: 1, confianza: 1, motivo: 'descripcion' };
+  assert.deepEqual(elegirPropuesta(segura, { productoId: 2, confianza: 1 }), { productoId: 1, confianza: 1 });
+});
+
+test('una equivalencia dudosa no tapa un código de barras exacto del catálogo', () => {
+  // «GAS COLA 500» se confirmó con el producto 1, pero la línea trae el EAN del 2.
+  const dudosa = { productoId: 1, confianza: CONFIANZA_DUDOSA, motivo: 'codigo-nuevo' };
+  assert.deepEqual(elegirPropuesta(dudosa, { productoId: 2, confianza: 1 }), { productoId: 2, confianza: 1 });
+  // Lo mismo con una coincidencia confiable por descripción.
+  assert.deepEqual(elegirPropuesta(dudosa, { productoId: 3, confianza: 0.9 }), { productoId: 3, confianza: 0.9 });
+});
+
+test('si el catálogo no es confiable, se usa la equivalencia dudosa', () => {
+  const ambigua = { productoId: 1, confianza: CONFIANZA_DUDOSA, motivo: 'ambigua' };
+  assert.deepEqual(elegirPropuesta(ambigua, { productoId: 2, confianza: 0.6 }), { productoId: 1, confianza: CONFIANZA_DUDOSA });
+  assert.deepEqual(elegirPropuesta(ambigua, { productoId: null, confianza: 0 }), { productoId: 1, confianza: CONFIANZA_DUDOSA });
+  assert.ok(CONFIANZA_DUDOSA < UMBRAL_CONFIANZA);
+});
+
+test('sin equivalencia, queda la propuesta del catálogo', () => {
+  assert.deepEqual(elegirPropuesta(null, { productoId: 2, confianza: 0.6 }), { productoId: 2, confianza: 0.6 });
+  assert.deepEqual(elegirPropuesta(null, { productoId: null, confianza: null }), { productoId: null, confianza: null });
 });

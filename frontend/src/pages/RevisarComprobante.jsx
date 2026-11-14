@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { api } from '../lib/api.js';
 import { leerNumero, mostrarNumero, pesos } from '../lib/numeros.js';
 import { UNIDADES } from '../lib/unidades.js';
-import { TIPO_COMPROBANTE } from '../lib/comprobantes.js';
+import { TIPO_COMPROBANTE, hoyArgentina } from '../lib/comprobantes.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { IconoVolver, IconoBuscar, IconoMas, IconoCheck, IconoComprobantes } from '../components/iconos.jsx';
 import './RevisarComprobante.css';
@@ -413,7 +413,8 @@ function Cabecera({ comprobante, editable, registrar, onGuardado }) {
   return (
     <div className="revisar__cabecera card">
       {campo('numero', 'Número', <input {...props('numero')} placeholder="0001-00000000" />, leido?.numero && `Leído: ${leido.numero}`)}
-      {campo('fechaEmision', 'Fecha de emisión', <input type="date" {...props('fechaEmision')} />)}
+      {/* No se admite una fecha futura: fija la vigencia del precio de compra (HU28). */}
+      {campo('fechaEmision', 'Fecha de emisión', <input type="date" max={hoyArgentina()} {...props('fechaEmision')} />)}
       {campo(
         'tipo',
         'Tipo',

@@ -140,7 +140,10 @@ original junto a las líneas leídas, para corregir antes de ingresar.
   uno nuevo (solo el propietario, vía `POST /api/productos`), corregir cantidad
   y precio, descartar o restaurar. También se agregan líneas a mano.
 - Cabecera: número definitivo, fecha, tipo y total impreso. El número no se
-  repite por proveedor y tipo (`@@unique`): si ya existe responde 409.
+  repite por proveedor y tipo (`@@unique`): si ya existe responde 409. La
+  fecha de emisión no puede ser posterior a hoy (hora de Argentina), igual que
+  en la lectura de la IA: fija la vigencia del precio de compra y una fecha
+  futura dominaría el «último precio» de la valorización (HU28).
 - Las correcciones se guardan como borrador al salir de cada campo. Lo leído por
   la IA (columnas `*Extraido` y `respuesta_ia`) nunca se modifica.
 - **"Validar datos"** informa si falta algo (producto, cantidad > 0, número,
@@ -310,6 +313,9 @@ Remitto recuerda cómo nombra cada proveedor a cada producto (tabla
      imprimen igual, como `LE01` y `LE02` con «LECHE 1 L»), o si la línea trae
      un código nuevo con una descripción ya vista, se propone el último
      producto confirmado con confianza 0,79: la línea se destaca para revisar.
+  3. Una equivalencia dudosa (0,79) no tapa una coincidencia confiable del
+     catálogo (HU15): si el código de barras impreso es el de un producto, o la
+     descripción coincide con confianza 0,8 o más, se propone ese producto.
 
   Con confianza 1 la revisión muestra **«Recordado · 3 veces»**. Si la persona
   elige otro producto, la marca desaparece (pasa a «Asociado») y esa elección

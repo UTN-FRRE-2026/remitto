@@ -97,6 +97,19 @@ function planFila(existente, productoId, claves, ahora) {
 // Qué hay que guardar al confirmar una línea (pura). existentes: la fila del
 // código (porCodigo) y la de la descripción (porDescripcion) del proveedor, o
 // null. Devuelve null si la línea no tiene descripción leída o producto.
+// Propuesta final de una línea: una equivalencia segura (confianza 1) manda;
+// una dudosa (código nuevo o descripción ambigua) solo se usa si la búsqueda
+// por catálogo de HU15 no encontró algo confiable. Así un código de barras
+// exacto (confianza 1 en HU15) no queda tapado por una equivalencia dudosa.
+export function elegirPropuesta(equivalencia, porCatalogo) {
+  if (equivalencia && equivalencia.confianza >= UMBRAL_CONFIANZA) {
+    return { productoId: equivalencia.productoId, confianza: equivalencia.confianza };
+  }
+  if (porCatalogo && porCatalogo.productoId && porCatalogo.confianza >= UMBRAL_CONFIANZA) return porCatalogo;
+  if (equivalencia) return { productoId: equivalencia.productoId, confianza: equivalencia.confianza };
+  return porCatalogo;
+}
+
 export function planEquivalencia({ codigo, descripcion, productoId }, { porCodigo = null, porDescripcion = null } = {}, ahora = new Date()) {
   const d = claveDescripcion(descripcion);
   if (!d || !productoId) return null;

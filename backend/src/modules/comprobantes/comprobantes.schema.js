@@ -66,6 +66,15 @@ const fecha = z
     return !Number.isNaN(d.getTime()) && d.toISOString().startsWith(t);
   }, 'La fecha no es válida');
 
+// Día de hoy en Argentina (AAAA-MM-DD), para comparar con fechas de calendario.
+export const hoyArgentina = (ahora = new Date()) =>
+  ahora.toLocaleDateString('sv-SE', { timeZone: 'America/Argentina/Buenos_Aires' });
+
+// La fecha de emisión que corrige una persona no puede ser futura: como la
+// lectura de la IA (normalizar.js), y porque fija la vigencia del precio de
+// compra (HU20, HU28): una fecha futura dominaría el «último precio».
+const fechaEmision = fecha.refine((t) => t <= hoyArgentina(), 'La fecha de emisión no puede ser posterior a hoy.');
+
 export const actualizarCabeceraSchema = z
   .object({
     numero: z
@@ -75,7 +84,7 @@ export const actualizarCabeceraSchema = z
       .nullable()
       .optional()
       .transform((v) => (v === '' ? null : v)),
-    fechaEmision: fecha.nullable().optional(),
+    fechaEmision: fechaEmision.nullable().optional(),
     tipo: z.enum(['REMITO', 'FACTURA', 'OTRO']).optional(),
     totalDeclarado: z
       .number({ invalid_type_error: 'El total debe ser un número' })

@@ -4,12 +4,12 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 
 ## Referencia verificada (14/11/2026)
 
-- `origin/main` en `bbd7fc8` (merge del PR #20, HU16). Todas las ramas remotas salvo la de HU28 están integradas.
+- `origin/main` en `dec36a7` (merge del PR #21, HU28). Todas las ramas remotas están integradas.
 - **Primera entrega del TPI: lunes 16/11/2026.** Consigna y entregables en [entrega-tpi.md](entrega-tpi.md).
-- **Publicado, pendiente de integrar:** HU28 (valorización de existencias) en `feature/HU28-valorizacion-existencias`, a nombre de Agostina Jara, actualizada con `main` (incluye HU16). El push se hizo con las credenciales de otro integrante; el PR lo abre Agostina desde su cuenta.
-- Los PDF de la documentación probatoria se generaron el 14/11 fuera del repositorio (`../remitto-entrega/`).
+- **Publicado, pendiente de integrar:** correcciones de la revisión de HU16 y HU28 en la rama `fix/HU16-HU28-correcciones`, con PR abierto a `main` (ver «Revisión de HU16 y HU28»).
+- Los PDF de la documentación probatoria están fuera del repositorio (`../remitto-entrega/`); se regeneraron el 14/11 con HU16, HU17, HU18 y HU28.
 - **Trabajo en pausa, sin commit:** HU21 (claves de integración) quedó guardada solo en la copia local de Maxi: un stash de Git sobre la rama `feature/HU21-claves-integracion` y un patch equivalente en `retomar/HU21-en-progreso.patch`, fuera del repositorio, con las instrucciones para recuperarla. Tiene el backend con sus pruebas y la pantalla sin terminar. No está en `origin`.
-- PR #1 a #20 integrados en `main`.
+- PR #1 a #21 integrados en `main`.
 
 ## Integrado en `main`
 
@@ -36,6 +36,7 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 | HU18 comprobantes archivados | [PR #18](https://github.com/UTN-FRRE-2026/remitto/pull/18) |
 | HU17 revisión obligatoria en comprobantes dudosos (con migración: columna `revisada`) | [PR #19](https://github.com/UTN-FRRE-2026/remitto/pull/19) |
 | HU16 equivalencias por proveedor (con migración `hu16_equivalencias`) | [PR #20](https://github.com/UTN-FRRE-2026/remitto/pull/20) |
+| HU28 valorización de existencias | [PR #21](https://github.com/UTN-FRRE-2026/remitto/pull/21) |
 
 HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa que se haya comprobado ahora cada criterio de aceptación.
 
@@ -43,13 +44,25 @@ HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa qu
 
 | Estado observado | Historias |
 | --- | --- |
-| Backend y pantalla | HU1 a HU6, HU8 a HU18 |
-| Publicada en rama, pendiente de integrar | HU28 valorización de existencias |
+| Backend y pantalla | HU1 a HU6, HU8 a HU18, HU28 |
 | En pausa (stash) | HU21 claves de integración |
 | Base existente | HU7 PWA (`vite-plugin-pwa`); instalación en Android no comprobada |
 | Sin implementar | HU19, HU20, HU22 a HU27 y HU29 a HU31 (HU26 parcial). `/asistente` e `/integraciones` son `EnConstruccion`; `simulador/` solo tiene un README |
 
-## Validación de HU28 (14/11/2026, rama `feature/HU28-valorizacion-existencias`, pendiente de integrar)
+## Revisión de HU16 y HU28 (14/11/2026, sobre `dec36a7`)
+
+Revisión independiente de lo integrado en los PR #20 y #21: 166 pruebas y build correctos; migraciones consistentes con el esquema en una base descartable; concurrencia de las equivalencias y valorización verificadas contra PostgreSQL. Correcciones en la rama `fix/HU16-HU28-correcciones`:
+
+- **HU16:** una equivalencia dudosa (0,79) reemplazaba la propuesta de HU15 aunque esta fuera confiable, por ejemplo un código de barras exacto de otro producto. Ahora una dudosa solo se usa si el catálogo no da una propuesta de 0,8 o más (`elegirPropuesta`).
+- **HU28:** la fecha de emisión que corrige una persona no tenía tope; una fecha futura fijaba la vigencia del precio y dominaba el «último precio» para siempre. Ahora no puede ser posterior a hoy (backend y campo de la pantalla).
+- `npm test`: 172 correctas (6 nuevas). `npm run build` correcto. Contra una base descartable: lectura con propuestas, fecha futura rechazada (400), confirmación y segunda lectura con equivalencias recordadas (5 controles).
+
+**Pendientes de la revisión, no corregidos:**
+- HU16: la ambigüedad se pierde si una sola corrección con un código nuevo pisa la fila por descripción, o si un mismo comprobante trae la misma descripción con dos productos; diferencias menores de normalización («1.000 GR» y «1000 GR»); «Recordado» puede tapar el aviso «Revisar». Las pruebas son solo de funciones puras.
+- HU28 (a decidir): los productos desactivados con stock no aparecen en el reporte; un precio 0 cuenta como valorizado; el stock negativo se excluye sin aviso; con tres categorías iguales los porcentajes no suman 100; el empleado ve «Precios y reportes» en el menú de escritorio. Las pruebas no ejecutan el SQL.
+- `npm run doc-bd` lee el cliente de Prisma generado: correr antes `npm run prisma:generate`.
+
+## Validación de HU28 (14/11/2026, integrada en el PR #21)
 
 - `npm test`: 153 correctas (5 nuevas en `test/valorizacion.test.js`, una con 200 casos generados que comprueba que el total coincide con la suma por categoría pese al redondeo). `npm run build` correcto.
 - Integración contra una base descartable (`remitto_hu28`, migraciones y seed, eliminada al terminar) con la IA simulada; los precios se crean confirmando remitos: 26 controles correctos. Cubren permisos (200 propietario, 403 empleado, 401 sin sesión), base sin precios (todo aparte), último precio por fecha de vigencia y no por orden de carga, total igual a la suma por categoría y a un cálculo independiente en SQL, productos sin precio aparte y sin duplicarse, grupo «Sin categoría» con kilos y centavos, producto desactivado fuera del reporte, y una salida que baja el total en stock × último precio.
