@@ -158,6 +158,19 @@
 .reportes__sin-precio small {
   color: var(--texto-suave);
 }
+
+/* Stock negativo (HU22): mismo recuadro, en rojo. */
+.reportes__negativo {
+  border-color: #e9c3cb;
+  background: var(--bg-sin-stock);
+}
+.reportes__negativo h2,
+.reportes__negativo p {
+  color: var(--fg-sin-stock);
+}
+.reportes__negativo li + li {
+  border-top-color: #e9c3cb;
+}
 .reportes__pie {
   font-size: var(--fs-detalle);
   color: var(--texto-suave);

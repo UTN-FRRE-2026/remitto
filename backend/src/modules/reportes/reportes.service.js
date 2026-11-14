@@ -11,6 +11,9 @@ import { rangoFechas } from '../movimientos/movimientos.service.js';
 //   así el total coincide exactamente con la suma por categoría.
 // - Los productos con stock y sin precio registrado se informan aparte y no
 //   entran en el total.
+// - Los productos con stock negativo (por ejemplo, ventas de la caja, HU22,
+//   de mercadería que todavía no se ingresó) tampoco entran en el total, pero
+//   se informan aparte para que no pasen inadvertidos.
 
 const SIN_CATEGORIA = 'Sin categoría';
 const cero = new Prisma.Decimal(0);
@@ -22,12 +25,23 @@ const aCentavos = (d) => d.toDecimalPlaces(2, Prisma.Decimal.ROUND_HALF_UP);
 export function valorizar(productos, precios) {
   const categorias = new Map();
   const sinPrecio = [];
+  const stockNegativo = [];
   let total = cero;
   let productosValorizados = 0;
 
   for (const p of productos) {
     const stock = new Prisma.Decimal(p.stockActual);
-    if (stock.lte(0)) continue;
+    if (stock.lt(0)) {
+      stockNegativo.push({
+        id: p.id,
+        nombre: p.nombre,
+        unidadMedida: p.unidadMedida,
+        stockActual: stock.toNumber(),
+        categoria: p.categoria?.nombre ?? SIN_CATEGORIA,
+      });
+      continue;
+    }
+    if (stock.isZero()) continue;
     const precio = precios.get(p.id);
     if (!precio) {
       sinPrecio.push({
@@ -75,6 +89,8 @@ export function valorizar(productos, precios) {
     productosValorizados,
     categorias: lista,
     sinPrecio: sinPrecio.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')),
+    // El más negativo primero.
+    stockNegativo: stockNegativo.sort((a, b) => a.stockActual - b.stockActual || a.nombre.localeCompare(b.nombre, 'es')),
   };
 }
 
@@ -101,7 +117,7 @@ export async function valorizacion(db = prisma) {
       ORDER BY pc.fecha_vigencia DESC, pc.creado_en DESC, pc.id DESC
       LIMIT 1
     ) u ON true
-    WHERE p.activo AND p.stock_actual > 0`;
+    WHERE p.activo AND p.stock_actual <> 0`;
   const productos = filas.map((f) => ({
     id: f.id,
     nombre: f.nombre,

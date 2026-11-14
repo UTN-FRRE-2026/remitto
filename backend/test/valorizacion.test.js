@@ -71,12 +71,27 @@ test('criterio: los productos sin precio se informan aparte y no suman al total'
   assert.deepEqual(r.categorias.map((c) => c.nombre), ['Bebidas']);
 });
 
-test('sin stock o con stock negativo no se valoriza ni figura sin precio', () => {
+test('sin stock no se valoriza; con stock negativo se informa aparte, sin sumar', () => {
   const r = valorizar(
-    [producto(1, 'Agotado', '0', bebidas), producto(2, 'Negativo', '-3', bebidas), producto(3, 'Sin precio y sin stock', '0', null)],
+    [
+      producto(1, 'Agotado', '0', bebidas),
+      producto(2, 'Negativo', '-3', bebidas),
+      producto(3, 'Sin precio y sin stock', '0', null),
+      producto(4, 'Más negativo y sin precio', '-7.5', null, 'KILOGRAMO'),
+    ],
     new Map([[1, precio('100')], [2, precio('100')]]),
   );
-  assert.deepEqual(r, { total: 0, productosValorizados: 0, categorias: [], sinPrecio: [] });
+  assert.deepEqual(
+    { ...r, stockNegativo: undefined },
+    { total: 0, productosValorizados: 0, categorias: [], sinPrecio: [], stockNegativo: undefined },
+  );
+  assert.deepEqual(
+    r.stockNegativo.map((p) => [p.nombre, p.stockActual, p.categoria]),
+    [
+      ['Más negativo y sin precio', -7.5, 'Sin categoría'],
+      ['Negativo', -3, 'Bebidas'],
+    ],
+  );
 });
 
 test('productos sin categoría forman su propio grupo', () => {
