@@ -26,19 +26,19 @@ En el coloquio también se evalúa:
 
 ## Estado de los entregables
 
-Estado al 13/11/2026, según el repositorio. Lo que se prepara fuera del repo (aula virtual, YouTube, diseño gráfico) lo tiene que completar el equipo.
+Estado al 14/11/2026, según el repositorio (`main` en `bfd995e`, PR #1 a #25 integrados). Lo que se prepara fuera del repo (aula virtual, YouTube, diseño gráfico) lo tiene que completar el equipo. Los PDF de la documentación probatoria se generan fuera del repositorio, en `../remitto-entrega/`.
 
 | Entregable | Estado en el repo | Pendiente |
 | --- | --- | --- |
-| Producto final (aplicación) | En `main` están implementadas HU1 a HU15. Ver [estado](estado-proyecto.md) | **HU16 a HU29 sin implementar**, y la consigna exige cumplir todos los requerimientos del plan. Falta probar la instalación en Android (HU7) y la app en un celular real |
+| Producto final (aplicación) | En `main` están implementadas HU1 a HU20 y HU27 a HU29 (72 de 100 puntos del plan) y HU26 en parte. La PWA se instaló en un Android real (informado por el equipo). Ver [estado](estado-proyecto.md) y [requerimientos](requerimientos.md#resumen) | **HU21 a HU25 sin implementar** (25 puntos) y **HU26 incompleta** (faltan las alertas activas, que dependen de HU24, y el valor del stock). La consigna exige cumplir todos los requerimientos del plan. HU21 tiene avance solo en la copia local de Stabile; HU22 y HU23 dependen de ella |
 | Plan de Trabajo | [plan-de-trabajo.md](plan-de-trabajo.md) | Definir el formato de entrega (¿el documento original del equipo?) |
 | Informe Final del Alumno | No está en el repo | Bajar el modelo del aula y completarlo |
 | Informe del Tutor | No corresponde si el trabajo no se hace en una organización | Confirmar si aplica (el plan describe un comercio, «Almacén Don Carlos») |
 | Video de presentación | No está en el repo | 4 a 5 minutos, en inglés con subtítulos en castellano. Deben aparecer todos los integrantes con su cara. Subirlo a YouTube y compartir el enlace |
-| Lista de Requerimientos | [requerimientos.md](requerimientos.md), con el estado de cada uno | Exportarla en el formato de entrega |
-| Diseño de la Base de Datos | [base-de-datos.md](base-de-datos.md) y diagrama [der-remitto.png](referencias/der-remitto.png) | Exportarlo en el formato de entrega |
-| Maquetación de la Aplicación | [maquetacion.html](referencias/maquetacion.html) y [guía](maquetacion.md) | Exportarla en el formato de entrega |
-| Manual del Usuario | [manual-usuario.md](manual-usuario.md), con capturas de HU1 a HU15 | Revisarlo, completarlo con las historias que se agreguen y exportarlo |
+| Lista de Requerimientos | [requerimientos.md](requerimientos.md), con el estado de cada uno. PDF generado el 14/11 | Regenerar el PDF cuando se integren las historias que faltan |
+| Diseño de la Base de Datos | [base-de-datos.md](base-de-datos.md) y diagrama [der-remitto.png](referencias/der-remitto.png). PDF del diseño y del diagrama (también en A3) generados el 14/11 | Regenerarlos si HU21 a HU25 cambian el esquema |
+| Maquetación de la Aplicación | [maquetacion.html](referencias/maquetacion.html) y [guía](maquetacion.md). PDF generado el 14/11 | — |
+| Manual del Usuario | [manual-usuario.md](manual-usuario.md), con capturas de HU1 a HU20 y HU27 a HU29. PDF generado el 14/11 | Agregar las historias que falten y regenerar el PDF |
 | Infografía (exposición) | No existe | Vertical, con el contenido del plan de trabajo |
 | Exposición y defensa oral | — | Preparar la demo en vivo y repartir la participación entre los tres integrantes |
 
