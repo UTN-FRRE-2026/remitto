@@ -1,0 +1,185 @@
+/* HU21 · Integración con punto de venta: claves de integración. */
+.integraciones {
+  max-width: 720px;
+}
+.integraciones__titulo {
+  font-size: var(--fs-titulo);
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+.integraciones__ayuda {
+  color: var(--texto-suave);
+  margin-bottom: 18px;
+}
+.integraciones h2 {
+  font-size: var(--fs-seccion);
+  font-weight: 800;
+}
+.integraciones__vacio {
+  padding: 16px 0;
+  text-align: center;
+  color: var(--texto-suave);
+}
+.integraciones__error {
+  margin: -4px 0 14px;
+}
+
+/* --- Generar --- */
+.integraciones__generar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+.integraciones__generar .input input {
+  min-width: 0;
+}
+
+/* --- Clave recién generada --- */
+.clave-nueva {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  margin-bottom: 14px;
+  border-color: var(--salvia);
+  background: var(--bg-en-stock);
+}
+.clave-nueva h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--fg-en-stock);
+}
+.clave-nueva__valor {
+  display: flex;
+  gap: 8px;
+}
+.clave-nueva__valor input {
+  flex: 1;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-sm);
+  background: #fff;
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: var(--fs-detalle);
+  color: var(--oscuro);
+}
+.clave-nueva__valor .btn {
+  flex-shrink: 0;
+  padding: 10px 14px;
+}
+
+/* --- Listado --- */
+.integraciones__lista {
+  padding: 4px 16px;
+  margin-bottom: 14px;
+}
+.integraciones__lista > header {
+  padding: 12px 0 8px;
+}
+.integraciones__lista > header p {
+  font-size: var(--fs-detalle);
+  color: var(--texto-suave);
+  margin-top: 2px;
+}
+.clave {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 0;
+  border-top: 1px solid var(--borde);
+}
+.clave--revocada {
+  opacity: 0.7;
+}
+.clave__cabecera {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.clave__datos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.clave__datos strong {
+  font-size: var(--fs-producto);
+  overflow-wrap: anywhere;
+}
+.clave__datos code {
+  font-size: var(--fs-detalle);
+  color: var(--texto-suave);
+  overflow-wrap: anywhere;
+}
+.clave__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  font-size: var(--fs-detalle);
+}
+.clave__meta dt {
+  color: var(--texto-suave);
+}
+.clave__meta dd {
+  font-weight: 700;
+}
+.clave__revocar {
+  align-self: flex-start;
+  padding: 6px 0;
+  font-weight: 700;
+  font-size: var(--fs-detalle);
+  color: var(--rojo);
+}
+.clave__confirmar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border-radius: var(--radio-sm);
+  background: var(--bg-sin-stock);
+  font-size: var(--fs-detalle);
+}
+.clave__confirmar > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.clave__confirmar .btn {
+  padding: 10px 14px;
+}
+
+/* --- Datos para la caja --- */
+.integraciones__api {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  font-size: var(--fs-detalle);
+}
+.integraciones__api pre,
+.integraciones__api code {
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  overflow-wrap: anywhere;
+}
+.integraciones__api pre {
+  padding: 10px 12px;
+  border-radius: var(--radio-sm);
+  background: var(--crema-claro);
+  border: 1px solid var(--borde);
+  white-space: pre-wrap;
+}
+
+@media (min-width: 900px) {
+  .integraciones__generar {
+    flex-direction: row;
+    align-items: flex-end;
+  }
+  .integraciones__generar .campo {
+    flex: 1;
+  }
+}

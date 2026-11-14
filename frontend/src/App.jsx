@@ -21,6 +21,7 @@ import UsuarioForm from './pages/UsuarioForm.jsx';
 import ProveedorForm from './pages/ProveedorForm.jsx';
 import EnConstruccion from './pages/EnConstruccion.jsx';
 import Reportes from './pages/Reportes.jsx';
+import Integraciones from './pages/Integraciones.jsx';
 
 // Protege las rutas privadas: sin sesión redirige al login.
 function Privado({ children }) {
@@ -94,18 +95,7 @@ export default function App() {
               </Privado>
             }
           />
-          <Route
-            path="/integraciones"
-            element={
-              <Privado>
-                <EnConstruccion
-                  titulo="Integración con punto de venta"
-                  descripcion="Claves de acceso para que la caja de tu comercio descuente el stock sola."
-                  hu="HU21, HU22 (Sprint 2)"
-                />
-              </Privado>
-            }
-          />
+          <Route path="/integraciones" element={<Propietario><Integraciones /></Propietario>} />
           <Route path="/usuarios" element={<Propietario><Usuarios /></Propietario>} />
           <Route path="/usuarios/nuevo" element={<Propietario><UsuarioForm key="nuevo" /></Propietario>} />
           <Route path="/usuarios/:id/editar" element={<Propietario><UsuarioForm /></Propietario>} />

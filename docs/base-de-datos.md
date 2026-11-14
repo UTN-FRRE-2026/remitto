@@ -238,11 +238,13 @@ Credencial de un sistema externo (POS) autorizado a informar salidas. Nunca se g
 | `nombre` | text | no | — | — |
 | `prefijo` | text | no | único | — |
 | `hash_clave` | text | no | único | — |
-| `activa` | boolean | no | = true | — |
+| `activa` | boolean | no | = true | activa ⇔ revocadaEn nulo (CHECK chk_clave_revocada, migración HU21). |
 | `creada_por_id` | integer | no | FK → usuarios | — |
 | `creada_en` | timestamp(3) | no | = now() | — |
 | `ultimo_uso_en` | timestamp(3) | sí | — | — |
 | `revocada_en` | timestamp(3) | sí | — | — |
+
+- CHECK `chk_clave_revocada`: `("activa" AND "revocada_en" IS NULL) OR (NOT "activa" AND "revocada_en" IS NOT NULL)` — Una clave activa no tiene fecha de revocación y una revocada sí.
 
 ### categorias
 
@@ -532,3 +534,4 @@ Prisma no expresa estas reglas; se agregaron en las migraciones (`backend/prisma
 | comprobantes | `chk_comprobante_confirmado` | CHECK | `"estado" <> 'CONFIRMADO' OR ( "confirmado_por_id" IS NOT NULL AND "confirmado_en" IS NOT NULL AND "numero" IS NOT NULL )` | Un comprobante confirmado registra quién y cuándo, y tiene número. |
 | salidas | `uq_salida_carrito_operacion` | UNIQUE parcial | `("usuario_id", "referencia_externa") WHERE "origen" = 'CARRITO' AND "referencia_externa" IS NOT NULL` | Un reintento del mismo carrito (mismo id de operación generado por la app) no descuenta dos veces. Las salidas de integración ya son únicas por (clave_integracion_id, referencia_externa); en el carrito esa clave es nula, por eso la unicidad es por usuario. |
 | codigos_proveedor | `uq_codigo_proveedor_descripcion` | UNIQUE parcial | `("proveedor_id", "descripcion") WHERE "codigo" IS NULL` | Una descripción de un proveedor tiene una sola fila por descripción. |
+| claves_integracion | `chk_clave_revocada` | CHECK | `("activa" AND "revocada_en" IS NULL) OR (NOT "activa" AND "revocada_en" IS NOT NULL)` | Una clave activa no tiene fecha de revocación y una revocada sí. |

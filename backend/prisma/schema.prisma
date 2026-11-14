@@ -129,7 +129,8 @@ model ClaveIntegracion {
   id          Int       @id @default(autoincrement())
   nombre      String    // ej. "Caja mostrador"
   prefijo     String    @unique // primeros caracteres de la clave, ej. "rmt_4f9a"
-  hashClave   String    @unique @map("hash_clave")
+  hashClave   String    @unique @map("hash_clave") // SHA-256; la clave completa no se guarda (HU21)
+  /// activa ⇔ revocadaEn nulo (CHECK chk_clave_revocada, migración HU21).
   activa      Boolean   @default(true)
   creadaPorId Int       @map("creada_por_id")
   creadaEn    DateTime  @default(now()) @map("creada_en")

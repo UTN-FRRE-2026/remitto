@@ -9,6 +9,8 @@ import movimientosRoutes from './modules/movimientos/movimientos.routes.js';
 import salidasRoutes from './modules/salidas/salidas.routes.js';
 import recuentosRoutes from './modules/recuentos/recuentos.routes.js';
 import reportesRoutes from './modules/reportes/reportes.routes.js';
+import clavesRoutes from './modules/claves/claves.routes.js';
+import integracionRoutes from './modules/integracion/integracion.routes.js';
 
 const router = Router();
 
@@ -24,5 +26,8 @@ router.use('/movimientos', movimientosRoutes);
 router.use('/salidas', salidasRoutes);
 router.use('/recuentos', recuentosRoutes);
 router.use('/reportes', reportesRoutes);
+router.use('/claves-integracion', clavesRoutes);
+// API para sistemas externos (autenticada con clave de integración, HU21/HU22).
+router.use('/v1/integracion', integracionRoutes);
 
 export default router;

@@ -14,9 +14,9 @@ Para el detalle de lo verificado en cada entrega, ver [estado-proyecto.md](estad
 
 | | Historias | Puntos del plan |
 | --- | --- | --- |
-| Implementadas | 23 (HU1 a HU20 y HU27 a HU29) | 72 de 100 obligatorios |
+| Implementadas | 24 (HU1 a HU21 y HU27 a HU29) | 75 de 100 obligatorios |
 | Parciales | 1 (HU26) | 3 |
-| Pendientes obligatorias | 5 (HU21 a HU25) | 25 |
+| Pendientes obligatorias | 4 (HU22 a HU25) | 22 |
 | Deseables pendientes | 2 (HU30, HU31) | 5 (fuera de los 100) |
 
 ## Requerimientos funcionales
@@ -63,8 +63,8 @@ Para el detalle de lo verificado en cada entrega, ver [estado-proyecto.md](estad
 
 | Sub. | Descripción | HU | Estado | Qué falta |
 | --- | --- | --- | --- | --- |
-| RF5.1 | Administrar claves de integración | HU21 | Pendiente | Avance fuera del repositorio (copia local de Stabile). La tabla `claves_integracion` existe |
-| RF5.2 | Recibir salidas por el endpoint, sin duplicados y con contrato OpenAPI | HU22 | Pendiente | El servicio de salidas y la base ya contemplan la referencia externa |
+| RF5.1 | Administrar claves de integración | HU21 | Implementado | Pantalla Integraciones · `/api/claves-integracion`. La clave se muestra una vez; en la base quedan su prefijo y su hash SHA-256. Revocación y último uso. Verificado de punta a punta (`backend/e2e/hu21-claves.mjs`) |
+| RF5.2 | Recibir salidas por el endpoint, sin duplicados y con contrato OpenAPI | HU22 | Pendiente | Depende de HU21. El servicio de salidas y la base ya contemplan la referencia externa |
 | RF5.3 | Validar la integración con un simulador de ventas | HU23 | Pendiente | `simulador/` solo tiene un README |
 
 ### RF6 Alertas y reposición · Mandatoria
@@ -100,7 +100,7 @@ Para el detalle de lo verificado en cada entrega, ver [estado-proyecto.md](estad
 
 | ID | Tipo | Especificación | Estado |
 | --- | --- | --- | --- |
-| RNF1 | Seguridad | Sesión autenticada y HTTPS; contraseñas y claves como hash; credencial de IA solo en el servidor | **Cumplido en lo implementado.** Sesión con token y contraseñas con bcrypt. La clave de Gemini está solo en el backend. Las claves de integración dependen de HU21. HTTPS depende del despliegue en Coolify, no verificado en esta revisión |
+| RNF1 | Seguridad | Sesión autenticada y HTTPS; contraseñas y claves como hash; credencial de IA solo en el servidor | **Cumplido en lo implementado.** Sesión con token y contraseñas con bcrypt. La clave de Gemini está solo en el backend. Las claves de integración se guardan como hash SHA-256 (HU21). HTTPS depende del despliegue en Coolify, no verificado en esta revisión |
 | RNF2 | Rendimiento | Consultas en 3 s o menos; extracción de un comprobante en 30 s o menos | **Medición implementada:** cada lectura registra su duración y si cumple el objetivo. Falta medirlo con remitos reales en producción |
 | RNF3 | Usabilidad | Comprobante de 20 líneas en menos de 3 minutos; baja confianza y errores indicados con claridad | **Parcial:** las líneas dudosas se destacan y la validación explica qué corregir. Falta cronometrar un comprobante real de 20 líneas |
 | RNF4 | Compatibilidad | Instalable como PWA en Android y usable en escritorio | **Cumplido:** PWA configurada e instalada por el equipo en un Android real, donde funciona (14/11/2026). Las pantallas también se probaron a 360-390 px y en escritorio con un navegador sin interfaz |

@@ -8,7 +8,7 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 - **Primera entrega del TPI: lunes 16/11/2026.** Consigna y entregables en [entrega-tpi.md](entrega-tpi.md).
 - **HU7:** el equipo informó el 14/11 que instaló la PWA en un Android real y funciona (no verificado en esta revisión).
 - Los PDF de la documentación probatoria están fuera del repositorio (`../remitto-entrega/`); se regeneraron el 14/11 con HU16 a HU20 y HU27 a HU29.
-- **Trabajo en pausa, sin commit:** HU21 (claves de integración) quedó guardada solo en la copia local de Maxi: un stash de Git sobre la rama `feature/HU21-claves-integracion` y un patch equivalente en `retomar/HU21-en-progreso.patch`, fuera del repositorio, con las instrucciones para recuperarla. Tiene el backend con sus pruebas y la pantalla sin terminar. No está en `origin`.
+- **HU21 (claves de integración):** completada sobre `474b7b0` en la rama `feature/HU21-claves-integracion` (PR pendiente). Se recuperó del stash `5373a09` con `apply`; el stash y el patch de `retomar/` se conservan hasta integrarla. HU22 depende de ella y HU23 de HU22.
 - PR #1 a #24 integrados en `main`.
 
 ## Integrado en `main`
@@ -47,10 +47,19 @@ HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa qu
 
 | Estado observado | Historias |
 | --- | --- |
-| Backend y pantalla | HU1 a HU6, HU8 a HU20, HU27 a HU29 |
-| En pausa (stash) | HU21 claves de integración |
+| Backend y pantalla | HU1 a HU6, HU8 a HU21, HU27 a HU29 (HU21 en su rama, sin integrar) |
 | Probada por el equipo | HU7 PWA (`vite-plugin-pwa`): instalada en un Android real y funcionando (informado el 14/11/2026, no verificado en esta revisión) |
-| Sin implementar | HU21 a HU25 (HU26 parcial) y las deseables HU30 y HU31. `/asistente` e `/integraciones` son `EnConstruccion`; `simulador/` solo tiene un README |
+| Sin implementar | HU22 a HU25 (HU26 parcial) y las deseables HU30 y HU31. `/asistente` es `EnConstruccion`; `simulador/` solo tiene un README |
+
+## Validación de HU21 (14/11/2026, rama `feature/HU21-claves-integracion`)
+
+- Se recuperó el avance del 13/11 y se adaptó a `main` (`474b7b0`): conflicto en `routes.js` con los reportes; la migración pasó a `20261114140000_hu21_claves_integracion` para quedar después de las de HU16 y HU17. Se completaron la pantalla (estilos, ruta solo para el propietario, acceso desde Cuenta), el esquema `bearer` sin distinguir mayúsculas y la documentación. Las pruebas históricas no se tomaron como válidas: todo se volvió a correr.
+- `npm test`: 196 correctas (12 de `test/claves.test.js`). `npm run build` correcto.
+- **Punta a punta reproducible:** `npm run e2e -- hu21-claves` (nuevo ejecutor `backend/e2e/correr.mjs`, base descartable): 38 controles correctos. Permisos (401 sin sesión o con token inválido, 403 del empleado al listar, generar y revocar), la clave completa solo en el alta, SHA-256 en la base y la parte secreta en ninguna columna, último uso, 401 con clave revocada, inexistente o con formato inválido, token de persona y clave no intercambiables, revocación idempotente, `CHECK chk_clave_revocada` y 40 pedidos en curso mientras se revoca (todos 200 o 401; después, 20 de 20 rechazados).
+- **Prueba de mutación:** sin el filtro `AND activa` en la validación, el escenario detecta 3 fallas; restaurado, 38/38.
+- Migración: `prisma migrate diff` sin diferencias; las filas inconsistentes previas se normalizan antes de agregar el CHECK (probado con datos armados a mano).
+- Recorrido en el navegador de la app contra una base descartable: generar (la clave mostrada autentica contra la API; el botón «Copiar» no se probó), «Ya la guardé» y recarga sin la clave, cancelar y confirmar la revocación (la clave revocada recibe 401), escritorio y 375 px sin desplazamiento horizontal, acceso desde Cuenta; el empleado no ve el acceso y `/integraciones` lo lleva al inicio.
+- **No probado:** con un sistema de punto de venta real ni en producción. La copia al portapapeles depende de HTTPS (en `localhost` funciona; si falla, el texto queda seleccionado).
 
 ## Validación de HU19 y HU20 (14/11/2026, integrada en el PR #24)
 
