@@ -82,6 +82,12 @@ test('petición normalizada: orden, líneas repetidas, decimales e identificador
   assert.notEqual(firma([{ productoId: 1, cantidad: 2 }]), firma([{ codigoBarras: '779', cantidad: 2 }]));
   assert.notEqual(firma([{ codigoBarras: '779', cantidad: 2 }]), firma([{ codigoBarras: '779', cantidad: 3 }]));
   assert.notEqual(firma([{ codigoBarras: '779', cantidad: 2 }]), firma([{ codigoBarras: '779', cantidad: 2 }, { productoId: 1, cantidad: 1 }]));
+  // Sin colisiones: un código con los separadores de una firma de texto no
+  // equivale a dos líneas («a=1|c:b» frente a «a» y «b»).
+  assert.notEqual(firma([{ codigoBarras: 'a=1|c:b', cantidad: 1 }]), firma([{ codigoBarras: 'a', cantidad: 1 }, { codigoBarras: 'b', cantidad: 1 }]));
+  assert.notEqual(firma([{ codigoBarras: 'x","1"],["codigoBarras","y', cantidad: 1 }]), firma([{ codigoBarras: 'x', cantidad: 1 }, { codigoBarras: 'y', cantidad: 1 }]));
+  assert.notEqual(firma([{ codigoBarras: '5', cantidad: 1 }]), firma([{ productoId: 5, cantidad: 1 }]));
+  assert.notEqual(firma([{ codigoBarras: 'p:5', cantidad: 1 }]), firma([{ productoId: 5, cantidad: 1 }]));
   // jsonb reordena las claves de cada objeto: la firma no depende de eso.
   assert.equal(firmaPedido([{ cantidad: '2', codigoBarras: '779' }, { cantidad: '0.75', productoId: 5 }]), firmaPedido(a));
 });

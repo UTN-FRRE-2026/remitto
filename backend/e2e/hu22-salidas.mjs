@@ -239,6 +239,26 @@ export default async function hu22({ api, check, db, dueño, empleado }) {
     `reenvío con el código pasado a otro producto → 200, la venta original y ningún descuento al otro (${reD.status})`,
   );
 
+  // Colisión de firmas (revisión): una línea con el código «a=1|c:b» no puede
+  // confundirse con dos líneas «a» y «b», que los esquemas también permiten.
+  const pc1 = await crearConStock('Colisión A', 'COL-a');
+  const pc2 = await crearConStock('Colisión B', 'COL-b');
+  const pc3 = await crearConStock('Colisión AB', 'COL-a=1|c:COL-b');
+  const pedidoUno = { referencia: 'RC-COL', lineas: [{ codigoBarras: 'COL-a=1|c:COL-b', cantidad: 1 }] };
+  const pedidoDos = { referencia: 'RC-COL', lineas: [{ codigoBarras: 'COL-a', cantidad: 1 }, { codigoBarras: 'COL-b', cantidad: 1 }] };
+  const foto = async () => JSON.stringify([await stock(pc1.id), await stock(pc2.id), await stock(pc3.id), await db.movimientoStock.count()]);
+  const ventaUno = await vender(k1.clave, pedidoUno);
+  const fotoUno = await foto();
+  check(ventaUno.status === 201 && (await stock(pc3.id)) === 49, 'colisión: venta RC-COL con una línea de código «COL-a=1|c:COL-b»');
+  const conDos = await vender(k1.clave, pedidoDos);
+  check(conDos.status === 409, `colisión: la misma referencia con las líneas «COL-a» y «COL-b» → 409 (${conDos.status})`);
+  check((await foto()) === fotoUno, 'colisión: el 409 no cambió stock ni movimientos');
+  const reUno = await vender(k1.clave, pedidoUno);
+  check(
+    reUno.status === 200 && reUno.body.id === ventaUno.body.id && (await foto()) === fotoUno,
+    `colisión: el reenvío original sigue dando 200, misma venta, sin cambios (${reUno.status})`,
+  );
+
   const guardado = (await db.salida.findUnique({ where: { id: ventaC.body.id } })).pedidoExterno;
   check(
     Array.isArray(guardado) && guardado.length === 1 && guardado[0].codigoBarras === '7790009990003' && guardado[0].cantidad === '2',

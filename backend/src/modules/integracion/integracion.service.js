@@ -41,13 +41,28 @@ export function normalizarPedido(lineas) {
     );
 }
 
-// Firma comparable de una petición normalizada. No depende del orden de las
-// claves de cada objeto (jsonb las reordena al guardarlas).
+// Firma comparable de una petición normalizada: una lista de tuplas
+// [tipo, identificador, cantidad] ordenada y serializada con JSON. Las
+// comillas y separadores de JSON la hacen inequívoca para cualquier código de
+// barras (una concatenación de texto confundía «a=1|c:b» con «a» y «b»). No
+// depende del orden de las claves de cada objeto (jsonb las reordena).
+const compararTuplas = (a, b) => {
+  for (let i = 0; i < 2; i += 1) {
+    if (a[i] < b[i]) return -1;
+    if (a[i] > b[i]) return 1;
+  }
+  return 0;
+};
 export const firmaPedido = (pedido) =>
-  pedido
-    .map((l) => (l.productoId !== undefined ? `p:${l.productoId}` : `c:${l.codigoBarras}`) + `=${decimal(l.cantidad).toFixed()}`)
-    .sort()
-    .join('|');
+  JSON.stringify(
+    pedido
+      .map((l) =>
+        l.productoId !== undefined
+          ? ['productoId', String(l.productoId), decimal(l.cantidad).toFixed()]
+          : ['codigoBarras', String(l.codigoBarras), decimal(l.cantidad).toFixed()],
+      )
+      .sort(compararTuplas),
+  );
 
 // Junta las líneas del mismo producto (una caja puede escanear dos veces el
 // mismo artículo). Devuelve [{ productoId, cantidad: Decimal }] ordenado por id.
