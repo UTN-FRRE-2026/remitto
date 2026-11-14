@@ -14,9 +14,9 @@ Para el detalle de lo verificado en cada entrega, ver [estado-proyecto.md](estad
 
 | | Historias | Puntos del plan |
 | --- | --- | --- |
-| Implementadas | 15 (HU1 a HU15) | 53 de 100 obligatorios |
+| Implementadas | 16 (HU1 a HU15 y HU18) | 55 de 100 obligatorios |
 | Parciales | 2 (HU17, HU26) | 5 |
-| Pendientes obligatorias | 12 (HU16, HU18 a HU25, HU27 a HU29) | 42 |
+| Pendientes obligatorias | 11 (HU16, HU19 a HU25, HU27 a HU29) | 40 |
 | Deseables pendientes | 2 (HU30, HU31) | 5 (fuera de los 100) |
 
 ## Requerimientos funcionales
@@ -47,7 +47,7 @@ Para el detalle de lo verificado en cada entrega, ver [estado-proyecto.md](estad
 | RF3.4 | Revisar y confirmar, con alta de productos nuevos | HU10 | Implementado | Pantalla Revisar remito |
 | RF3.5 | Reconocer equivalencias por proveedor | HU16 | Pendiente | La tabla `codigos_proveedor` existe pero no se usa |
 | RF3.6 | Exigir revisión completa en comprobantes dudosos | HU17 | Parcial | La IA detecta si es manuscrito o de baja calidad y se muestra un aviso. Falta exigir la confirmación línea por línea |
-| RF3.7 | Consultar los comprobantes archivados | HU18 | Pendiente | `/comprobantes` está «En construcción» |
+| RF3.7 | Consultar los comprobantes archivados | HU18 | Implementado | Pantalla Comprobantes, con filtros y acceso desde la ficha del proveedor · `GET /api/comprobantes` |
 | RF3.8 | Medir la precisión de la extracción | HU19 | Pendiente | Lo leído y lo confirmado ya se guardan por separado |
 
 ### RF4 Gestión de stock · Mandatoria
@@ -87,7 +87,7 @@ Para el detalle de lo verificado en cada entrega, ver [estado-proyecto.md](estad
 | RF8.1 | Valorización de existencias | HU28 | Pendiente | Los precios de compra ya se registran al confirmar |
 | RF8.2 | Productos sin movimiento | HU29 | Pendiente | — |
 | RF8.3 | Evolución de precios de compra | HU20 | Pendiente | Los datos se registran en `precios_compra` |
-| RF8.4 | Tablero de situación | HU26 | Parcial | El tablero muestra indicadores de stock y productos para reponer. Faltan las alertas activas, los comprobantes pendientes y el valor del stock |
+| RF8.4 | Tablero de situación | HU26 | Parcial | El tablero muestra indicadores de stock, productos para reponer y remitos por revisar. Faltan las alertas activas y el valor del stock |
 
 ### RF9 Funcionalidades deseables · Deseable
 

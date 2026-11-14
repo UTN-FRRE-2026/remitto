@@ -1,0 +1,141 @@
+/* HU18 · Comprobantes archivados. */
+.comprobantes__filtros {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.comprobantes__filtros .campo:first-child {
+  grid-column: 1 / -1;
+}
+.comprobantes__filtros .campo > span {
+  font-size: var(--fs-detalle);
+  font-weight: 700;
+  color: var(--texto-suave);
+}
+.comprobantes__filtros .input {
+  padding: 10px 12px;
+}
+.comprobantes__filtros select,
+.comprobantes__filtros input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-family: inherit;
+  font-size: var(--fs-texto);
+  color: var(--oscuro);
+}
+.comprobantes__limpiar {
+  margin: 0 0 12px;
+  font-size: var(--fs-detalle);
+  font-weight: 700;
+  color: var(--salvia-oscuro);
+}
+.comprobantes__error {
+  margin-bottom: 12px;
+}
+.comprobantes__mas {
+  margin-top: 14px;
+}
+
+/* --- Fila de comprobante --- */
+.comprobante {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--borde);
+  cursor: pointer;
+}
+.comprobante:last-child {
+  border-bottom: none;
+}
+.comprobante:focus-visible {
+  outline: 2px solid var(--salvia-oscuro);
+  outline-offset: 2px;
+}
+.comprobante__icono {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--bg-ia);
+  color: var(--fg-ia);
+  font-size: 11px;
+  font-weight: 800;
+}
+.comprobante__icono--pdf {
+  background: var(--bg-sin-stock);
+  color: var(--fg-sin-stock);
+}
+.comprobante--revisar .comprobante__icono {
+  background: var(--bg-stock-bajo);
+  color: var(--fg-stock-bajo);
+}
+.comprobante__datos {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.comprobante__datos strong {
+  font-size: var(--fs-producto);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.comprobante__datos span {
+  font-size: var(--fs-detalle);
+  color: var(--texto-suave);
+  overflow-wrap: anywhere;
+}
+.comprobante__aviso {
+  color: var(--fg-stock-bajo) !important;
+  font-weight: 700;
+}
+.comprobante__lado {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.comprobante__total {
+  font-weight: 800;
+  font-size: var(--fs-texto);
+}
+.comprobante__retomar {
+  padding: 9px 12px;
+  font-size: var(--fs-detalle);
+}
+/* En el celular, el botón va en su propia fila, debajo de los datos. */
+@media (max-width: 899px) {
+  .comprobante__retomar {
+    flex-basis: calc(100% - 52px);
+    margin-left: 52px;
+  }
+}
+
+@media (min-width: 900px) {
+  .comprobantes__filtros {
+    grid-template-columns: 2fr 1fr 1fr;
+    max-width: 900px;
+  }
+  .comprobantes__filtros .campo:first-child {
+    grid-column: auto;
+  }
+  .comprobantes .productos__buscar {
+    max-width: 560px;
+  }
+  .comprobante {
+    flex-wrap: nowrap;
+  }
+  .comprobante__retomar {
+    align-self: center;
+  }
+}

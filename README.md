@@ -11,8 +11,8 @@ automática de comprobantes de compra mediante Inteligencia Artificial.
 
 ## Estado actual
 
-Están implementadas las historias del Sprint 1 (HU1 a HU14) y HU15 del
-Sprint 2. La aplicación está desplegada en producción con Coolify, a partir
+Están implementadas las historias del Sprint 1 (HU1 a HU14) y, del
+Sprint 2, HU15 y HU18. La aplicación está desplegada en producción con Coolify, a partir
 de `main`. La instalación de la PWA en Android (HU7) todavía no se probó.
 
 Ya implementado:
@@ -22,11 +22,11 @@ Ya implementado:
 | **RF1** Usuarios y acceso | HU1 (login), HU2 (roles), HU3 (admin usuarios) | ✅ Backend y pantallas |
 | **RF2** Catálogo | HU4 (productos), HU5 (categorías), HU6 (proveedores) | ✅ Backend y pantallas |
 | **RNF4** PWA móvil | HU7 (instalable) | ✅ Base |
-| **RF3** Ingesta de comprobantes | HU8 (carga), HU9 (lectura con IA), HU10 (revisión), HU11 (entradas de stock), HU15 (asociación automática) | ✅ Backend y pantallas M3/M4/M5 |
+| **RF3** Ingesta de comprobantes | HU8 (carga), HU9 (lectura con IA), HU10 (revisión), HU11 (entradas de stock), HU15 (asociación automática), HU18 (comprobantes archivados) | ✅ Backend y pantallas M3/M4/M5 y Comprobantes |
 | **Existencias** | HU12 (movimientos y existencias) | ✅ Backend y pantalla Movimientos |
 | **Salidas** | HU13 (carrito de salida) | ✅ Backend y pantalla Nueva salida |
 | **Recuento** | HU14 (ajuste por recuento) | ✅ Backend y pantalla Recuento |
-| Frontend | Login, Tablero, Productos (alta y edición), Proveedores, Categorías, Usuarios, Cargar remito, Lectura con IA, Revisar remito, Movimientos, Nueva salida, Recuento | ✅ Vistas base |
+| Frontend | Login, Tablero, Comprobantes, Productos (alta y edición), Proveedores, Categorías, Usuarios, Cargar remito, Lectura con IA, Revisar remito, Movimientos, Nueva salida, Recuento | ✅ Vistas base |
 
 Están completos el flujo de ingreso (cargar → leer con IA → revisar →
 confirmar), el de salida (carrito → confirmar) y el recuento (contar →
@@ -264,6 +264,26 @@ formulario; el empleado puede buscar otro producto).
   confianza se reemplazan). Si HU19 necesita medir los aciertos de la
   asociación, hará falta guardarla aparte.
 
+### Comprobantes archivados (HU18)
+
+La pantalla **Comprobantes** (`/comprobantes`, propietario y empleado) lista
+todos los comprobantes cargados, del más reciente al más antiguo, con su
+estado, el proveedor, la fecha de emisión, quién lo cargó y cuándo, el total
+impreso y las unidades ingresadas (si se confirmó).
+
+- Filtros: estado (chips con la cantidad de cada uno: en revisión,
+  confirmados, sin leer o leyendo, con error), proveedor, fecha de carga
+  (desde/hasta, hora de Argentina) y número. Paginado con «Ver más».
+- Cada comprobante abre la pantalla que corresponde: uno **en revisión** se
+  retoma en la revisión («Retomar revisión»); uno **confirmado** se ve en
+  solo lectura con el archivo original junto a las líneas confirmadas; uno
+  sin leer, leyendo o con error abre la lectura con IA.
+- Accesos: menú lateral, «Remitos por revisar» en el Inicio (también en el
+  celular) y «Ver comprobantes» en la ficha del proveedor.
+- `GET /api/comprobantes` devuelve además el conteo por estado (sin aplicar
+  el filtro de estado) y el número leído por la IA mientras el definitivo no
+  se cargó.
+
 ### Movimientos y existencias (HU12)
 
 La pantalla **Movimientos** (`/movimientos`, propietario y empleado) muestra el
@@ -471,6 +491,7 @@ POSTGRES_PASSWORD=prueba123 JWT_SECRET=prueba CORS_ORIGIN=http://localhost:8088 
 | `GET` | `/api/productos/resumen` | autenticado |
 | `POST/PATCH/DELETE` | `/api/productos/:id` | propietario |
 | `POST` | `/api/comprobantes` (multipart: `archivo`, `proveedorId`, `tipo?`) | autenticado |
+| `GET` | `/api/comprobantes` · `?proveedorId=&estado=&desde=&hasta=&numero=&pagina=&limite=` (HU18) | autenticado |
 | `GET` | `/api/comprobantes/:id` · `/api/comprobantes/:id/archivo` | autenticado |
 | `POST` | `/api/comprobantes/:id/procesar` (202; lectura con IA) | autenticado |
 | `GET` | `/api/comprobantes/:id/estado` (progreso de la lectura) | autenticado |

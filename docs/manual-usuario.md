@@ -1,6 +1,6 @@
 # Manual del usuario de Remitto
 
-Versión del 14/11/2026, correspondiente a `main` con las historias HU1 a HU15. Las capturas usan los datos ficticios de ejemplo («Almacén Don Carlos») y una lectura con IA simulada.
+Versión del 14/11/2026, correspondiente a `main` con las historias HU1 a HU15 y HU18. Las capturas usan los datos ficticios de ejemplo («Almacén Don Carlos») y una lectura con IA simulada.
 
 ## Contenido
 
@@ -61,7 +61,7 @@ Remitto es una aplicación web instalable (PWA). En Chrome para Android, abrí l
 
 <img src="manual/20-tablero-escritorio.png" alt="Tablero en la computadora, con el menú lateral" width="640">
 
-Algunas secciones del menú todavía muestran «En construcción»: **Comprobantes** (archivo de remitos), **Precios y reportes**, **Asistente** e **Integraciones**. Se habilitan en las próximas versiones.
+Algunas secciones del menú todavía muestran «En construcción»: **Precios y reportes**, **Asistente** e **Integraciones**. Se habilitan en las próximas versiones.
 
 ## 4. Inicio (tablero)
 
@@ -72,6 +72,7 @@ El Inicio muestra:
 - el acceso rápido **Cargar un remito**;
 - la cantidad de productos activos y cuántos están **en stock**, con **stock bajo** (en el mínimo o por debajo) y **sin stock**;
 - **Para reponer**: los productos sin stock o con stock bajo, con su cantidad actual frente al mínimo. **Ver todo** abre Productos con el filtro de stock bajo.
+- **Remitos por revisar**: los remitos leídos que esperan revisión; tocá uno para retomarlo. **Ver comprobantes** abre el archivo de comprobantes (ver [sección 5](#comprobantes-cargados)).
 
 ## 5. Ingresar mercadería con un remito
 
@@ -137,6 +138,17 @@ Si el remito está escrito a mano o la foto es de baja calidad, aparece un aviso
 <img src="manual/08-ingreso-confirmado.png" alt="Ingreso confirmado con el stock actualizado" width="300">
 
 Arriba queda la constancia de quién confirmó y cuándo, y al pie el detalle **Stock actualizado** (por ejemplo «58 + 36 → 94»). Un remito confirmado ya no se puede modificar ni volver a ingresar.
+
+### Comprobantes cargados
+
+<img src="manual/22-comprobantes.png" alt="Comprobantes de un proveedor, con uno en revisión" width="640">
+
+**Comprobantes** (en el menú lateral, o **Ver comprobantes** desde el Inicio o la ficha de un proveedor) guarda todos los remitos y facturas cargados, del más reciente al más antiguo. Cada uno muestra su estado (**Sin leer**, **Leyendo**, **En revisión**, **Confirmado** o **Error de lectura**), el proveedor, la fecha de emisión, quién lo cargó y cuándo, y el total.
+
+- Filtrá por estado con los botones de arriba (indican cuántos hay de cada uno), por proveedor, por fecha de carga o buscando por número.
+- **Retomar revisión** abre un remito que quedó a medio revisar, con lo ya corregido.
+- Un remito **confirmado** se abre en modo consulta: el archivo original junto a las líneas ingresadas.
+- Uno sin leer o con error abre la lectura con IA, donde se puede reintentar.
 
 ## 6. Productos
 

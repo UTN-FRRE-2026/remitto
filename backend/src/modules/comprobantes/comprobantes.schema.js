@@ -85,3 +85,35 @@ export const actualizarCabeceraSchema = z
   })
   .strict()
   .refine((d) => Object.keys(d).length > 0, 'No hay cambios para guardar');
+
+// --- HU18: comprobantes archivados ---
+
+// Día calendario AAAA-MM-DD (hora de Argentina), como en Movimientos (HU12).
+const dia = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Usá el formato AAAA-MM-DD')
+  .refine((s) => {
+    const d = new Date(`${s}T00:00:00Z`);
+    return !Number.isNaN(d.getTime()) && d.toISOString().startsWith(s);
+  }, 'Fecha inexistente');
+
+// EN_PROCESO agrupa los que todavía no se leyeron (PENDIENTE) o se están leyendo.
+export const ESTADOS_FILTRO = ['EN_PROCESO', 'PENDIENTE', 'PROCESANDO', 'EN_REVISION', 'CONFIRMADO', 'ERROR', 'ANULADO'];
+
+export const listarComprobantesSchema = z
+  .object({
+    proveedorId: z.coerce.number().int().positive().optional(),
+    estado: z.enum(ESTADOS_FILTRO).optional(),
+    // Fecha de carga del comprobante; "hasta" es inclusivo.
+    desde: dia.optional(),
+    hasta: dia.optional(),
+    // Número del comprobante (parte del número; sin distinguir mayúsculas).
+    numero: z.string().trim().min(1).max(40).optional(),
+    pagina: z.coerce.number().int().positive().max(10000).default(1),
+    limite: z.coerce.number().int().positive().max(100).default(20),
+  })
+  .strict()
+  .refine((f) => !f.desde || !f.hasta || f.desde <= f.hasta, {
+    message: 'La fecha "desde" no puede ser posterior a "hasta"',
+    path: ['desde'],
+  });

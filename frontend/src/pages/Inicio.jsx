@@ -4,6 +4,7 @@ import { api } from '../lib/api.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { IconoRemitto, IconoCampana, IconoCamara, IconoProductos } from '../components/iconos.jsx';
 import EstadoBadge from '../components/EstadoBadge.jsx';
+import { rutaComprobante, tituloComprobante, fechaHora } from '../lib/comprobantes.js';
 import './Inicio.css';
 
 function saludo() {
@@ -28,6 +29,8 @@ export default function Inicio() {
   const navegar = useNavigate();
   const [resumen, setResumen] = useState(null);
   const [reponer, setReponer] = useState([]);
+  // HU18: remitos leídos que esperan revisión (se retoman desde acá).
+  const [porRevisar, setPorRevisar] = useState(null);
 
   useEffect(() => {
     api.get('/productos/resumen').then(setResumen).catch(() => {});
@@ -37,6 +40,10 @@ export default function Inicio() {
       api.get('/productos?estado=STOCK_BAJO'),
     ])
       .then(([sin, bajo]) => setReponer([...sin, ...bajo].slice(0, 4)))
+      .catch(() => {});
+    api
+      .get('/comprobantes?estado=EN_REVISION&limite=3')
+      .then(setPorRevisar)
       .catch(() => {});
   }, []);
 
@@ -138,6 +145,31 @@ export default function Inicio() {
               </span>
             )}
           </div>
+        ))}
+      </div>
+
+      {/* HU18: comprobantes en revisión */}
+      <div className="seccion__titulo">
+        <h3>
+          Remitos por revisar{porRevisar?.total ? ` · ${porRevisar.total}` : ''}
+        </h3>
+        <button className="seccion__link" onClick={() => navegar('/comprobantes')}>
+          Ver comprobantes
+        </button>
+      </div>
+
+      <div className="card reponer">
+        {porRevisar?.comprobantes.length === 0 && <p className="reponer__vacio">No hay remitos esperando revisión.</p>}
+        {porRevisar?.comprobantes.map((c) => (
+          <button key={c.id} className="reponer__item reponer__item--boton" onClick={() => navegar(rutaComprobante(c))}>
+            <div className="reponer__datos">
+              <strong>{c.proveedor.razonSocial}</strong>
+              <span>
+                {tituloComprobante(c)} · {fechaHora(c.cargadoEn)}
+              </span>
+            </div>
+            <span className="reponer__ratio">Revisar</span>
+          </button>
         ))}
       </div>
     </div>

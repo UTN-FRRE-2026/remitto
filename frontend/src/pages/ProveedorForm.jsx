@@ -154,6 +154,13 @@ export default function ProveedorForm() {
           </div>
         ))}
 
+        {editando && (
+          <div className="formulario__dato">
+            <span>Comprobantes cargados de este proveedor</span>
+            <Link to={`/comprobantes?proveedorId=${proveedor.id}`}>Ver comprobantes</Link>
+          </div>
+        )}
+
         {error && <p className="error-texto">{error}</p>}
 
         <div className="formulario__acciones">
