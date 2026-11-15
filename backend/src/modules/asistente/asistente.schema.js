@@ -69,6 +69,33 @@ export const argumentosSchema = {
 
 export const HERRAMIENTAS_HABILITADAS = Object.keys(argumentosSchema);
 
+// Claves que el esquema del plan (ESQUEMA_PLAN) ofrece a todas las
+// herramientas. Con Gemini real, el modelo a veces manda una que la
+// herramienta elegida no usa (soloVentas en evolucion_precio) o un null
+// (periodo: null, { dias: 7, desde: null }): se descartan antes de validar.
+// Una clave fuera del plan (por ejemplo, "sql") sigue siendo inválida.
+export const CLAVES_DEL_PLAN = ['producto', 'periodo', 'soloVentas', 'limite', 'minimoPorcentaje'];
+
+export function limpiarArgumentos(herramienta, argumentos) {
+  if (argumentos == null) return { argumentos: {}, descartados: [] };
+  if (typeof argumentos !== 'object' || Array.isArray(argumentos)) return { argumentos, descartados: [] };
+  const usadas = Object.keys(argumentosSchema[herramienta].shape);
+  const limpios = {};
+  const descartados = [];
+  for (const [clave, valor] of Object.entries(argumentos)) {
+    if (valor === null || (CLAVES_DEL_PLAN.includes(clave) && !usadas.includes(clave))) {
+      descartados.push(clave);
+    } else if (clave === 'periodo' && typeof valor === 'object' && !Array.isArray(valor)) {
+      const periodo = Object.fromEntries(Object.entries(valor).filter(([, v]) => v !== null));
+      if (Object.keys(periodo).length === 0) descartados.push(clave);
+      else limpios[clave] = periodo;
+    } else {
+      limpios[clave] = valor;
+    }
+  }
+  return { argumentos: limpios, descartados };
+}
+
 // --- Plan del modelo -------------------------------------------------------
 
 // El nombre de la herramienta se valida aparte, para registrar el rechazo de
