@@ -59,6 +59,13 @@ Termina con código 0 si todos los controles pasaron, 1 si alguno falló y 2 si 
 
 | Archivo | Historia | Qué comprueba |
 | --- | --- | --- |
+| `hu11-ingreso.mjs` | HU8 a HU11 | El flujo central de ingreso con la IA simulada:
+- **carga:** formato no admitido y extensión que no coincide con el contenido, 400; carga del empleado en PENDIENTE;
+- **lectura y revisión:** la lectura no toca el stock; la corrección se guarda aparte de lo leído; línea descartada; la diferencia con el total es aviso;
+- **todo o nada:** con un producto desactivado no entra ninguna línea y el comprobante sigue en revisión;
+- **6 confirmaciones simultáneas:** una sola entra y 5 dan 409, con el stock sumado una vez;
+- **registros:** movimientos y precios vinculados a sus líneas con la fecha de emisión; confirmar de nuevo, 409; un confirmado no se edita; aviso de número duplicado;
+- **invariante:** el stock es igual a la suma de movimientos. |
 | `hu21-claves.mjs` | HU21 | Permisos, la clave completa solo en el alta, el hash SHA-256 en la base, el último uso, la revocación (incluso con pedidos en curso) y `CHECK chk_clave_revocada`. |
 | `hu22-salidas.mjs` | HU22 | Contrato publicado, autenticación, validación y atomicidad, venta por código de barras e id, reenvíos (200 y 409), reenvíos con el catálogo cambiado (código cambiado, borrado o pasado a otro producto, producto desactivado, fecha distinta, 10 en paralelo), `CHECK chk_pedido_externo`, stock negativo y su aviso en la valorización, kilos, carrito sin cambios, 25 reenvíos simultáneos, 52 operaciones simultáneas de dos cajas y carritos, revocación con 120 ventas en curso y el orden determinístico venta → revocación. |
 | `hu24-alertas.mjs` | HU24 | Permisos; las alertas del seed coinciden con los indicadores del tablero; ciclo de vida con producto nuevo, recuento, carrito y venta del endpoint (sin stock → resuelta → stock bajo → sin stock → negativo → resuelta) con su historia; reenvío sin alerta duplicada; mínimo, desactivación y reactivación; 30 ventas del endpoint y 10 carritos simultáneos con una sola alerta por situación; `uq_alerta_activa` rechaza una segunda activa; al final, las alertas activas de todos los productos coinciden con su stock. **Se corre en una ejecución aparte** (`npm run e2e -- hu24-alertas`): parte de los datos del seed sin cambios, y HU21 y HU22 esperan una base sin claves ni salidas previas. |

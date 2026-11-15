@@ -1,6 +1,6 @@
 # Lista de requerimientos de Remitto
 
-Requerimientos funcionales, no funcionales y técnicos del [plan de trabajo](plan-de-trabajo.md#enunciado-de-los-requerimientos), con la historia de usuario que los implementa y su estado en `main` al 14/11/2026.
+Requerimientos funcionales, no funcionales y técnicos del [plan de trabajo](plan-de-trabajo.md#enunciado-de-los-requerimientos), con la historia de usuario que los implementa y su estado en `main` al 15/11/2026.
 
 **Estados**
 
@@ -101,8 +101,8 @@ Para el detalle de lo verificado en cada entrega, ver [estado-proyecto.md](estad
 
 | ID | Tipo | Especificación | Estado |
 | --- | --- | --- | --- |
-| RNF1 | Seguridad | Sesión autenticada y HTTPS; contraseñas y claves como hash; credencial de IA solo en el servidor | **Cumplido en lo implementado.** Sesión con token y contraseñas con bcrypt. La clave de Gemini está solo en el backend. Las claves de integración se guardan como hash SHA-256 (HU21). HTTPS depende del despliegue en Coolify, no verificado en esta revisión |
-| RNF2 | Rendimiento | Consultas en 3 s o menos; extracción de un comprobante en 30 s o menos | **Medición implementada:** cada lectura registra su duración y si cumple el objetivo. Falta medirlo con remitos reales en producción. El asistente (HU25) registra la duración de cada consulta; con Gemini real todavía no se midió |
+| RNF1 | Seguridad | Sesión autenticada y HTTPS; contraseñas y claves como hash; credencial de IA solo en el servidor | **Cumplido en lo implementado.** Sesión con token y contraseñas con bcrypt. La clave de Gemini está solo en el backend. Las claves de integración se guardan como hash SHA-256 (HU21). Producción redirige HTTP a HTTPS (certificado de Let's Encrypt, verificado el 15/11/2026) |
+| RNF2 | Rendimiento | Consultas en 3 s o menos; extracción de un comprobante en 30 s o menos | **Medición implementada:** cada lectura registra su duración y si cumple el objetivo. Falta medirlo con remitos reales en producción. El asistente (HU25) registra la duración de cada consulta. Con Gemini real (capa gratuita, 15/11/2026), 31 consultas tardaron de 1,3 a 7 s, con picos de 14 a 28 s: no siempre cumple los 3 s |
 | RNF3 | Usabilidad | Comprobante de 20 líneas en menos de 3 minutos; baja confianza y errores indicados con claridad | **Parcial:** las líneas dudosas se destacan y la validación explica qué corregir. Falta cronometrar un comprobante real de 20 líneas |
 | RNF4 | Compatibilidad | Instalable como PWA en Android y usable en escritorio | **Cumplido:** PWA configurada e instalada por el equipo en un Android real, donde funciona (14/11/2026). Las pantallas también se probaron a 360-390 px y en escritorio con un navegador sin interfaz |
 | RNF5 | Integridad | Reglas principales en la base; stock en la misma transacción que su movimiento | **Cumplido:** claves únicas, `CHECK` e índices parciales (ver [base-de-datos.md](base-de-datos.md)), y todo cambio de stock pasa por `registrarMovimiento` dentro de una transacción |

@@ -4,17 +4,17 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 
 ## Referencia verificada (15/11/2026)
 
-- `origin/main` en `e31ec10` (merge del PR #34, HU31), comprobado el 15/11/2026. **En `main`:** HU1 a HU29, todas las obligatorias, y la deseable HU31. **Solo en la rama `feature/HU30-escanear-codigo`, sin integrar:** la deseable HU30.
+- `origin/main` en `0aea032` (merge del PR #36, corrección de HU25), comprobado el 15/11/2026. **En `main`:** HU1 a HU31, las 29 obligatorias y las 2 deseables.
 - **Primera entrega del TPI: lunes 16/11/2026.** Consigna y entregables en [entrega-tpi.md](entrega-tpi.md).
 - **HU7:** el equipo informó el 14/11 que instaló la PWA en un Android real y funciona (no verificado en esta revisión).
-- Los PDF de la documentación probatoria están fuera del repositorio (`../remitto-entrega/`); se regeneraron el 14/11 con HU16 a HU20 y HU27 a HU29. **No incluyen HU21 ni HU22**: hay que regenerarlos.
+- Los PDF de la documentación probatoria están fuera del repositorio (`../remitto-entrega/`); se regeneraron el 14/11 con HU16 a HU20 y HU27 a HU29. **No incluyen HU21 a HU31**: hay que regenerarlos (requerimientos y manual; el diseño de la base no cambió).
 - **Integración externa:**
   - HU21 (claves de integración): integrada por el [PR #27](https://github.com/UTN-FRRE-2026/remitto/pull/27), merge `708f9d9`.
   - HU22 (salidas desde un sistema externo): integrada por el [PR #28](https://github.com/UTN-FRRE-2026/remitto/pull/28), merge `b822eb9`. El contenido integrado es idéntico al último commit publicado de la rama (`77e614f`).
   - HU23 (simulador de ventas): integrada por el [PR #30](https://github.com/UTN-FRRE-2026/remitto/pull/30), merge `2dba88f`.
   - El respaldo del avance de HU21 (el stash `5373a09` y el patch de `retomar/`, en la copia local de Maxi) se conserva aunque ya no hace falta.
-- **Migraciones nuevas:** `20261114140000_hu21_claves_integracion`, `20261114150000_hu22_pedido_externo` y `20261115120000_hu24_alertas_stock` (solo datos), todas en `main`. HU26 no agrega migraciones. Quien use una base local tiene que aplicarlas con `npx prisma migrate deploy` (sin reset). En producción, el contenedor las aplica al arrancar; no se verificó.
-- PR #1 a #34 integrados en `main`.
+- **Migraciones nuevas:** `20261114140000_hu21_claves_integracion`, `20261114150000_hu22_pedido_externo` y `20261115120000_hu24_alertas_stock` (solo datos), todas en `main`. HU26 no agrega migraciones. Quien use una base local tiene que aplicarlas con `npx prisma migrate deploy` (sin reset). En producción, el contenedor las aplica al arrancar. El 15/11 las rutas de HU21 a HU31 respondían en producción (401 sin sesión), lo que indica el esquema al día; no se entró con usuario.
+- PR #1 a #36 integrados en `main`.
 
 ## Integrado en `main`
 
@@ -53,6 +53,8 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 | HU26 tablero de situación | [PR #32](https://github.com/UTN-FRRE-2026/remitto/pull/32) |
 | HU25 asistente de consultas | [PR #33](https://github.com/UTN-FRRE-2026/remitto/pull/33) |
 | HU31 orden de compra (deseable; dependencia nueva `pdfkit`) | [PR #34](https://github.com/UTN-FRRE-2026/remitto/pull/34) |
+| HU30 escaneo del código en el carrito (deseable; dependencias nuevas `@zxing/browser` y `@zxing/library`) | [PR #35](https://github.com/UTN-FRRE-2026/remitto/pull/35) |
+| Corrección de HU25 con Gemini real (período y argumentos del plan) | [PR #36](https://github.com/UTN-FRRE-2026/remitto/pull/36) |
 
 HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa que se haya comprobado ahora cada criterio de aceptación.
 
@@ -60,13 +62,38 @@ HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa qu
 
 | Estado observado | Historias |
 | --- | --- |
-| Backend y pantalla | HU1 a HU6, HU8 a HU22, HU24, HU26 a HU29 |
+| Backend y pantalla | HU1 a HU6, HU8 a HU22, HU24 a HU29 |
 | Simulador (sin pantalla) | HU23 (`simulador/simulador.mjs`, escenario `hu23-simulador`) |
-| Backend y pantalla (deseable) | HU31 orden de compra |
-| Implementada en su rama, sin integrar | HU30 escaneo del código en el carrito, deseable (`feature/HU30-escanear-codigo`) |
+| Backend y pantalla (deseables) | HU30 escaneo del código en el carrito y HU31 orden de compra |
 | Probada por el equipo | HU7 PWA (`vite-plugin-pwa`): instalada en un Android real y funcionando (informado el 14/11/2026, no verificado en esta revisión) |
 
-## Validación de HU30 (15/11/2026, rama `feature/HU30-escanear-codigo`, sin integrar)
+## Verificación final (15/11/2026, sobre `0aea032`)
+
+- **Pruebas de todo `main`, con dependencias reinstaladas (`npm ci`):**
+  - `npm test`: 257 correctas.
+  - `npm run build` correcto.
+  - `npm run e2e -- hu21-claves hu22-salidas hu23-simulador hu26-tablero hu25-asistente hu31-orden-compra hu30-codigo`: 189 de 189.
+  - `hu24-alertas`, aparte: 31 de 31.
+- **`npm run e2e:aislamiento`: falló 1 de 26** («la API de prueba cae al arrancar» terminaba con código 1 y no 2).
+  - Desde HU24, el seed importa `alertas.service`, que cargaba el cliente global y con él la configuración del servidor. La configuración inválida de la prueba hacía fallar el seed antes de que arrancara la API.
+  - El ejecutor igual abortaba sin correr escenarios y borraba su base.
+  - Corregido: `alertas.service` ya no importa el cliente global (la ruta le pasa `prisma`). Ahora 26 de 26; `hu24-alertas` y `hu26-tablero` 53 de 53.
+- **Producción** (`remitto.blackandred.com.ar`), solo pedidos sin sesión:
+  - `/api/health` responde y HTTP redirige a HTTPS (certificado de Let's Encrypt hasta el 24/01/2027);
+  - las rutas de HU21 a HU31 existen (401 sin sesión);
+  - el frontend publicado incluye el escáner de HU30.
+  - No se verificó con usuario si ya corre la corrección de HU25 (PR #36).
+- **Login:** el encabezado (logo, «Remitto» y el lema) nunca se veía.
+  - La máscara del borde dentado tenía una sola capa con `repeat-x` de 20 px de alto, así que todo lo que estaba por encima quedaba transparente. Le pasaba a cualquier navegador, y así quedó también en la captura del manual del 13/11.
+  - Se corrigió con una segunda capa sólida, comprobado en el navegador, y se reemplazó `docs/manual/01-inicio-sesion.png`.
+- **Auditoría de criterios (HU1 a HU31 contra el código):** ningún criterio sin implementar. Se corrigió el botón «Olvidé mi contraseña», que no hacía nada: ahora explica que el propietario asigna una nueva desde Usuarios. Quedan para el equipo:
+  - **Patrones del plan:** Repository no existe como capa; los servicios usan Prisma directamente, y varios lo reciben como `db` para transacciones y pruebas. Strategy elige el adaptador de IA (Gemini o simulado) y el tipo de archivo (imagen o PDF), no una estrategia por «imagen de baja calidad», que solo activa la revisión obligatoria (HU17). Adapter y Observer coinciden con el plan. Conviene explicarlo así en el Informe y en la defensa.
+  - **Pruebas automáticas:** HU1 a HU7 y HU12 a HU20 solo tienen pruebas unitarias. Se agregó el escenario `hu11-ingreso` (HU8 a HU11), con 18 de 18 controles, para el flujo central: carga, lectura, revisión, todo o nada, 6 confirmaciones simultáneas con una sola entrada y la invariante del stock.
+  - **Login:** precargaba el correo y la contraseña del propietario de ejemplo también en producción. Ahora solo se precargan en desarrollo (`npm run dev`); el build de producción no contiene la contraseña (verificado). Igual conviene cambiar `remitto123` en producción si ese usuario existe allí.
+  - **Dependencias:** se actualizaron sin cambios de versión mayor `body-parser` 1.20.9, `multer` 2.5.0 y `qs` 6.16.2 (backend). Las 257 pruebas y el escenario de ingreso, que sube archivos, siguen correctos.
+    - Quedan `zod` (alta: consumo de memoria con colecciones enormes) y `react-router` (moderada). Su arreglo exige pasar a una versión mayor, así que no se tocan antes de la entrega.
+
+## Validación de HU30 (15/11/2026, integrada en el PR #35; pruebas ejecutadas en la rama `feature/HU30-escanear-codigo`)
 
 - **Qué hay:**
   - `EscanerCodigo.jsx`: cámara trasera con ZXing (`@zxing/browser` 0.1.5 y `@zxing/library` 0.21.3, dependencias nuevas del frontend, fijadas). Se carga recién al abrir el escáner, en un chunk aparte que el service worker precachea.
@@ -138,7 +165,7 @@ Revisión del código integrado. Se volvieron a correr `npm test` (251) y los e2
     - sin errores de consola.
 - **No probado:** la descarga en un celular real (en la PWA instalada) ni en producción. `npm audit` informa vulnerabilidades previas de `body-parser` y `multer`, ajenas a esta historia.
 
-## Corrección de HU25 con Gemini real (15/11/2026, rama `fix/HU25-plan-gemini`, sin integrar)
+## Corrección de HU25 con Gemini real (15/11/2026, integrada en el PR #36; pruebas ejecutadas en la rama `fix/HU25-plan-gemini`)
 
 - **Qué se encontró:** fue la primera prueba con Gemini real (`gemini-3.1-flash-lite`), contra una base descartable con ventas, roturas y precios.
   - Los 8 tipos respondían, pero las herramientas con producto nunca recibían el período (0 de 10).

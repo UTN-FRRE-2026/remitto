@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client';
-import { prisma } from '../../lib/prisma.js';
+// Sin el cliente global (lib/prisma): quien llama pasa la base. Así el seed
+// puede usar este módulo sin cargar ni validar la configuración del servidor.
 import { observarMovimientos } from '../stock/stock.observadores.js';
 
 // HU24 (RF6.1): alertas de stock bajo, sin stock y negativo.
@@ -59,7 +60,7 @@ export function activarAlertas() {
 
 // Recalcula las alertas de todos los productos (lo usa el seed, que crea
 // productos sin pasar por la API).
-export async function sincronizarAlertas(db = prisma) {
+export async function sincronizarAlertas(db) {
   const productos = await db.producto.findMany({ select: { id: true }, orderBy: { id: 'asc' } });
   for (const { id } of productos) await db.$transaction((tx) => evaluarAlertas(tx, id));
   return productos.length;
@@ -104,7 +105,7 @@ const PRODUCTO = {
 };
 
 // Alertas activas y las últimas resueltas (historia breve).
-export async function listar({ resueltas = 20 } = {}, db = prisma) {
+export async function listar({ resueltas = 20 } = {}, db) {
   const [activas, ultimas] = await Promise.all([
     db.alertaStock.findMany({ where: { estado: 'ACTIVA' }, include: { producto: PRODUCTO } }),
     db.alertaStock.findMany({

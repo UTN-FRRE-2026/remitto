@@ -12,8 +12,15 @@
   color: var(--crema);
   padding: 56px 28px 48px;
   position: relative;
-  -webkit-mask: radial-gradient(10px at 10px 100%, transparent 98%, #000) repeat-x bottom left / 20px 20px;
-  mask: radial-gradient(10px at 10px 100%, transparent 98%, #000) repeat-x bottom left / 20px 20px;
+  /* Dos capas: el bloque entero salvo los últimos 20 px, y abajo la fila de
+     semicírculos. Con una sola capa (repeat-x) quedaba visible solo esa fila
+     y el logo, el nombre y el lema no se veían. */
+  -webkit-mask:
+    linear-gradient(#000 0 0) top / 100% calc(100% - 19px) no-repeat,
+    radial-gradient(10px at 10px 100%, transparent 98%, #000) bottom left / 20px 20px repeat-x;
+  mask:
+    linear-gradient(#000 0 0) top / 100% calc(100% - 19px) no-repeat,
+    radial-gradient(10px at 10px 100%, transparent 98%, #000) bottom left / 20px 20px repeat-x;
 }
 .login__logo {
   display: grid;
@@ -59,4 +66,10 @@
   font-size: var(--fs-texto);
   align-self: center;
   padding: 4px;
+}
+.login__ayuda {
+  font-size: var(--fs-detalle);
+  color: var(--texto-suave);
+  text-align: center;
+  line-height: 1.45;
 }
