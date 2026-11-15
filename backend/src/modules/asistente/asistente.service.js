@@ -249,7 +249,8 @@ export async function elegir({ consultaId, productoId, usuario }, deps = {}) {
   const producto = await d.db.producto.findFirst({ where: { id: productoId, activo: true }, select: { id: true, nombre: true } });
   if (!producto) throw ApiError.invalido('El producto elegido ya no está activo');
   // Se marca resuelta en una sola sentencia: dos elecciones simultáneas no
-  // pueden ejecutarse las dos.
+  // pueden ejecutarse las dos. Si la ejecución falla (tiempo agotado o error
+  // interno), se vuelve a dejar pendiente para que la persona pueda reintentar.
   const marcadas = await d.db.$executeRaw`
     UPDATE consultas_agente SET herramientas = jsonb_set(herramientas::jsonb, '{pendiente,resuelta}', 'true'::jsonb)
     WHERE id = ${consultaId} AND usuario_id = ${usuario.id} AND herramientas->'pendiente'->>'resuelta' = 'false'`;
@@ -264,6 +265,11 @@ export async function elegir({ consultaId, productoId, usuario }, deps = {}) {
   } catch (err) {
     resultado = comoFalla(err);
     traza.error = resultado.codigo;
+  }
+  if (!resultado.exitosa) {
+    await d.db.$executeRaw`
+      UPDATE consultas_agente SET herramientas = jsonb_set(herramientas::jsonb, '{pendiente,resuelta}', 'false'::jsonb)
+      WHERE id = ${consultaId} AND usuario_id = ${usuario.id} AND herramientas->'pendiente'->>'resuelta' = 'true'`;
   }
   return registrar(d, { usuario, pregunta: `${original.pregunta} → ${producto.nombre}`, resultado, traza, inicio });
 }

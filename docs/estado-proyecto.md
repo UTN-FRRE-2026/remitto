@@ -163,6 +163,19 @@ Revisión del código integrado. Se volvieron a correr `npm test` (251) y los e2
   - la fecha en UTC de «Última venta»;
   - la aclaración resuelta antes de ejecutar.
 
+## Detalles de HU25 (15/11/2026, rama `fix/HU25-detalles`)
+
+Corrige tres hallazgos de la revisión de HU25:
+- **Errores 503 y 500:** la pantalla mostraba «Ocurrió un error». Ahora muestra el mensaje del backend, por ejemplo «falta configurar el servicio de IA». `api.js` conserva el cuerpo del error en `err.datos`, sin cambiar los demás usos.
+- **«Última venta» de `sin_ventas`:** ahora usa el día de Argentina; antes salía en UTC (una venta a las 21:30 del 10/11 figuraba el 11/11).
+- **Elección de una aclaración:** si la herramienta falla por tiempo o por un error interno, la consulta vuelve a quedar pendiente y se puede elegir de nuevo. La marca atómica sigue impidiendo dos elecciones simultáneas, y repetir una elección exitosa da 409.
+
+Pruebas:
+- `npm test`: 260 correctas, 3 nuevas. Las mutaciones de la fecha y del reintento hacen fallar su prueba.
+- `npm run e2e -- hu25-asistente`: 31 de 31.
+- `npm run build` correcto.
+- **Navegador**, sin clave de IA: el 503 muestra el mensaje del backend.
+
 ## Validación de HU25 (15/11/2026, integrada en el PR #33)
 
 - **Qué hay:**
