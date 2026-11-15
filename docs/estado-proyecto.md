@@ -7,7 +7,7 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 - `origin/main` en `0aea032` (merge del PR #36, corrección de HU25), comprobado el 15/11/2026. **En `main`:** HU1 a HU31, las 29 obligatorias y las 2 deseables.
 - **Primera entrega del TPI: lunes 16/11/2026.** Consigna y entregables en [entrega-tpi.md](entrega-tpi.md).
 - **HU7:** el equipo informó el 14/11 que instaló la PWA en un Android real y funciona (no verificado en esta revisión).
-- Los PDF de la documentación probatoria están fuera del repositorio (`../remitto-entrega/`); se regeneraron el 14/11 con HU16 a HU20 y HU27 a HU29. **No incluyen HU21 a HU31**: hay que regenerarlos (requerimientos y manual; el diseño de la base no cambió).
+- Los PDF de la documentación probatoria están fuera del repositorio (`../remitto-entrega/`); se regeneraron el 15/11 con HU1 a HU31 y las facturas con IVA (los del 14/11 quedaron en `anteriores-14-11/`). En la misma carpeta están el borrador del Informe Final del Alumno (`.docx`, sobre el modelo oficial) y, en `video/`, la demo sin voz de 4:54, el guion por integrante y los subtítulos.
 - **Integración externa:**
   - HU21 (claves de integración): integrada por el [PR #27](https://github.com/UTN-FRRE-2026/remitto/pull/27), merge `708f9d9`.
   - HU22 (salidas desde un sistema externo): integrada por el [PR #28](https://github.com/UTN-FRRE-2026/remitto/pull/28), merge `b822eb9`. El contenido integrado es idéntico al último commit publicado de la rama (`77e614f`).

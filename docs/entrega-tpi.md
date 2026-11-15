@@ -31,14 +31,14 @@ Estado al 15/11/2026, según el repositorio (`main` en `0aea032`, PR #1 a #36 in
 | Entregable | Estado en el repo | Pendiente |
 | --- | --- | --- |
 | Producto final (aplicación) | En `main` están implementadas las 29 historias obligatorias (HU1 a HU29, 100 de 100 puntos del plan) y las deseables HU30 y HU31. El asistente se probó con Gemini real (31 consultas). La PWA se instaló en un Android real (informado por el equipo). Producción responde con HTTPS y las rutas de todas las historias. Ver [estado](estado-proyecto.md) y [requerimientos](requerimientos.md#resumen) | Probar en producción, con usuario, el asistente y el escáner en un celular real. Revisar la contraseña del usuario de ejemplo en producción |
-| Plan de Trabajo | [plan-de-trabajo.md](plan-de-trabajo.md) | Definir el formato de entrega (¿el documento original del equipo?) |
-| Informe Final del Alumno | No está en el repo | Bajar el modelo del aula y completarlo |
+| Plan de Trabajo | [plan-de-trabajo.md](plan-de-trabajo.md). PDF del extracto generado el 15/11 (`Remitto - Plan de trabajo.pdf`) | Confirmar si se entrega el documento original del equipo (`.docx`) o este extracto |
+| Informe Final del Alumno | Fuera del repo: `Remitto - Informe final del alumno (borrador).docx` (15/11), sobre el modelo oficial del aula, con una tabla de resultados y un borrador de conclusiones por integrante | Completar DNI, legajo, tutor académico, horas estimadas y ocupadas, y reescribir cada conclusión con sus palabras; firmar |
 | Informe del Tutor | No corresponde si el trabajo no se hace en una organización | Confirmar si aplica (el plan describe un comercio, «Almacén Don Carlos») |
-| Video de presentación | No está en el repo | 4 a 5 minutos, en inglés con subtítulos en castellano. Deben aparecer todos los integrantes con su cara. Subirlo a YouTube y compartir el enlace |
-| Lista de Requerimientos | [requerimientos.md](requerimientos.md), con el estado de cada uno. PDF generado el 14/11 | Regenerar el PDF cuando se integren las historias que faltan |
-| Diseño de la Base de Datos | [base-de-datos.md](base-de-datos.md) y diagrama [der-remitto.png](referencias/der-remitto.png). PDF del diseño y del diagrama (también en A3) generados el 14/11 | Regenerarlos si HU21 a HU25 cambian el esquema |
+| Video de presentación | Fuera del repo, carpeta `video/`: demo sin voz de 4:54 (1920 × 1080) con un recuadro reservado para la cámara de quien presenta, guion por integrante en inglés con traducción, y subtítulos en castellano e inglés sincronizados (15/11) | Grabar cada parte con la cara, editar sobre la demo, revisar los subtítulos, subir a YouTube y compartir el enlace |
+| Lista de Requerimientos | [requerimientos.md](requerimientos.md), con el estado de cada uno. PDF regenerado el 15/11 | — |
+| Diseño de la Base de Datos | [base-de-datos.md](base-de-datos.md) y diagrama [der-remitto.png](referencias/der-remitto.png), con las columnas de descuento e impuestos (HU10). PDF del diseño y del diagrama (también en A3) regenerados el 15/11 | — |
 | Maquetación de la Aplicación | [maquetacion.html](referencias/maquetacion.html) y [guía](maquetacion.md). PDF generado el 14/11 | — |
-| Manual del Usuario | [manual-usuario.md](manual-usuario.md), con capturas de HU1 a HU20, HU27 a HU29 y HU30; HU21, HU22, HU24 y HU25 descritas, sin captura. PDF generado el 14/11 | Agregar las capturas que faltan (Integraciones, Alertas, Asistente) y regenerar el PDF |
+| Manual del Usuario | [manual-usuario.md](manual-usuario.md), con capturas de todas las pantallas (incluidas Alertas, Asistente, Integraciones, escáner y factura con IVA). PDF regenerado el 15/11 | — |
 | Infografía (exposición) | No existe | Vertical, con el contenido del plan de trabajo |
 | Exposición y defensa oral | — | Preparar la demo en vivo y repartir la participación entre los tres integrantes |
 
