@@ -45,3 +45,13 @@ export const DIAS_PRECIOS = 365;
 export const preciosSchema = periodoSchema(DIAS_PRECIOS);
 
 export const productoParamSchema = z.object({ productoId: z.coerce.number().int().positive() });
+
+// HU31: proveedor de la orden de compra: su id o "sin" (productos sin compras).
+export const ordenCompraSchema = z
+  .object({
+    proveedor: z
+      .string({ required_error: 'Indicá el proveedor' })
+      .regex(/^(sin|[1-9]\d{0,9})$/, 'Proveedor no válido')
+      .transform((v) => (v === 'sin' ? 'sin' : Number(v))),
+  })
+  .strict();

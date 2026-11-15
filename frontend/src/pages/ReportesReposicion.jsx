@@ -1,8 +1,39 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { api, mensajeDeError } from '../lib/api.js';
+import { api, mensajeDeError, guardarArchivo } from '../lib/api.js';
 import { mostrarNumero, pesos } from '../lib/numeros.js';
 import { unidadCorta } from '../lib/unidades.js';
+
+// HU31: descarga la orden de compra (PDF) de un proveedor de la sugerencia
+// actual. El backend usa el mismo cálculo de HU27 y arma el documento.
+function DescargarOrden({ grupo }) {
+  const [estado, setEstado] = useState('');
+  const [error, setError] = useState('');
+  const clave = grupo.id ?? 'sin';
+
+  async function descargar() {
+    setEstado('descargando');
+    setError('');
+    try {
+      const { blob, nombre } = await api.descargar(`/reportes/reposicion/orden?proveedor=${clave}`);
+      guardarArchivo(blob, nombre ?? `orden-compra-${clave}.pdf`);
+      setEstado('listo');
+    } catch (err) {
+      setError(mensajeDeError(err));
+      setEstado('');
+    }
+  }
+
+  return (
+    <div className="reportes__orden">
+      <button className="btn btn--secundario reportes__orden-boton" onClick={descargar} disabled={estado === 'descargando'}>
+        {estado === 'descargando' ? 'Generando…' : grupo.id == null ? 'Descargar lista (PDF)' : 'Descargar orden (PDF)'}
+      </button>
+      {estado === 'listo' && <small className="reportes__orden-listo">Orden descargada</small>}
+      {error && <small className="error-texto">{error}</small>}
+    </div>
+  );
+}
 
 // HU27 · Sugerencia de reposición: qué comprar y cuánto, por proveedor.
 export default function ReportesReposicion() {
@@ -71,6 +102,7 @@ export default function ReportesReposicion() {
               </li>
             ))}
           </ul>
+          <DescargarOrden grupo={g} />
         </section>
       ))}
 

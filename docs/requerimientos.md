@@ -17,7 +17,8 @@ Para el detalle de lo verificado en cada entrega, ver [estado-proyecto.md](estad
 | Implementadas | 29 (HU1 a HU29) | 100 de 100 obligatorios |
 | Parciales | 0 | 0 |
 | Pendientes obligatorias | 0 | 0 |
-| Deseables pendientes | 2 (HU30, HU31) | 5 (fuera de los 100) |
+| Deseables implementadas | 1 (HU31) | 2 (fuera de los 100) |
+| Deseables pendientes | 1 (HU30) | 3 (fuera de los 100) |
 
 ## Requerimientos funcionales
 
@@ -94,7 +95,7 @@ Para el detalle de lo verificado en cada entrega, ver [estado-proyecto.md](estad
 | Sub. | Descripción | HU | Estado |
 | --- | --- | --- | --- |
 | RF9.1 | Lectura de códigos de barras con la cámara en el carrito | HU30 | Pendiente. El buscador acepta el código tipeado o el de un lector que actúe como teclado |
-| RF9.2 | Exportar la sugerencia como orden de compra | HU31 | Pendiente |
+| RF9.2 | Exportar la sugerencia como orden de compra | HU31 | Implementado. Precios y reportes › Reposición: un PDF por proveedor con producto, cantidad y unidad, más el proveedor · `GET /api/reportes/reposicion/orden` (solo el propietario) |
 
 ## Requerimientos no funcionales
 
