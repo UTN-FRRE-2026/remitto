@@ -26,11 +26,11 @@ En el coloquio también se evalúa:
 
 ## Estado de los entregables
 
-Estado al 15/11/2026, según el repositorio (`main` en `e31ec10`, PR #1 a #34 integrados; HU30 en su rama). Lo que se prepara fuera del repo (aula virtual, YouTube, diseño gráfico) lo tiene que completar el equipo. Los PDF de la documentación probatoria se generan fuera del repositorio, en `../remitto-entrega/`.
+Estado al 15/11/2026, según el repositorio (`main` en `0aea032`, PR #1 a #36 integrados). Lo que se prepara fuera del repo (aula virtual, YouTube, diseño gráfico) lo tiene que completar el equipo. Los PDF de la documentación probatoria se generan fuera del repositorio, en `../remitto-entrega/`.
 
 | Entregable | Estado en el repo | Pendiente |
 | --- | --- | --- |
-| Producto final (aplicación) | En `main` están implementadas las 29 historias obligatorias (HU1 a HU29, 100 de 100 puntos del plan) y la deseable HU31. La deseable HU30 (escaneo con la cámara) está completa en su rama, sin integrar. La PWA se instaló en un Android real (informado por el equipo). Ver [estado](estado-proyecto.md) y [requerimientos](requerimientos.md#resumen) | Integrar HU30. Probar el asistente con Gemini real y el escáner en un celular real. Verificar producción |
+| Producto final (aplicación) | En `main` están implementadas las 29 historias obligatorias (HU1 a HU29, 100 de 100 puntos del plan) y las deseables HU30 y HU31. El asistente se probó con Gemini real (31 consultas). La PWA se instaló en un Android real (informado por el equipo). Producción responde con HTTPS y las rutas de todas las historias. Ver [estado](estado-proyecto.md) y [requerimientos](requerimientos.md#resumen) | Probar en producción, con usuario, el asistente y el escáner en un celular real. Revisar la contraseña del usuario de ejemplo en producción |
 | Plan de Trabajo | [plan-de-trabajo.md](plan-de-trabajo.md) | Definir el formato de entrega (¿el documento original del equipo?) |
 | Informe Final del Alumno | No está en el repo | Bajar el modelo del aula y completarlo |
 | Informe del Tutor | No corresponde si el trabajo no se hace en una organización | Confirmar si aplica (el plan describe un comercio, «Almacén Don Carlos») |

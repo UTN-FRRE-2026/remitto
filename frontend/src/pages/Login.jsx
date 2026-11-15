@@ -4,14 +4,19 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { IconoRemitto, IconoSobre, IconoCandado, IconoOjo } from '../components/iconos.jsx';
 import './Login.css';
 
+const DEMO = import.meta.env.DEV;
+
 export default function Login() {
   const { iniciarSesion } = useAuth();
   const navegar = useNavigate();
-  const [email, setEmail] = useState('carlos@doncarlos.com.ar');
-  const [password, setPassword] = useState('remitto123');
+  // Los datos del usuario de ejemplo se precargan solo en desarrollo
+  // (npm run dev): en producción el formulario empieza vacío.
+  const [email, setEmail] = useState(DEMO ? 'carlos@doncarlos.com.ar' : '');
+  const [password, setPassword] = useState(DEMO ? 'remitto123' : '');
   const [verClave, setVerClave] = useState(false);
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(false);
+  const [ayudaClave, setAyudaClave] = useState(false);
 
   async function enviar(e) {
     e.preventDefault();
@@ -88,9 +93,15 @@ export default function Login() {
           {cargando ? <span className="spinner" /> : 'Ingresar'}
         </button>
 
-        <button type="button" className="login__olvide">
+        <button type="button" className="login__olvide" onClick={() => setAyudaClave((v) => !v)} aria-expanded={ayudaClave}>
           Olvidé mi contraseña
         </button>
+        {ayudaClave && (
+          <p className="login__ayuda" role="status">
+            Pedile al propietario del comercio que te asigne una contraseña nueva desde Usuarios. Si sos el propietario,
+            contactá a quien administra el sistema.
+          </p>
+        )}
       </form>
     </div>
   );
