@@ -1,18 +1,21 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { api } from '../lib/api.js';
 import { mostrarNumero } from '../lib/numeros.js';
 import { unidadCorta } from '../lib/unidades.js';
 import { IconoBuscar, IconoCodigo } from './iconos.jsx';
+import EscanerCodigo from './EscanerCodigo.jsx';
 import './BuscadorProducto.css';
 
 // Buscador de productos por nombre o código, con soporte para lectores de
 // códigos que mandan Enter. Lo usan el carrito de salida (HU13), que solo
 // admite productos con stock, y el recuento (HU14), que admite cualquiera.
-export default function BuscadorProducto({ onElegir, soloConStock = false }) {
+// Con `escanear` (HU30, carrito) también lee el código con la cámara.
+export default function BuscadorProducto({ onElegir, soloConStock = false, escanear = false }) {
   const [q, setQ] = useState('');
   const [resultados, setResultados] = useState([]);
   const [buscando, setBuscando] = useState(false);
   const [aviso, setAviso] = useState('');
+  const [escaneando, setEscaneando] = useState(false);
 
   useEffect(() => {
     if (q.trim().length < 2) {
@@ -31,6 +34,7 @@ export default function BuscadorProducto({ onElegir, soloConStock = false }) {
   }, [q]);
 
   const sinStock = (p) => soloConStock && p.stockActual <= 0;
+  const cerrarEscaner = useCallback(() => setEscaneando(false), []);
 
   function elegir(p) {
     onElegir(p);
@@ -61,6 +65,28 @@ export default function BuscadorProducto({ onElegir, soloConStock = false }) {
     }
   }
 
+  // HU30: el código leído se busca exacto; si no existe o no tiene stock, avisa.
+  async function alLeerCodigo(codigo) {
+    setEscaneando(false);
+    setQ('');
+    if (!codigo) return;
+    try {
+      const [p] = await api.get(`/productos?codigo=${encodeURIComponent(codigo)}`);
+      if (!p) {
+        setAviso(`No hay ningún producto con el código ${codigo}. Buscalo por nombre o cargá el código en su ficha.`);
+        return;
+      }
+      if (sinStock(p)) {
+        setAviso(`${p.nombre} no tiene stock.`);
+        return;
+      }
+      onElegir(p);
+      setAviso(`Se agregó ${p.nombre}.`);
+    } catch (err) {
+      setAviso(err.message);
+    }
+  }
+
   return (
     <div className="buscador">
       <div className="input">
@@ -76,9 +102,29 @@ export default function BuscadorProducto({ onElegir, soloConStock = false }) {
           aria-label="Buscar producto"
           enterKeyHint="search"
         />
-        <IconoCodigo size={18} color="var(--texto-suave)" />
+        {escanear ? (
+          <button
+            type="button"
+            className="buscador__escanear"
+            onClick={() => {
+              setAviso('');
+              setEscaneando(true);
+            }}
+            aria-label="Escanear código de barras con la cámara"
+            title="Escanear código de barras"
+          >
+            <IconoCodigo size={20} />
+          </button>
+        ) : (
+          <IconoCodigo size={18} color="var(--texto-suave)" />
+        )}
       </div>
-      {aviso && <p className="buscador__nota">{aviso}</p>}
+      {aviso && (
+        <p className="buscador__nota" role="status">
+          {aviso}
+        </p>
+      )}
+      {escaneando && <EscanerCodigo onLeer={alLeerCodigo} onCerrar={cerrarEscaner} />}
       {q.trim().length >= 2 && (
         <ul className="buscador__resultados">
           {buscando && <li className="buscador__nota">Buscando…</li>}

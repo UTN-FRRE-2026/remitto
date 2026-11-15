@@ -4,7 +4,7 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 
 ## Referencia verificada (15/11/2026)
 
-- `origin/main` en `961d037` (merge del PR #33, HU25), comprobado el 15/11/2026. **En `main`:** HU1 a HU29, todas las obligatorias. **Solo en la rama `feature/HU31-orden-compra`, sin integrar:** la deseable HU31.
+- `origin/main` en `e31ec10` (merge del PR #34, HU31), comprobado el 15/11/2026. **En `main`:** HU1 a HU29, todas las obligatorias, y la deseable HU31. **Solo en la rama `feature/HU30-escanear-codigo`, sin integrar:** la deseable HU30.
 - **Primera entrega del TPI: lunes 16/11/2026.** Consigna y entregables en [entrega-tpi.md](entrega-tpi.md).
 - **HU7:** el equipo informó el 14/11 que instaló la PWA en un Android real y funciona (no verificado en esta revisión).
 - Los PDF de la documentación probatoria están fuera del repositorio (`../remitto-entrega/`); se regeneraron el 14/11 con HU16 a HU20 y HU27 a HU29. **No incluyen HU21 ni HU22**: hay que regenerarlos.
@@ -14,7 +14,7 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
   - HU23 (simulador de ventas): integrada por el [PR #30](https://github.com/UTN-FRRE-2026/remitto/pull/30), merge `2dba88f`.
   - El respaldo del avance de HU21 (el stash `5373a09` y el patch de `retomar/`, en la copia local de Maxi) se conserva aunque ya no hace falta.
 - **Migraciones nuevas:** `20261114140000_hu21_claves_integracion`, `20261114150000_hu22_pedido_externo` y `20261115120000_hu24_alertas_stock` (solo datos), todas en `main`. HU26 no agrega migraciones. Quien use una base local tiene que aplicarlas con `npx prisma migrate deploy` (sin reset). En producción, el contenedor las aplica al arrancar; no se verificó.
-- PR #1 a #33 integrados en `main`.
+- PR #1 a #34 integrados en `main`.
 
 ## Integrado en `main`
 
@@ -52,6 +52,7 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 | HU24 alertas de stock (con migración `hu24_alertas_stock`) | [PR #31](https://github.com/UTN-FRRE-2026/remitto/pull/31) |
 | HU26 tablero de situación | [PR #32](https://github.com/UTN-FRRE-2026/remitto/pull/32) |
 | HU25 asistente de consultas | [PR #33](https://github.com/UTN-FRRE-2026/remitto/pull/33) |
+| HU31 orden de compra (deseable; dependencia nueva `pdfkit`) | [PR #34](https://github.com/UTN-FRRE-2026/remitto/pull/34) |
 
 HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa que se haya comprobado ahora cada criterio de aceptación.
 
@@ -61,11 +62,51 @@ HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa qu
 | --- | --- |
 | Backend y pantalla | HU1 a HU6, HU8 a HU22, HU24, HU26 a HU29 |
 | Simulador (sin pantalla) | HU23 (`simulador/simulador.mjs`, escenario `hu23-simulador`) |
-| Implementada en su rama, sin integrar | HU31 orden de compra, deseable (`feature/HU31-orden-compra`) |
+| Backend y pantalla (deseable) | HU31 orden de compra |
+| Implementada en su rama, sin integrar | HU30 escaneo del código en el carrito, deseable (`feature/HU30-escanear-codigo`) |
 | Probada por el equipo | HU7 PWA (`vite-plugin-pwa`): instalada en un Android real y funcionando (informado el 14/11/2026, no verificado en esta revisión) |
-| Sin implementar | La deseable HU30 |
 
-## Validación de HU31 (15/11/2026, rama `feature/HU31-orden-compra`, sin integrar)
+## Validación de HU30 (15/11/2026, rama `feature/HU30-escanear-codigo`, sin integrar)
+
+- **Qué hay:**
+  - `EscanerCodigo.jsx`: cámara trasera con ZXing (`@zxing/browser` 0.1.5 y `@zxing/library` 0.21.3, dependencias nuevas del frontend, fijadas). Se carga recién al abrir el escáner, en un chunk aparte que el service worker precachea.
+  - Formatos EAN-13/8, UPC-A/E, Code 128/39 e ITF. Se cierra con el primer código leído y apaga la cámara, también con Cancelar o Escape.
+  - Botón en el buscador de **Nueva salida** (`BuscadorProducto` con `escanear`). El recuento y los demás buscadores no cambian.
+  - `GET /api/productos?codigo=`: coincidencia exacta entre los activos.
+  - Sin migraciones.
+- **Pruebas ejecutadas en esta rama:**
+  - `npm test`: 253 correctas, 2 nuevas en `test/catalogo.test.js` (esquema y filtro exacto).
+  - `npm run e2e -- hu30-codigo`: 11 de 11. **Mutación:** con búsqueda parcial (`contains`) fallan 4.
+  - **Regresión:** `npm run e2e -- hu21-claves hu22-salidas hu23-simulador hu26-tablero hu25-asistente hu31-orden-compra hu30-codigo` dio 188 de 189, y `hu24-alertas` aparte, 31 de 31. La falla es la de siempre, «la revocación cayó con ventas en curso» de HU22, que depende de los tiempos y falla igual en `main` (`e31ec10`).
+  - `npm run build` correcto.
+  - **Navegador** con una cámara simulada de Chromium (video con un EAN-13 generado) contra una base descartable, en 24 controles:
+    - el código leído agrega el producto y un segundo escaneo suma uno;
+    - un código desconocido muestra el aviso y no agrega nada;
+    - un producto sin stock avisa y no entra;
+    - sin cámara, explica y vuelve a la búsqueda;
+    - la búsqueda por nombre y el lector tipo teclado siguen funcionando;
+    - la salida descuenta lo escaneado;
+    - 375 px sin desplazamiento horizontal, escritorio y sin errores de consola.
+- **Códigos del seed:** son ficticios y su dígito verificador EAN no es válido, así que una cámara no los lee. No se cambiaron porque HU22, el contrato OpenAPI y sus pruebas los usan. Para la demo, cargar en un producto el código real de un envase.
+- **No probado:** en un celular real (Android o iPhone), en producción (la cámara exige HTTPS) y con códigos impresos reales.
+
+## Revisión de HU25, HU26 y HU31 (15/11/2026, sobre `e31ec10`)
+
+Revisión del código integrado. Se volvieron a correr `npm test` (251) y los e2e de todas las historias (las de HU25, HU26 y HU31 correctas). No se corrigió nada.
+- **HU25, alta (por probar con Gemini real):** los argumentos de cada herramienta se validan con `.strict()` y no aceptan `null` ni claves de más. Con un `soloVentas` en `sin_ventas`, un `periodo: null` o `{ dias: 7, desde: null }`, la consulta termina en «argumentos inválidos», sin reintento. El planificador simulado siempre manda argumentos exactos, por eso las pruebas no lo ven. Se arregla quitando los `null` y descartando las claves que la herramienta no usa antes de validar.
+- **HU25, media:**
+  - el frontend muestra «Ocurrió un error» en los 503 y 500 del asistente, porque el mensaje viene en `respuesta` y `api.js` lee `error`;
+  - la «Última venta» de `sin_ventas` sale en UTC (`toISOString`), así que una venta a las 21:30 del 10/11 se muestra como 11/11.
+- **HU25, bajas:**
+  - la aclaración queda resuelta antes de ejecutar: si falla, hay que volver a preguntar;
+  - `stock_producto` llama «sin stock» al negativo.
+- **HU26:** nada grave. «Para reponer» del Inicio incluye productos sin stock y sin mínimo, que la sugerencia de HU27 excluye. Ya pasaba antes.
+- **HU31:** nada grave.
+  - Un `?proveedor=` mayor que un INT4 probablemente dé 500 en vez de 400; es el mismo patrón que el resto de los ids.
+  - Helvetica de pdfkit no dibuja caracteres fuera de WinAnsi (−, ≥, emojis); los acentos y la ñ salen bien.
+  - En un iPhone con la PWA instalada, `<a download>` puede abrir el visor en lugar de descargar (sin probar).
+
+## Validación de HU31 (15/11/2026, integrada en el PR #34; pruebas ejecutadas en la rama `feature/HU31-orden-compra`)
 
 - **Qué hay:**
   - `GET /api/reportes/reposicion/orden?proveedor=<id|sin>`, solo el propietario, que reutiliza `reposicion()` de HU27;

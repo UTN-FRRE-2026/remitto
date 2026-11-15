@@ -174,7 +174,7 @@ export default function Salidas() {
         ))}
       </div>
 
-      <BuscadorProducto onElegir={agregar} soloConStock />
+      <BuscadorProducto onElegir={agregar} soloConStock escanear />
 
       <div className="card carrito">
         {lineas.length === 0 ? (

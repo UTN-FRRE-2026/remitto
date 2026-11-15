@@ -26,11 +26,11 @@ En el coloquio también se evalúa:
 
 ## Estado de los entregables
 
-Estado al 14/11/2026, según el repositorio (`main` en `bfd995e`, PR #1 a #25 integrados). Lo que se prepara fuera del repo (aula virtual, YouTube, diseño gráfico) lo tiene que completar el equipo. Los PDF de la documentación probatoria se generan fuera del repositorio, en `../remitto-entrega/`.
+Estado al 15/11/2026, según el repositorio (`main` en `e31ec10`, PR #1 a #34 integrados; HU30 en su rama). Lo que se prepara fuera del repo (aula virtual, YouTube, diseño gráfico) lo tiene que completar el equipo. Los PDF de la documentación probatoria se generan fuera del repositorio, en `../remitto-entrega/`.
 
 | Entregable | Estado en el repo | Pendiente |
 | --- | --- | --- |
-| Producto final (aplicación) | En `main` están implementadas HU1 a HU24 y HU26 a HU29 (92 de 100 puntos del plan). HU25 (8 puntos) está completa en su rama, sin integrar. La PWA se instaló en un Android real (informado por el equipo). Ver [estado](estado-proyecto.md) y [requerimientos](requerimientos.md#resumen) | **Integrar HU25**. Probar el asistente con Gemini real. La consigna exige cumplir todos los requerimientos del plan |
+| Producto final (aplicación) | En `main` están implementadas las 29 historias obligatorias (HU1 a HU29, 100 de 100 puntos del plan) y la deseable HU31. La deseable HU30 (escaneo con la cámara) está completa en su rama, sin integrar. La PWA se instaló en un Android real (informado por el equipo). Ver [estado](estado-proyecto.md) y [requerimientos](requerimientos.md#resumen) | Integrar HU30. Probar el asistente con Gemini real y el escáner en un celular real. Verificar producción |
 | Plan de Trabajo | [plan-de-trabajo.md](plan-de-trabajo.md) | Definir el formato de entrega (¿el documento original del equipo?) |
 | Informe Final del Alumno | No está en el repo | Bajar el modelo del aula y completarlo |
 | Informe del Tutor | No corresponde si el trabajo no se hace en una organización | Confirmar si aplica (el plan describe un comercio, «Almacén Don Carlos») |
@@ -38,7 +38,7 @@ Estado al 14/11/2026, según el repositorio (`main` en `bfd995e`, PR #1 a #25 in
 | Lista de Requerimientos | [requerimientos.md](requerimientos.md), con el estado de cada uno. PDF generado el 14/11 | Regenerar el PDF cuando se integren las historias que faltan |
 | Diseño de la Base de Datos | [base-de-datos.md](base-de-datos.md) y diagrama [der-remitto.png](referencias/der-remitto.png). PDF del diseño y del diagrama (también en A3) generados el 14/11 | Regenerarlos si HU21 a HU25 cambian el esquema |
 | Maquetación de la Aplicación | [maquetacion.html](referencias/maquetacion.html) y [guía](maquetacion.md). PDF generado el 14/11 | — |
-| Manual del Usuario | [manual-usuario.md](manual-usuario.md), con capturas de HU1 a HU20 y HU27 a HU29; HU21 y HU22 descritas, sin captura. PDF generado el 14/11 | Agregar las historias que falten (y la captura de Integraciones) y regenerar el PDF |
+| Manual del Usuario | [manual-usuario.md](manual-usuario.md), con capturas de HU1 a HU20, HU27 a HU29 y HU30; HU21, HU22, HU24 y HU25 descritas, sin captura. PDF generado el 14/11 | Agregar las capturas que faltan (Integraciones, Alertas, Asistente) y regenerar el PDF |
 | Infografía (exposición) | No existe | Vertical, con el contenido del plan de trabajo |
 | Exposición y defensa oral | — | Preparar la demo en vivo y repartir la participación entre los tres integrantes |
 
