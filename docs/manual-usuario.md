@@ -40,7 +40,9 @@ Remitto **no es un punto de venta**: no cobra ni emite facturas. Las salidas se 
 1. Escribí tu correo electrónico y tu contraseña. El correo no distingue mayúsculas.
 2. Tocá **Ingresar**. El ojo del campo de contraseña la muestra u oculta.
 
-Si los datos no son correctos aparece «Credenciales incorrectas». Un usuario desactivado tampoco puede ingresar: pedile al propietario que lo reactive. Las cuentas las crea el propietario (ver [Usuarios](#usuarios)).
+Si los datos no son correctos aparece «Correo o contraseña incorrectos». Un usuario desactivado tampoco puede ingresar: pedile al propietario que lo reactive. Las cuentas las crea el propietario (ver [Usuarios](#usuarios)).
+
+¿Te olvidaste la contraseña? Tocá **Olvidé mi contraseña**: el propietario te asigna una nueva desde **Usuarios**. Si sos el propietario, contactá a quien administra el sistema.
 
 ### Cuenta y cierre de sesión
 
@@ -79,6 +81,8 @@ El Inicio muestra:
 Todos los números del Inicio se toman en el mismo momento, así que coinciden entre sí.
 
 ### Alertas de stock
+
+<img src="manual/29-alertas.png" alt="Alertas de stock activas y resueltas" width="300">
 
 La **campana** de arriba a la derecha muestra un punto rojo cuando hay alertas activas. Tocala para abrir **Alertas** (en la computadora, también está en el menú lateral):
 
@@ -124,6 +128,10 @@ La revisión muestra el archivo original (**Ver archivo** lo abre en grande), lo
 **Encabezado.** Completá el **Número** del comprobante: debajo se muestra el número leído como referencia («Leído: 0001-00045872»). El número es obligatorio y sirve para que un mismo remito no se ingrese dos veces. Revisá también la fecha de emisión, el tipo (remito, factura u otro) y el total impreso.
 
 **Facturas con IVA o descuentos.** En una factura A (con el IVA discriminado), o cuando el proveedor aplica una bonificación sobre el subtotal, el total no es la suma de los productos. Remitto lee esos renglones y completa **Descuentos generales** (las bonificaciones) e **IVA y otros impuestos** (IVA, percepciones). Si no se leyeron o están mal, corregilos en el encabezado. El resumen muestra la cuenta: suma de las líneas − descuentos + impuestos = total calculado, que tiene que dar el total impreso. Si no da, el total calculado aparece en rojo. En una factura B o C, con el IVA incluido en los precios, esos campos quedan vacíos.
+
+| Encabezado de una factura A | Resumen con la cuenta |
+| --- | --- |
+| <img src="manual/32-factura-iva-cabecera.png" alt="Encabezado con descuentos generales e IVA y otros impuestos" width="300"> | <img src="manual/33-factura-iva-resumen.png" alt="Resumen: suma de las líneas, descuentos, impuestos, total calculado y total impreso" width="300"> |
 
 **Líneas.** Cada línea muestra lo que se leyó («Leído: GAS, COLA 500ML», con su código, cantidad y precio impresos) y el producto del catálogo asociado:
 
@@ -298,6 +306,8 @@ En el menú lateral, **Asistente**; en el celular, desde **Cuenta**. Escribí un
 
 La respuesta trae un texto y una tabla o un gráfico con los datos registrados, y siempre indica el período consultado.
 
+<img src="manual/30-asistente.png" alt="Respuesta del asistente con un gráfico de barras y una tabla" width="300">
+
 - **Ventas y salidas no son lo mismo:** las ventas son solo las salidas por venta; las salidas incluyen también roturas, vencimientos y consumo interno. El título de cada respuesta dice cuál se consultó. «Lo que no se vendió» puede incluir productos que tuvieron roturas.
 - Si el asistente no está seguro de qué producto es (por ejemplo, hay varias yerbas), muestra las opciones: tocá la correcta y responde la misma pregunta.
 - Si el período no se puede consultar (por ejemplo, más de un año o fechas futuras), te pide que lo precises.
@@ -305,6 +315,8 @@ La respuesta trae un texto y una tabla o un gráfico con los datos registrados, 
 - Cada pregunta queda registrada.
 
 ### Integraciones: conectar la caja
+
+<img src="manual/31-integraciones.png" alt="Clave de integración recién generada y lista de claves" width="300">
 
 En el menú lateral, **Integraciones**; en el celular, desde **Cuenta**. Una clave de integración permite que la caja del comercio (el sistema de punto de venta) informe sus ventas a Remitto.
 
@@ -340,7 +352,7 @@ Muestra cómo cambió el precio de compra de cada producto. Por defecto toma el 
 
 ### Reposición: qué pedir y cuánto
 
-<img src="manual/23-reposicion.png" alt="Sugerencia de reposición agrupada por proveedor" width="300">
+<img src="manual/23-reposicion.png" alt="Sugerencia de reposición agrupada por proveedor, con Descargar orden (PDF)" width="300">
 
 Lista los productos que están en su **stock mínimo o por debajo** y cuánto pedir de cada uno para llegar a su **stock deseado** (las unidades y los paquetes se redondean hacia arriba).
 
@@ -390,10 +402,10 @@ Puede estar desactivado: el propietario lo ve con el filtro **Desactivados** y l
 
 ## Notas para el equipo (no forman parte del manual entregado)
 
-- Las capturas se tomaron el 13/11/2026 contra una base descartable con el seed y `IA_SIMULACION=ok`, con Chromium sin interfaz (390 px de ancho y 1366 px en escritorio). En la preparación, «Gaseosa cola 500 ml» se renombró a «Gaseosa cola» y se desactivó la galletita del seed, para mostrar una línea dudosa y una sin coincidencia.
+- Las capturas se tomaron entre el 13/11 y el 15/11/2026 contra bases descartables con el seed y `IA_SIMULACION=ok`, con Chromium sin interfaz (390 px de ancho y 1366 px en escritorio). En la preparación del 13/11, «Gaseosa cola 500 ml» se renombró a «Gaseosa cola» y se desactivó la galletita del seed, para mostrar una línea dudosa y una sin coincidencia.
+- Las capturas del 15/11 (Inicio, tablero en escritorio, Alertas, Reposición, Asistente, Integraciones y la factura con IVA) usan dos remitos simulados confirmados (septiembre y noviembre, el segundo con precios un 12 % más altos), ventas de cuatro productos, una factura A simulada (`factura_iva`) en revisión y un comprobante sin leer. La clave de integración que se ve es de una base descartable ya borrada.
 - Los campos de fecha aparecen en formato mm/dd/aaaa porque el navegador de las capturas estaba en inglés; en un celular en castellano se ven como dd/mm/aaaa.
-- La sección «Alertas de stock» (HU24, 15/11/2026) todavía no tiene captura en el manual ni en el PDF.
 - La sección de instalación describe el procedimiento estándar de Chrome; el equipo instaló la aplicación en un Android real y funciona (HU7, 14/11/2026).
 - Las capturas de precisión y evolución de precios (14/11) usan tres remitos simulados confirmados con fechas de emisión de junio, agosto y septiembre; para la precisión se marcaron como lecturas reales en la base descartable.
 - Las capturas del escáner (HU30, 15/11/2026) usan una cámara simulada de Chromium con un EAN-13 generado; en la de la izquierda el video muestra barras ilegibles para que el escáner siga abierto.
-- Al implementar más historias, agregar sus secciones. Falta la captura del Asistente.
+- Al implementar más historias, agregar sus secciones.

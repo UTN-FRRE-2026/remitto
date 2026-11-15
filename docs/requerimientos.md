@@ -79,7 +79,7 @@ Para el detalle de lo verificado en cada entrega, ver [estado-proyecto.md](estad
 
 | Sub. | Descripción | HU | Estado | Qué falta |
 | --- | --- | --- | --- | --- |
-| RF7.1 | Responder preguntas en lenguaje natural y registrar cada consulta | HU25 | Implementado | Pantalla Asistente (solo el propietario) · `/api/asistente/consultas`. 8 tipos de preguntas con 8 herramientas de lectura habilitadas; el modelo solo elige la herramienta y el backend arma la respuesta con datos reales; cada consulta queda en `consultas_agente`. Verificado con la IA simulada contra PostgreSQL (`backend/e2e/hu25-asistente.mjs`); falta probarlo con Gemini real |
+| RF7.1 | Responder preguntas en lenguaje natural y registrar cada consulta | HU25 | Implementado | Pantalla Asistente (solo el propietario) · `/api/asistente/consultas`. 8 tipos de preguntas con 8 herramientas de lectura habilitadas; el modelo solo elige la herramienta y el backend arma la respuesta con datos reales; cada consulta queda en `consultas_agente`. Verificado con la IA simulada contra PostgreSQL (`backend/e2e/hu25-asistente.mjs`) y con Gemini real el 15/11/2026: 31 consultas, los 8 tipos, con el período pedido |
 
 ### RF8 Reportes · Mandatoria
 
