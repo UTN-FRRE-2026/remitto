@@ -22,6 +22,7 @@ import ProveedorForm from './pages/ProveedorForm.jsx';
 import EnConstruccion from './pages/EnConstruccion.jsx';
 import Reportes from './pages/Reportes.jsx';
 import Integraciones from './pages/Integraciones.jsx';
+import Alertas from './pages/Alertas.jsx';
 
 // Protege las rutas privadas: sin sesión redirige al login.
 function Privado({ children }) {
@@ -87,6 +88,7 @@ export default function App() {
           <Route path="/comprobantes" element={<Privado><Comprobantes /></Privado>} />
           <Route path="/comprobantes/precision" element={<Privado><PrecisionLectura /></Privado>} />
           <Route path="/movimientos" element={<Privado><Movimientos /></Privado>} />
+          <Route path="/alertas" element={<Privado><Alertas /></Privado>} />
           <Route
             path="/precios"
             element={

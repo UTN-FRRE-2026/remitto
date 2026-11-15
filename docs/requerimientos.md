@@ -14,9 +14,9 @@ Para el detalle de lo verificado en cada entrega, ver [estado-proyecto.md](estad
 
 | | Historias | Puntos del plan |
 | --- | --- | --- |
-| Implementadas | 26 (HU1 a HU23 y HU27 a HU29) | 86 de 100 obligatorios |
+| Implementadas | 27 (HU1 a HU24 y HU27 a HU29) | 89 de 100 obligatorios |
 | Parciales | 1 (HU26) | 3 |
-| Pendientes obligatorias | 2 (HU24 y HU25) | 11 |
+| Pendientes obligatorias | 1 (HU25) | 8 |
 | Deseables pendientes | 2 (HU30, HU31) | 5 (fuera de los 100) |
 
 ## Requerimientos funcionales
@@ -71,7 +71,7 @@ Para el detalle de lo verificado en cada entrega, ver [estado-proyecto.md](estad
 
 | Sub. | Descripción | HU | Estado | Qué falta |
 | --- | --- | --- | --- | --- |
-| RF6.1 | Generar alertas de stock bajo, sin stock y negativo | HU24 | Pendiente | La tabla `alertas_stock` existe, con una sola alerta activa por producto y tipo |
+| RF6.1 | Generar alertas de stock bajo, sin stock y negativo | HU24 | Implementado | Observador de movimientos: cada movimiento (comprobante, carrito, recuento y endpoint de integración) abre o resuelve la alerta del producto, con una sola activa por producto (`uq_alerta_activa`). Pantalla Alertas desde la campana del Inicio · `GET /api/alertas` |
 | RF6.2 | Sugerir la reposición | HU27 | Implementado | Precios y reportes › Reposición: cantidad hasta el stock deseado, agrupada por último proveedor · `GET /api/reportes/reposicion` |
 
 ### RF7 Agente de consultas · Mandatoria
@@ -87,7 +87,7 @@ Para el detalle de lo verificado en cada entrega, ver [estado-proyecto.md](estad
 | RF8.1 | Valorización de existencias | HU28 | Implementado | Pantalla Precios y reportes: valor por categoría a último precio de compra y productos sin precio aparte · `GET /api/reportes/valorizacion` |
 | RF8.2 | Productos sin movimiento | HU29 | Implementado | Precios y reportes › Sin movimiento: período elegible, stock, valor y última salida · `GET /api/reportes/sin-movimiento` |
 | RF8.3 | Evolución de precios de compra | HU20 | Implementado | Precios y reportes › Evolución de precios: productos que más aumentaron, gráfico por proveedor ordenado por fecha y comparación del último precio · `GET /api/reportes/precios` |
-| RF8.4 | Tablero de situación | HU26 | Parcial | El tablero muestra indicadores de stock, productos para reponer y remitos por revisar. Faltan las alertas activas y el valor del stock |
+| RF8.4 | Tablero de situación | HU26 | Parcial | El tablero muestra indicadores de stock, productos para reponer y remitos por revisar. Faltan las alertas activas en el tablero (ya existen con HU24, en la campana) y el valor del stock |
 
 ### RF9 Funcionalidades deseables · Deseable
 

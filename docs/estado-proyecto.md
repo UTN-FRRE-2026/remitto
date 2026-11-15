@@ -2,19 +2,19 @@
 
 Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuente de verdad: contrastá esta nota antes de usarla.
 
-## Referencia verificada (14/11/2026)
+## Referencia verificada (15/11/2026)
 
-- `origin/main` en `6d63ce6` (merge del PR #29, documentación del estado), comprobado el 14/11/2026. **En `main`:** hasta HU22. **Solo en la rama `feature/HU23-simulador-ventas`, sin integrar:** HU23.
+- `origin/main` en `2dba88f` (merge del PR #30, HU23), comprobado el 15/11/2026. **En `main`:** hasta HU23. **Solo en la rama `feature/HU24-alertas-stock`, sin integrar:** HU24.
 - **Primera entrega del TPI: lunes 16/11/2026.** Consigna y entregables en [entrega-tpi.md](entrega-tpi.md).
 - **HU7:** el equipo informó el 14/11 que instaló la PWA en un Android real y funciona (no verificado en esta revisión).
 - Los PDF de la documentación probatoria están fuera del repositorio (`../remitto-entrega/`); se regeneraron el 14/11 con HU16 a HU20 y HU27 a HU29. **No incluyen HU21 ni HU22**: hay que regenerarlos.
 - **Integración externa:**
   - HU21 (claves de integración): integrada por el [PR #27](https://github.com/UTN-FRRE-2026/remitto/pull/27), merge `708f9d9`.
   - HU22 (salidas desde un sistema externo): integrada por el [PR #28](https://github.com/UTN-FRRE-2026/remitto/pull/28), merge `b822eb9`. El contenido integrado es idéntico al último commit publicado de la rama (`77e614f`).
-  - HU23 (simulador de ventas): implementada en la rama `feature/HU23-simulador-ventas`, desde `6d63ce6`, **pendiente de PR y de integración**. Depende de HU22, ya integrada.
+  - HU23 (simulador de ventas): integrada por el [PR #30](https://github.com/UTN-FRRE-2026/remitto/pull/30), merge `2dba88f`.
   - El respaldo del avance de HU21 (el stash `5373a09` y el patch de `retomar/`, en la copia local de Maxi) se conserva aunque ya no hace falta.
-- **Migraciones nuevas:** `20261114140000_hu21_claves_integracion` y `20261114150000_hu22_pedido_externo`. Quien use una base local tiene que aplicarlas con `npx prisma migrate deploy` (sin reset). En producción, el contenedor las aplica al arrancar; no se verificó.
-- PR #1 a #29 integrados en `main`.
+- **Migraciones nuevas:** `20261114140000_hu21_claves_integracion` y `20261114150000_hu22_pedido_externo` (en `main`), y `20261115120000_hu24_alertas_stock` (rama de HU24, solo datos). Quien use una base local tiene que aplicarlas con `npx prisma migrate deploy` (sin reset). En producción, el contenedor las aplica al arrancar; no se verificó.
+- PR #1 a #30 integrados en `main`.
 
 ## Integrado en `main`
 
@@ -48,6 +48,7 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 | Estado de HU7 en Android y de los entregables de la primera entrega (documentación) | [PR #25](https://github.com/UTN-FRRE-2026/remitto/pull/25) y [PR #26](https://github.com/UTN-FRRE-2026/remitto/pull/26) |
 | HU21 claves de integración (con migración `hu21_claves_integracion`) y ejecutor de pruebas de punta a punta | [PR #27](https://github.com/UTN-FRRE-2026/remitto/pull/27) |
 | HU22 salidas desde un sistema externo, contrato OpenAPI (con migración `hu22_pedido_externo`) y corrección de HU28 (stock negativo en la valorización) | [PR #28](https://github.com/UTN-FRRE-2026/remitto/pull/28) |
+| HU23 simulador de ventas | [PR #30](https://github.com/UTN-FRRE-2026/remitto/pull/30) |
 
 HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa que se haya comprobado ahora cada criterio de aceptación.
 
@@ -56,11 +57,28 @@ HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa qu
 | Estado observado | Historias |
 | --- | --- |
 | Backend y pantalla | HU1 a HU6, HU8 a HU22, HU27 a HU29 |
-| Implementada en su rama, sin integrar | HU23 simulador de ventas (`simulador/simulador.mjs`, escenario `hu23-simulador`) |
+| Simulador (sin pantalla) | HU23 (`simulador/simulador.mjs`, escenario `hu23-simulador`) |
+| Implementada en su rama, sin integrar | HU24 alertas de stock (`feature/HU24-alertas-stock`) |
 | Probada por el equipo | HU7 PWA (`vite-plugin-pwa`): instalada en un Android real y funcionando (informado el 14/11/2026, no verificado en esta revisión) |
-| Sin implementar | HU24 y HU25 (HU26 parcial) y las deseables HU30 y HU31. `/asistente` es `EnConstruccion` |
+| Sin implementar | HU25 (HU26 parcial) y las deseables HU30 y HU31. `/asistente` es `EnConstruccion` |
 
-## Validación de HU23 (14/11/2026, rama `feature/HU23-simulador-ventas`, sin integrar)
+## Validación de HU24 (15/11/2026, rama `feature/HU24-alertas-stock`, sin integrar)
+
+- **Qué hay:** observador de movimientos en `registrarMovimiento` (misma transacción), módulo `alertas` (regla, evaluación con la fila del producto bloqueada, `GET /api/alertas`), recálculo al crear, editar, desactivar o reactivar un producto, migración de datos `hu24_alertas_stock` para el stock que ya estaba bajo, seed y pantalla Alertas (campana del Inicio con punto solo si hay activas, y menú lateral).
+- `npm test`: 224 correctas (9 nuevas en `test/alertas.test.js`: regla, coherencia con `estadoStock`, ciclo de vida, observador y su falla). `npm run build` correcto. `npm run doc-bd` sin cambios (la migración no cambia el esquema).
+- `npm run e2e -- hu24-alertas`: 31/31 contra una base descartable (detalle en `backend/e2e/README.md`), incluidas 40 salidas simultáneas (endpoint y carrito) con una sola alerta por situación.
+- **Migración:** probada sobre una base descartable con 12 productos (negativos, cero, en el mínimo, decimales, desactivados, uno con alerta previa): el resultado coincide con `tipoAlerta()` y repetirla no duplica.
+- **Pantalla** (IA simulada, base descartable): 16 controles, con el ingreso por comprobante resolviendo una alerta (camino de HU11, que el escenario e2e no cubre), coherencia entre alertas e indicadores en cada paso, 375 y 360 px sin desplazamiento horizontal, empleado sin el acceso a la reposición y menú lateral con scroll. Un control del script falló por un error del propio script (la salida preparada era inválida), no de la aplicación.
+- **Regresiones:** `hu21-claves`, `hu22-salidas` y `hu23-simulador` corridos en esta rama: 110 de 111. El que falla, «la revocación cayó con ventas en curso», **también falla en `main`** en esta máquina (las 120 ventas terminan antes de que llegue la revocación); depende de los tiempos y no lo causa HU24. Las garantías de esa parte pasan.
+- **No probado:** en producción ni en un celular real.
+
+## Revisión de HU21 a HU23 (15/11/2026, sobre `2dba88f`)
+
+Revisión del código integrado, sin hallazgos de severidad alta ni media. Menores, no corregidos:
+- HU22: la idempotencia es por clave. Si la caja reintenta con una clave nueva una venta cuya respuesta se perdió, se descuenta dos veces. El contrato OpenAPI pide enviar los reenvíos pendientes antes de revocar.
+- HU22: la validación de hasta 3 decimales usa una tolerancia que rechaza algunas cantidades válidas muy grandes (alrededor de 1e8) y acepta valores con más decimales, que la base redondea. El stock sigue cuadrando.
+
+## Validación de HU23 (14/11/2026, integrada en el PR #30; pruebas ejecutadas en la rama `feature/HU23-simulador-ventas`)
 
 - **Qué hay:**
   - `simulador/simulador.mjs`, sin dependencias: genera ventas reproducibles con semilla, las envía por la API de HU22 con una clave de HU21 en tandas paralelas, reintenta ante un 503 con `Retry-After` (la misma referencia y el mismo contenido) y compara el stock.
@@ -112,7 +130,7 @@ HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa qu
 - **Punta a punta reproducible:** `npm run e2e -- hu21-claves hu22-salidas` → 83 controles correctos (38 + 45). Los de HU22 cubren contrato publicado, 401 (sin clave, inexistente, token de persona), validación y atomicidad (400 sin descontar), venta por código de barras e id con líneas sumadas, cabecera y movimientos sin usuario, último uso, Movimientos «Punto de venta (Caja 1)», reenvío 200 en otro orden y con espacios, 409 con otro contenido, misma referencia en otra caja, stock negativo con aviso y en la valorización, kilos, carrito sin cambios (sigue rechazando sin stock y su reenvío), 25 envíos simultáneos de la misma venta (un 201 y 24 × 200, un solo descuento), 52 operaciones simultáneas (40 ventas de dos cajas y 12 carritos, productos en orden aleatorio) con el stock esperado igual al registrado, revocación con 120 ventas en curso (cada 201 tiene su venta, ningún 401 deja una, después 10 de 10 rechazadas), el orden determinístico venta en curso → revocación, y stock igual a la suma de movimientos.
 - **Pruebas de mutación:** sin el `FOR SHARE` fallan 3 controles (la revocación se confirma antes que la venta en curso); sin el manejo del índice único fallan 2 (los reenvíos simultáneos dan 409). Restaurado, 45/45.
 - Recorrido en el navegador de la app contra una base descartable: venta y reenvío por el proxy de la app, valorización con el recuadro de stock negativo a 375 px, Movimientos con «Venta · Punto de venta (Caja de prueba HU22)» y la ayuda de Integraciones con el ejemplo y el enlace al contrato.
-- **No probado:** con un sistema de punto de venta real ni en producción (HTTPS, Coolify). El simulador de HU23 queda pendiente.
+- **No probado:** con un sistema de punto de venta real ni en producción (HTTPS, Coolify).
 - **Corrección por la revisión de la rama publicada (reenvíos con el catálogo cambiado):** `registrarVenta` resolvía los códigos de barras antes de buscar la venta existente. Reproducido contra PostgreSQL: venta por código, cambio del código y reenvío exacto → 400; con el código borrado → 400; con el código pasado a otro producto → 409; y el mismo producto por `productoId` se aceptaba como reenvío.
   - Ahora cada venta guarda su petición normalizada en `salidas.pedido_externo` (migración `20261114150000_hu22_pedido_externo`, `CHECK chk_pedido_externo`). El reenvío se busca primero y se reconoce comparando las líneas normalizadas con sus identificadores originales, sin consultar el catálogo; la fecha no participa.
   - **Datos existentes:** la base de desarrollo local no tenía salidas, y en `main` el endpoint nunca existió. Igual, la migración no inventa peticiones: si encuentra ventas de integración sin petición, las conserva y deja el CHECK sin validar para ellas (rige para las nuevas); si no hay, lo valida. Probado en una base descartable en los dos casos (validado `true`; con una venta previa, validado `false`, la venta intacta y una nueva sin petición rechazada). Esas ventas previas se comparan como antes, por producto resuelto.

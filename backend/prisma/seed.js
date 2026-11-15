@@ -6,6 +6,7 @@
 import bcrypt from 'bcryptjs';
 import { PrismaClient } from '@prisma/client';
 import { registrarMovimiento } from '../src/modules/stock/stock.service.js';
+import { sincronizarAlertas } from '../src/modules/alertas/alertas.service.js';
 
 const prisma = new PrismaClient();
 
@@ -98,6 +99,9 @@ async function main() {
       });
     }
   }
+
+  // HU24: alertas de los productos que quedan bajo el mínimo o sin stock.
+  await sincronizarAlertas(prisma);
 
   console.log('✅ Listo. Usuario propietario: carlos@doncarlos.com.ar / remitto123');
   console.log(`   (${propietario.nombre}, Almacén Don Carlos)`);

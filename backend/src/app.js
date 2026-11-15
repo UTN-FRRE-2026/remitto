@@ -4,8 +4,11 @@ import morgan from 'morgan';
 import { env, esProduccion } from './config/env.js';
 import routes from './routes.js';
 import { manejadorErrores, noEncontrado } from './middlewares/error.js';
+import { activarAlertas } from './modules/alertas/alertas.service.js';
 
 export function crearApp() {
+  // HU24: el observador de alertas escucha cada movimiento de stock.
+  activarAlertas();
   const app = express();
 
   app.use(cors({ origin: env.corsOrigin, credentials: true }));
