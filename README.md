@@ -12,7 +12,7 @@ automática de comprobantes de compra mediante Inteligencia Artificial.
 ## Estado actual
 
 Están implementadas las historias del Sprint 1 (HU1 a HU14) y, del
-Sprint 2, HU15 a HU22 y HU27 a HU29. La aplicación está desplegada en producción con Coolify, a partir
+Sprint 2, HU15 a HU23 y HU27 a HU29. La aplicación está desplegada en producción con Coolify, a partir
 de `main`. El equipo probó la instalación de la PWA en un Android real (HU7) y funciona.
 
 Ya implementado:
@@ -26,7 +26,7 @@ Ya implementado:
 | **Existencias** | HU12 (movimientos y existencias) | ✅ Backend y pantalla Movimientos |
 | **Salidas** | HU13 (carrito de salida) | ✅ Backend y pantalla Nueva salida |
 | **Recuento** | HU14 (ajuste por recuento) | ✅ Backend y pantalla Recuento |
-| **RF5** Integración | HU21 (claves de integración), HU22 (salidas desde un sistema externo, con contrato OpenAPI) | ✅ Backend y pantalla Integraciones |
+| **RF5** Integración | HU21 (claves de integración), HU22 (salidas desde un sistema externo, con contrato OpenAPI), HU23 (simulador de ventas) | ✅ Backend, pantalla Integraciones y simulador |
 | **RF6** Reposición | HU27 (sugerencia de reposición) | ✅ Backend y pantalla Precios y reportes |
 | **RF8** Reportes | HU20 (evolución de precios), HU28 (valorización de existencias), HU29 (productos sin movimiento) | ✅ Backend y pantalla Precios y reportes |
 | Frontend | Login, Tablero, Comprobantes, Precisión de la lectura, Productos (alta y edición), Proveedores, Categorías, Usuarios, Cargar remito, Lectura con IA, Revisar remito, Movimientos, Nueva salida, Recuento, Precios y reportes, Integraciones | ✅ Vistas base |
@@ -647,13 +647,37 @@ pantalla Integraciones lo enlaza con un ejemplo.
   Un JSON mal formado ahora da 400, y un cuerpo demasiado grande, 413.
 - Las ventas aparecen en Movimientos como «Punto de venta (nombre de la clave)».
 
+### Simulador de ventas (HU23)
+
+`simulador/simulador.mjs` actúa como la caja de un comercio:
+- genera ventas aleatorias reproducibles (con semilla) y las informa por
+  `POST /api/v1/integracion/salidas` con una clave de integración;
+- incluye reenvíos duplicados intencionales, algunos en paralelo con la venta
+  original;
+- reintenta ante un 503 respetando `Retry-After`;
+- al final compara el stock esperado con el registrado.
+
+El esperado se calcula sin mirar las respuestas: enteros en milésimas, cada
+referencia una sola vez y los códigos de barras resueltos con el catálogo de
+prueba.
+
+```bash
+cd backend && npm run e2e -- hu23-simulador
+```
+
+Corre contra la base descartable del ejecutor de punta a punta. Con la
+configuración por defecto (semilla 2026) son 150 operaciones de salida (120
+ventas y 30 reenvíos) y 0 diferencias. Después, un **control negativo
+separado** registra a propósito un descuento adicional y exige que el
+comparador lo detecte. Detalle en [`simulador/README.md`](simulador/README.md).
+
 ### Pruebas de punta a punta
 
 `npm test` no usa base de datos. Las comprobaciones contra PostgreSQL
 (permisos, SQL, reenvíos y concurrencia) se corren con una base descartable:
 
 ```bash
-cd backend && npm run e2e -- hu21-claves hu22-salidas
+cd backend && npm run e2e -- hu21-claves hu22-salidas hu23-simulador
 ```
 
 Requiere el PostgreSQL de desarrollo encendido (`docker compose up -d db`).

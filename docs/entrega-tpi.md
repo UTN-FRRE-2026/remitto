@@ -30,7 +30,7 @@ Estado al 14/11/2026, según el repositorio (`main` en `bfd995e`, PR #1 a #25 in
 
 | Entregable | Estado en el repo | Pendiente |
 | --- | --- | --- |
-| Producto final (aplicación) | Están implementadas HU1 a HU22 y HU27 a HU29 (83 de 100 puntos del plan) y HU26 en parte. La PWA se instaló en un Android real (informado por el equipo). Ver [estado](estado-proyecto.md) y [requerimientos](requerimientos.md#resumen) | **HU23 a HU25 sin implementar** (14 puntos) y **HU26 incompleta** (faltan las alertas activas, que dependen de HU24, y el valor del stock). La consigna exige cumplir todos los requerimientos del plan. HU23 (simulador) depende de HU22 |
+| Producto final (aplicación) | Están implementadas HU1 a HU23 y HU27 a HU29 (86 de 100 puntos del plan) y HU26 en parte. La PWA se instaló en un Android real (informado por el equipo). Ver [estado](estado-proyecto.md) y [requerimientos](requerimientos.md#resumen) | **HU24 y HU25 sin implementar** (11 puntos) y **HU26 incompleta** (faltan las alertas activas, que dependen de HU24, y el valor del stock). La consigna exige cumplir todos los requerimientos del plan |
 | Plan de Trabajo | [plan-de-trabajo.md](plan-de-trabajo.md) | Definir el formato de entrega (¿el documento original del equipo?) |
 | Informe Final del Alumno | No está en el repo | Bajar el modelo del aula y completarlo |
 | Informe del Tutor | No corresponde si el trabajo no se hace en una organización | Confirmar si aplica (el plan describe un comercio, «Almacén Don Carlos») |

@@ -14,9 +14,9 @@ Para el detalle de lo verificado en cada entrega, ver [estado-proyecto.md](estad
 
 | | Historias | Puntos del plan |
 | --- | --- | --- |
-| Implementadas | 25 (HU1 a HU22 y HU27 a HU29) | 83 de 100 obligatorios |
+| Implementadas | 26 (HU1 a HU23 y HU27 a HU29) | 86 de 100 obligatorios |
 | Parciales | 1 (HU26) | 3 |
-| Pendientes obligatorias | 3 (HU23 a HU25) | 14 |
+| Pendientes obligatorias | 2 (HU24 y HU25) | 11 |
 | Deseables pendientes | 2 (HU30, HU31) | 5 (fuera de los 100) |
 
 ## Requerimientos funcionales
@@ -65,7 +65,7 @@ Para el detalle de lo verificado en cada entrega, ver [estado-proyecto.md](estad
 | --- | --- | --- | --- | --- |
 | RF5.1 | Administrar claves de integración | HU21 | Implementado | Pantalla Integraciones · `/api/claves-integracion`. La clave se muestra una vez; en la base quedan su prefijo y su hash SHA-256. Revocación y último uso. Verificado de punta a punta (`backend/e2e/hu21-claves.mjs`) |
 | RF5.2 | Recibir salidas por el endpoint, sin duplicados y con contrato OpenAPI | HU22 | Implementado | `POST /api/v1/integracion/salidas` con la clave de HU21, el mismo servicio que el carrito, reenvíos sin duplicar (índice único por clave y referencia) y contrato en `GET /api/v1/integracion/openapi.json`. Verificado de punta a punta con concurrencia (`backend/e2e/hu22-salidas.mjs`) |
-| RF5.3 | Validar la integración con un simulador de ventas | HU23 | Pendiente | Depende de HU22. `simulador/` solo tiene un README; `backend/e2e/hu22-salidas.mjs` ya ejercita reenvíos y concurrencia, pero no es el simulador de cien operaciones |
+| RF5.3 | Validar la integración con un simulador de ventas | HU23 | Implementado | `simulador/simulador.mjs`, ejecutado con `npm run e2e -- hu23-simulador`: 120 ventas y 30 reenvíos (150 operaciones de salida) y 0 diferencias entre el stock esperado y el registrado, más un control negativo que detecta un doble descuento |
 
 ### RF6 Alertas y reposición · Mandatoria
 
