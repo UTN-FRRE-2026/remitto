@@ -106,6 +106,19 @@ HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa qu
   - **Navegador**, con una base descartable y datos cargados por la API:
     - propietario: una pregunta sugerida (ranking de ventas con barras), una escrita con aclaración entre dos yerbas y la elección con el gráfico de precios del mismo período, una pregunta fuera de alcance y una tabla ancha a 375 px sin desplazamiento horizontal;
     - empleado: la API da 403, `/asistente` lo lleva al inicio y no ve el acceso ni en el menú ni en Cuenta.
+- **Corrección por la revisión de la rama publicada:**
+  - **Presupuesto de tiempo:** `maxWait` (la espera por una conexión) y `timeout` (la ejecución) podían sumar más que lo restante. Reproducido con reloj y base simulados: 9 s esperando la conexión y 22 s ejecutando daban una respuesta exitosa con `duracionMs` 31000.
+    - Ahora el paso completo tiene un tope de reloj real igual al tiempo restante.
+    - Ya con la conexión se recalcula lo que queda, que pasa a ser el `statement_timeout`; si la espera lo consumió, la herramienta no se ejecuta.
+    - Al terminar, si el presupuesto venció, la consulta se registra con TIEMPO y su duración real.
+  - **Evolución del precio:** con más de 20 proveedores devolvía todas las filas sin aviso. Ahora muestra 20, informa el total real («Se muestran 20 de 21 proveedores») y el gráfico muestra los mismos proveedores que la tabla, siempre con el del texto.
+  - **Regresiones unitarias:**
+    - espera por conexión más ejecución (9 s y 22 s, TIEMPO con 31000 ms);
+    - conexión que consume el presupuesto (no se ejecuta);
+    - proveedor, conexión y ejecución dentro de los 30 s (exitosa) y por encima (TIEMPO);
+    - 21 proveedores (20 filas, 21 en total y el gráfico coherente).
+    - Las dos fallaban con el commit anterior.
+  - `npm test`: 244 correctas. `npm run e2e -- hu25-asistente`: 31 de 31.
 - **No probado:** con Gemini real (planificador y tiempos), en un celular real ni en producción.
 
 ## Validación de HU26 (15/11/2026, integrada en el PR #32)

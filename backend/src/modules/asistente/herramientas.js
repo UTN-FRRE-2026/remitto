@@ -25,9 +25,11 @@ const cantidadCon = (n, unidad) => `${formatoNumero(n)} ${UNIDAD[unidad] ?? ''}`
 const porcentaje = (n) => `${n > 0 ? '+' : ''}${formatoNumero(n)} %`;
 
 // Muestra hasta MAX_FILAS filas e informa cuántas hay en total.
-export function limitar(lista, limite = MAX_FILAS) {
+// que: qué se cuenta («proveedores»), para el aviso.
+export function limitar(lista, limite = MAX_FILAS, que = '') {
   const filas = lista.slice(0, Math.min(limite, MAX_FILAS));
-  return { filas, totalFilas: lista.length, nota: lista.length > filas.length ? `Se muestran ${filas.length} de ${lista.length}.` : null };
+  const aviso = lista.length > filas.length ? `Se muestran ${filas.length} de ${lista.length}${que ? ` ${que}` : ''}.` : null;
+  return { filas, totalFilas: lista.length, nota: aviso };
 }
 
 const tabla = ({ titulo, columnas, lista, limite, totales = null, nota = null }) => {
@@ -316,6 +318,13 @@ export const HERRAMIENTAS = {
       }
       const conProveedor = datos.proveedores.find((pr) => pr.nombre === datos.ultimo.proveedor) ?? datos.proveedores[0];
       const variacion = conProveedor.variacion;
+      // Hasta 20 proveedores (del más barato al más caro), siempre con el del
+      // texto; la tabla y el gráfico muestran los mismos.
+      let orden = datos.proveedores;
+      if (orden.indexOf(conProveedor) >= MAX_FILAS) {
+        orden = [...orden.slice(0, MAX_FILAS - 1), conProveedor, ...orden.slice(MAX_FILAS - 1).filter((pr) => pr !== conProveedor)];
+      }
+      const { filas: visibles, totalFilas, nota } = limitar(orden, MAX_FILAS, 'proveedores');
       return {
         texto:
           variacion == null
@@ -325,15 +334,17 @@ export const HERRAMIENTAS = {
           tipo: 'grafico',
           grafico: 'precios',
           titulo: `Precio de compra de ${p.nombre} · ${describirPeriodo(periodo)}`,
-          series: datos.proveedores.map((pr) => ({ id: pr.id, nombre: pr.nombre, puntos: pr.puntos })),
+          series: visibles.map((pr) => ({ id: pr.id, nombre: pr.nombre, puntos: pr.puntos })),
           columnas: [
             { clave: 'proveedor', titulo: 'Proveedor' },
             { clave: 'primero', titulo: 'Primer precio', tipo: 'pesos' },
             { clave: 'ultimo', titulo: 'Último precio', tipo: 'pesos' },
             { clave: 'variacion', titulo: 'Variación', tipo: 'porcentaje' },
           ],
-          filas: datos.proveedores.map((pr) => ({ proveedor: pr.nombre, primero: pr.primero.precio, ultimo: pr.ultimo.precio, variacion: pr.variacion })),
-          totalFilas: datos.proveedores.length,
+          filas: visibles.map((pr) => ({ proveedor: pr.nombre, primero: pr.primero.precio, ultimo: pr.ultimo.precio, variacion: pr.variacion })),
+          totalFilas,
+          totales: { Proveedores: totalFilas },
+          nota: nota ? `${nota} El gráfico muestra los mismos.` : null,
         },
         filas: datos.precios,
         productoId: p.id,

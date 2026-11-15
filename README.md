@@ -728,8 +728,8 @@ abre desde **Cuenta**). Responde preguntas en castellano sobre el stock
   llamar al modelo.
 - **Límites:**
   - 2 intentos del modelo como máximo, sin reintentos automáticos del SDK, y una herramienta por consulta;
-  - hasta 20 filas mostradas, con el total de resultados y los totales calculados sobre el conjunto completo;
-  - un presupuesto global de 30 s, compartido entre los intentos y la ejecución. Es el límite de espera; el objetivo de RNF2 es 3 s y falta medirlo con Gemini.
+  - hasta 20 filas mostradas (también los proveedores de la evolución de un precio, con el gráfico coherente con la tabla), con el total de resultados y los totales calculados sobre el conjunto completo;
+  - un presupuesto global de 30 s, compartido entre los intentos, la espera por una conexión a la base y la ejecución. Si vence, la consulta se registra con TIEMPO aunque la herramienta haya terminado. Es el límite de espera; el objetivo de RNF2 es 3 s y falta medirlo con Gemini.
 - **Registro:** cada consulta, exitosa, de aclaración o fallida, queda en
   `consultas_agente`, con el planificador (intentos y milisegundos), la
   herramienta (argumentos, filas y milisegundos, o el rechazo) y la duración

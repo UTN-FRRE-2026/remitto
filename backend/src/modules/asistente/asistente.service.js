@@ -91,6 +91,24 @@ async function obtenerPlan(pregunta, d, vence, traza) {
 
 // Ejecuta una herramienta habilitada con argumentos ya validados, en una
 // transacción de solo lectura con el tiempo restante como tope.
+// Espera una promesa como máximo `ms` (reloj real); si vence, rechaza con
+// TIEMPO. La transacción de solo lectura que siga corriendo la corta su
+// statement_timeout y Prisma la descarta.
+function conTope(promesa, ms) {
+  let temporizador;
+  const tope = new Promise((_, rechazar) => {
+    temporizador = setTimeout(() => rechazar(new Falla('TIEMPO')), Math.max(1, ms));
+  });
+  return Promise.race([promesa, tope]).finally(() => clearTimeout(temporizador));
+}
+
+// La adquisición de la conexión y la ejecución comparten el mismo
+// presupuesto: el paso entero no puede pasar de `vence`.
+// - Antes de pedir la conexión: si no queda el mínimo, no se ejecuta.
+// - Ya con la conexión: se recalcula lo que queda y es el statement_timeout;
+//   si la espera lo consumió, la herramienta no se ejecuta.
+// - Al terminar: si el presupuesto venció igual, la respuesta se descarta y
+//   la consulta se registra con TIEMPO y su duración real.
 async function ejecutarHerramienta(nombre, argumentos, { productoId } = {}, d, vence, traza) {
   const restante = vence - d.reloj();
   if (restante < MIN_MS_HERRAMIENTA) {
@@ -98,15 +116,23 @@ async function ejecutarHerramienta(nombre, argumentos, { productoId } = {}, d, v
     throw new Falla('TIEMPO');
   }
   const t0 = d.reloj();
+  let ejecutada = false;
   let r;
   try {
-    r = await d.db.$transaction(
-      async (tx) => {
-        await tx.$executeRawUnsafe('SET TRANSACTION READ ONLY');
-        await tx.$executeRawUnsafe(`SET LOCAL statement_timeout = ${Math.max(1, Math.floor(restante))}`);
-        return HERRAMIENTAS[nombre].ejecutar(argumentos, { tx, hoy: d.hoy, productoId });
-      },
-      { isolationLevel: 'RepeatableRead', maxWait: Math.min(restante, 10_000), timeout: Math.max(1, Math.floor(restante)) },
+    r = await conTope(
+      d.db.$transaction(
+        async (tx) => {
+          const quedan = vence - d.reloj();
+          if (quedan < MIN_MS_HERRAMIENTA) throw new Falla('TIEMPO');
+          await tx.$executeRawUnsafe('SET TRANSACTION READ ONLY');
+          await tx.$executeRawUnsafe(`SET LOCAL statement_timeout = ${Math.max(1, Math.floor(quedan))}`);
+          ejecutada = true;
+          return HERRAMIENTAS[nombre].ejecutar(argumentos, { tx, hoy: d.hoy, productoId });
+        },
+        // Tope de Prisma para cada etapa; el del paso completo lo pone conTope.
+        { isolationLevel: 'RepeatableRead', maxWait: Math.max(1, Math.floor(restante)), timeout: Math.max(1, Math.floor(restante)) },
+      ),
+      restante,
     );
   } catch (err) {
     const ms = d.reloj() - t0;
@@ -114,9 +140,14 @@ async function ejecutarHerramienta(nombre, argumentos, { productoId } = {}, d, v
       traza.herramienta = { nombre, argumentos, ms, aclaracion: 'periodo' };
       return { accion: 'aclaracion', respuesta: err.message, exitosa: true };
     }
-    traza.herramienta = { nombre, argumentos, ms, error: esTiempoAgotado(err) ? 'TIEMPO' : 'ERROR_INTERNO' };
-    if (esTiempoAgotado(err)) throw new Falla('TIEMPO');
+    const tiempo = err instanceof Falla || esTiempoAgotado(err);
+    traza.herramienta = { nombre, argumentos, ms, ejecutada, error: tiempo ? 'TIEMPO' : 'ERROR_INTERNO' };
+    if (tiempo) throw new Falla('TIEMPO');
     throw err;
+  }
+  if (d.reloj() > vence) {
+    traza.herramienta = { nombre, argumentos, ms: d.reloj() - t0, ejecutada, error: 'TIEMPO', filas: r.filas ?? 0 };
+    throw new Falla('TIEMPO');
   }
   traza.herramienta = { nombre, argumentos, ms: d.reloj() - t0, filas: r.filas ?? 0 };
   if (r.aclaracion) {

@@ -114,7 +114,9 @@ test('ventas y salidas se rotulan distinto', async () => {
 
 // --- Flujo del servicio con base, adaptador y reloj simulados ---------------
 
-function entorno({ respuestas, demoras = [] }) {
+// esperaConexion: ms que la base tarda en dar una conexión (antes de abrir la
+// transacción); duracionHerramienta: ms que tarda la consulta de la herramienta.
+function entorno({ respuestas, demoras = [], esperaConexion = 0, duracionHerramienta = 0 }) {
   let ahora = 1_000_000;
   const llamadas = [];
   const registros = [];
@@ -128,10 +130,19 @@ function entorno({ respuestas, demoras = [] }) {
       return { texto: typeof r === 'string' ? r : JSON.stringify(r), modelo: 'falso' };
     },
   };
-  const tx = { $executeRawUnsafe: async () => {}, alertaStock: { findMany: async () => [] } };
+  const tx = {
+    $executeRawUnsafe: async () => {},
+    alertaStock: {
+      findMany: async () => {
+        ahora += duracionHerramienta;
+        return [];
+      },
+    },
+  };
   const db = {
     $transaction: async (fn) => {
       transacciones += 1;
+      ahora += esperaConexion;
       return fn(tx);
     },
     consultaAgente: { create: async ({ data }) => (registros.push(data), { id: registros.length }) },
@@ -206,6 +217,72 @@ test('presupuesto global de tiempo: compartido entre intentos y ejecución', asy
   assert.equal(rc.accion, 'error');
   assert.equal(c.transacciones(), 0);
   assert.equal(c.registros[0].herramientas.herramienta.omitida, true);
+});
+
+test('presupuesto compartido entre la espera por conexión y la ejecución de la herramienta', async () => {
+  // Caso de la revisión: 9 s esperando conexión y 22 s ejecutando superan los 30 s.
+  const a = entorno({ respuestas: [planFaltantes], esperaConexion: 9_000, duracionHerramienta: 22_000 });
+  const ra = await consultar({ pregunta: 'x', usuario }, a.deps);
+  assert.equal(ra.accion, 'error', 'no se devuelve una respuesta exitosa fuera de tiempo');
+  assert.equal(a.registros[0].exitosa, false);
+  assert.equal(a.registros[0].herramientas.error, 'TIEMPO');
+  assert.equal(a.registros[0].herramientas.herramienta.error, 'TIEMPO');
+  assert.equal(a.registros[0].duracionMs, 10 + 9_000 + 22_000, 'se conserva la duración real');
+
+  // La espera por conexión consume el presupuesto: la herramienta no llega a ejecutarse.
+  const b = entorno({ respuestas: [planFaltantes], esperaConexion: 29_950, duracionHerramienta: 1 });
+  const rb = await consultar({ pregunta: 'x', usuario }, b.deps);
+  assert.equal(rb.accion, 'error');
+  assert.equal(b.registros[0].herramientas.herramienta.error, 'TIEMPO');
+  assert.equal(b.registros[0].herramientas.herramienta.ejecutada, false);
+
+  // Proveedor, conexión y herramienta dentro de los 30 s: respuesta exitosa.
+  const c = entorno({ respuestas: [planFaltantes], demoras: [10_000], esperaConexion: 9_000, duracionHerramienta: 10_000 });
+  const rc = await consultar({ pregunta: 'x', usuario }, c.deps);
+  assert.equal(rc.accion, 'respuesta');
+  assert.equal(c.registros[0].duracionMs, 29_000);
+
+  // Proveedor (25 s) más conexión y herramienta (6 s): vence el presupuesto global.
+  const d = entorno({ respuestas: [planFaltantes], demoras: [25_000], esperaConexion: 3_000, duracionHerramienta: 3_000 });
+  const rd = await consultar({ pregunta: 'x', usuario }, d.deps);
+  assert.equal(rd.accion, 'error');
+  assert.equal(d.registros[0].herramientas.error, 'TIEMPO');
+  assert.equal(d.registros[0].duracionMs, 31_000);
+});
+
+test('evolución del precio con más de 20 proveedores: 20 filas, el total real y el gráfico coherente', async () => {
+  const filas = [];
+  for (let i = 1; i <= 21; i += 1) {
+    for (const [dias, base] of [['2026-09-01', 100], ['2026-11-01', 110]]) {
+      filas.push({
+        productoId: 7,
+        nombre: 'Yerba',
+        unidadMedida: 'UNIDAD',
+        proveedorId: i,
+        proveedor: `Proveedor ${String(i).padStart(2, '0')}`,
+        precioUnitario: new Prisma.Decimal(base + i),
+        fechaVigencia: new Date(`${dias}T00:00:00Z`),
+        generadoEn: new Date(),
+      });
+    }
+  }
+  const tx = {
+    producto: {
+      findMany: async () => [{ id: 7, nombre: 'Yerba', unidadMedida: 'UNIDAD', stockActual: 1, stockMinimo: 0 }],
+      findUnique: async () => ({ id: 7, nombre: 'Yerba', unidadMedida: 'UNIDAD' }),
+    },
+    $queryRaw: async () => filas,
+  };
+  const r = await HERRAMIENTAS.evolucion_precio.ejecutar({ producto: 'yerba', periodo: { dias: 90 } }, { tx, hoy: HOY });
+  const p = r.presentacion;
+  assert.equal(p.filas.length, 20);
+  assert.equal(p.totalFilas, 21);
+  assert.match(p.nota, /Se muestran 20 de 21 proveedores/);
+  assert.equal(p.series.length, 20, 'el gráfico muestra los mismos proveedores que la tabla');
+  assert.deepEqual(p.series.map((s) => s.nombre), p.filas.map((f) => f.proveedor));
+  assert.equal(r.filas, 42, 'el registro cuenta todos los precios');
+  assert.ok(p.filas.some((f) => r.texto.includes(f.proveedor)), 'el proveedor del texto está entre los mostrados');
+  assert.equal(p.totales.Proveedores, 21);
 });
 
 test('sin IA disponible: 503 y queda registrada como fallida', async () => {
