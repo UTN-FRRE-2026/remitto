@@ -123,7 +123,10 @@ export default function Asistente() {
       const r = await peticion();
       setMensajes((m) => [...m, { tipo: 'respuesta', r }]);
     } catch (err) {
-      setMensajes((m) => [...m, { tipo: 'respuesta', r: { accion: 'error', respuesta: mensajeDeError(err) } }]);
+      // Los 503 y 500 del asistente traen su mensaje en «respuesta» (por
+      // ejemplo, que falta configurar el servicio de IA).
+      const respuesta = err.datos?.accion === 'error' && err.datos.respuesta ? err.datos.respuesta : mensajeDeError(err);
+      setMensajes((m) => [...m, { tipo: 'respuesta', r: { accion: 'error', respuesta } }]);
     } finally {
       setEnviando(false);
     }

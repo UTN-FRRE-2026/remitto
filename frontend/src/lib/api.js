@@ -19,6 +19,7 @@ async function lanzarError(res) {
   const err = new Error(datos.error || 'Ocurrió un error');
   err.status = res.status;
   err.detalles = datos.detalles;
+  err.datos = datos; // cuerpo completo (el asistente responde sus errores en «respuesta»)
   throw err;
 }
 

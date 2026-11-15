@@ -4,6 +4,7 @@ import { reposicion, sinMovimiento, preciosDeProducto, precios } from '../report
 import { alertasActivas } from '../tablero/tablero.service.js';
 import { estadoStock } from '../productos/productos.service.js';
 import { MAX_FILAS, resolverPeriodo, describirPeriodo } from './asistente.schema.js';
+import { hoyArgentina } from '../reportes/reportes.schema.js';
 
 // HU25: herramientas de lectura habilitadas para el asistente. El modelo solo
 // elige una y sus argumentos; acá se consultan los datos (con la transacción
@@ -272,7 +273,8 @@ export const HERRAMIENTAS = {
         stock: p.stockActual,
         unidad: UNIDAD[p.unidadMedida],
         valor: p.valor,
-        ultimaVenta: p.ultimaSalida ? p.ultimaSalida.toISOString().slice(0, 10) : null,
+        // Día de Argentina: una venta a las 21:30 del 10/11 no es del 11/11 (UTC).
+        ultimaVenta: p.ultimaSalida ? hoyArgentina(p.ultimaSalida) : null,
       }));
       return {
         texto:

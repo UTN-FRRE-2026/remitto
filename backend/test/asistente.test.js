@@ -13,7 +13,7 @@ import {
 import { ESQUEMA_PLAN } from '../src/ia/instruccionesAsistente.js';
 import { planSimulado } from '../src/ia/planSimulado.js';
 import { elegirProducto, limitar, HERRAMIENTAS } from '../src/modules/asistente/herramientas.js';
-import { consultar, PRESUPUESTO_MS } from '../src/modules/asistente/asistente.service.js';
+import { consultar, elegir, PRESUPUESTO_MS } from '../src/modules/asistente/asistente.service.js';
 import { interpretarPlan } from '../src/ia/asistente.js';
 
 // HU25: asistente de consultas.
@@ -119,6 +119,62 @@ test('ventas y salidas se rotulan distinto', async () => {
   assert.match(ventas.presentacion.titulo, /más vendidos/);
   assert.match(ventas.texto, /el más vendido/);
   assert.match(salidas.texto, /con más salidas/);
+});
+
+test('sin ventas: la «última venta» es el día de Argentina, no el de UTC', async () => {
+  // 10/11 a las 21:30 de Argentina = 11/11 00:30 UTC.
+  const filas = [{ id: 1, nombre: 'Yerba', unidadMedida: 'UNIDAD', stockActual: new Prisma.Decimal(5), precioUnitario: null, ultimaSalida: new Date('2026-11-11T00:30:00Z') }];
+  const r = await HERRAMIENTAS.sin_ventas.ejecutar({ periodo: { desde: '2026-11-12', hasta: '2026-11-14' } }, { tx: txCon(filas), hoy: HOY });
+  assert.equal(r.presentacion.filas[0].ultimaVenta, '2026-11-10');
+});
+
+// Elección de una aclaración con base simulada: guarda el estado «resuelta»
+// como lo hace el UPDATE condicional de la base.
+function entornoEleccion({ fallaHerramienta = false } = {}) {
+  const pendiente = { herramienta: 'faltantes', argumentos: {}, opciones: [7], resuelta: false };
+  const registros = [];
+  const tx = {
+    $executeRawUnsafe: async () => {},
+    alertaStock: {
+      findMany: async () => {
+        if (fallaHerramienta) throw new Error('falla de la consulta');
+        return [];
+      },
+    },
+  };
+  const db = {
+    $transaction: async (fn) => fn(tx),
+    $executeRaw: async (partes) => {
+      const sql = partes.join('?');
+      const marcar = sql.includes("'true'::jsonb");
+      if (marcar === pendiente.resuelta) return 0; // el WHERE condicional no encuentra la fila
+      pendiente.resuelta = marcar;
+      return 1;
+    },
+    consultaAgente: {
+      findUnique: async () => ({ id: 1, usuarioId: 1, pregunta: '¿Cuánta yerba?', herramientas: { pendiente: { ...pendiente } } }),
+      create: async ({ data }) => (registros.push(data), { id: registros.length + 1 }),
+    },
+    producto: { findFirst: async () => ({ id: 7, nombre: 'Yerba mate' }) },
+  };
+  const deps = { db, adaptador: {}, reloj: () => 1_000_000, hoy: HOY, disponible: true, modelo: 'falso' };
+  return { deps, pendiente, registros };
+}
+
+test('elección: si la herramienta falla, la aclaración vuelve a quedar pendiente para reintentar', async () => {
+  const e = entornoEleccion({ fallaHerramienta: true });
+  const r = await elegir({ consultaId: 1, productoId: 7, usuario }, e.deps);
+  assert.equal(r.accion, 'error');
+  assert.equal(e.pendiente.resuelta, false, 'se puede volver a elegir');
+  assert.equal(e.registros[0].exitosa, false);
+});
+
+test('elección: una elección exitosa queda resuelta y repetirla da 409', async () => {
+  const e = entornoEleccion();
+  const r = await elegir({ consultaId: 1, productoId: 7, usuario }, e.deps);
+  assert.equal(r.accion, 'respuesta');
+  assert.equal(e.pendiente.resuelta, true);
+  await assert.rejects(elegir({ consultaId: 1, productoId: 7, usuario }, e.deps), (err) => err.status === 409);
 });
 
 // --- Flujo del servicio con base, adaptador y reloj simulados ---------------
