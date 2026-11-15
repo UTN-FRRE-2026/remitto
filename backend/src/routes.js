@@ -12,6 +12,7 @@ import reportesRoutes from './modules/reportes/reportes.routes.js';
 import clavesRoutes from './modules/claves/claves.routes.js';
 import integracionRoutes from './modules/integracion/integracion.routes.js';
 import alertasRoutes from './modules/alertas/alertas.routes.js';
+import tableroRoutes from './modules/tablero/tablero.routes.js';
 
 const router = Router();
 
@@ -28,6 +29,7 @@ router.use('/salidas', salidasRoutes);
 router.use('/recuentos', recuentosRoutes);
 router.use('/reportes', reportesRoutes);
 router.use('/alertas', alertasRoutes);
+router.use('/tablero', tableroRoutes);
 router.use('/claves-integracion', clavesRoutes);
 // API para sistemas externos (autenticada con clave de integración, HU21/HU22).
 router.use('/v1/integracion', integracionRoutes);

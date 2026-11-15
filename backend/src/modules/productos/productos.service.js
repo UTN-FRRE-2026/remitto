@@ -42,7 +42,8 @@ function mapear(p) {
   };
 }
 
-export async function listar({ q, categoriaId, estado = 'TODOS', incluirInactivos = false } = {}) {
+// db: el cliente o una transacción (el tablero de HU26 lee en una sola foto).
+export async function listar({ q, categoriaId, estado = 'TODOS', incluirInactivos = false } = {}, db = prisma) {
   const where = {};
   if (!incluirInactivos) where.activo = true;
   if (categoriaId) where.categoriaId = categoriaId;
@@ -53,7 +54,7 @@ export async function listar({ q, categoriaId, estado = 'TODOS', incluirInactivo
     ];
   }
 
-  const productos = await prisma.producto.findMany({
+  const productos = await db.producto.findMany({
     where,
     include: { categoria: true },
     orderBy: { nombre: 'asc' },
@@ -134,8 +135,8 @@ export async function desactivar(id) {
 }
 
 // Indicadores del tablero (HU26) y encabezado de la pantalla de productos.
-export async function resumen() {
-  const productos = await prisma.producto.findMany({
+export async function resumen(db = prisma) {
+  const productos = await db.producto.findMany({
     where: { activo: true },
     select: { stockActual: true, stockMinimo: true },
   });

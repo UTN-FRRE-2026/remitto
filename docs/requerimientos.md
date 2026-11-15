@@ -14,8 +14,8 @@ Para el detalle de lo verificado en cada entrega, ver [estado-proyecto.md](estad
 
 | | Historias | Puntos del plan |
 | --- | --- | --- |
-| Implementadas | 27 (HU1 a HU24 y HU27 a HU29) | 89 de 100 obligatorios |
-| Parciales | 1 (HU26) | 3 |
+| Implementadas | 28 (HU1 a HU24 y HU26 a HU29) | 92 de 100 obligatorios |
+| Parciales | 0 | 0 |
 | Pendientes obligatorias | 1 (HU25) | 8 |
 | Deseables pendientes | 2 (HU30, HU31) | 5 (fuera de los 100) |
 
@@ -87,7 +87,7 @@ Para el detalle de lo verificado en cada entrega, ver [estado-proyecto.md](estad
 | RF8.1 | Valorización de existencias | HU28 | Implementado | Pantalla Precios y reportes: valor por categoría a último precio de compra y productos sin precio aparte · `GET /api/reportes/valorizacion` |
 | RF8.2 | Productos sin movimiento | HU29 | Implementado | Precios y reportes › Sin movimiento: período elegible, stock, valor y última salida · `GET /api/reportes/sin-movimiento` |
 | RF8.3 | Evolución de precios de compra | HU20 | Implementado | Precios y reportes › Evolución de precios: productos que más aumentaron, gráfico por proveedor ordenado por fecha y comparación del último precio · `GET /api/reportes/precios` |
-| RF8.4 | Tablero de situación | HU26 | Parcial | El tablero muestra indicadores de stock, productos para reponer y remitos por revisar. Faltan las alertas activas en el tablero (ya existen con HU24, en la campana) y el valor del stock |
+| RF8.4 | Tablero de situación | HU26 | Implementado | Inicio · `GET /api/tablero`: alertas activas por tipo, comprobantes pendientes por estado, valor del stock (solo el propietario, igual a HU28), resumen de stock y para reponer, leídos en una sola foto de la base (transacción REPEATABLE READ). Verificado contra PostgreSQL (`backend/e2e/hu26-tablero.mjs`) |
 
 ### RF9 Funcionalidades deseables · Deseable
 
