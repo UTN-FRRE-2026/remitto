@@ -74,6 +74,16 @@ El Inicio muestra:
 - **Para reponer**: los productos sin stock o con stock bajo, con su cantidad actual frente al mínimo. Para el propietario, **Ver sugerencia** abre cuánto pedir a cada proveedor (ver [Reposición](#reposición-qué-pedir-y-cuánto)); para el empleado, **Ver todo** abre Productos con el filtro de stock bajo.
 - **Remitos por revisar**: los remitos leídos que esperan revisión; tocá uno para retomarlo. **Ver comprobantes** abre el archivo de comprobantes (ver [sección 5](#comprobantes-cargados)).
 
+### Alertas de stock
+
+La **campana** de arriba a la derecha muestra un punto rojo cuando hay alertas activas. Tocala para abrir **Alertas** (en la computadora, también está en el menú lateral):
+
+- **Stock negativo**: se registraron más salidas que entradas, por ejemplo ventas de la caja de algo que no se ingresó. Conviene hacer un recuento.
+- **Sin stock**: no quedan unidades.
+- **Stock bajo**: el producto llegó a su mínimo o está por debajo.
+
+Las alertas se crean y se resuelven solas: no hay que cargarlas ni borrarlas. Cuando el stock se recupera (por un remito, un recuento o un cambio del mínimo), la alerta pasa a **Resueltas recientemente**. Cada producto tiene una sola alerta a la vez, la de su situación actual. Tocá una alerta para ver los movimientos del producto. El propietario tiene además el acceso a la sugerencia de reposición.
+
 ## 5. Ingresar mercadería con un remito
 
 Es la operación principal. El stock **no cambia** hasta que alguien confirma el ingreso al final de la revisión.
@@ -339,7 +349,7 @@ Puede estar desactivado: el propietario lo ve con el filtro **Desactivados** y l
 
 - Las capturas se tomaron el 13/11/2026 contra una base descartable con el seed y `IA_SIMULACION=ok`, con Chromium sin interfaz (390 px de ancho y 1366 px en escritorio). En la preparación, «Gaseosa cola 500 ml» se renombró a «Gaseosa cola» y se desactivó la galletita del seed, para mostrar una línea dudosa y una sin coincidencia.
 - Los campos de fecha aparecen en formato mm/dd/aaaa porque el navegador de las capturas estaba en inglés; en un celular en castellano se ven como dd/mm/aaaa.
-- La campana del Inicio todavía no tiene función (las alertas son de HU24).
+- La sección «Alertas de stock» (HU24, 15/11/2026) todavía no tiene captura en el manual ni en el PDF.
 - La sección de instalación describe el procedimiento estándar de Chrome; el equipo instaló la aplicación en un Android real y funciona (HU7, 14/11/2026).
 - Las capturas de precisión y evolución de precios (14/11) usan tres remitos simulados confirmados con fechas de emisión de junio, agosto y septiembre; para la precisión se marcaron como lecturas reales en la base descartable.
 - Al implementar más historias, agregar sus secciones (Asistente) y actualizar la lista de «En construcción».

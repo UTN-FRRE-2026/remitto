@@ -12,7 +12,7 @@ automática de comprobantes de compra mediante Inteligencia Artificial.
 ## Estado actual
 
 Están implementadas las historias del Sprint 1 (HU1 a HU14) y, del
-Sprint 2, HU15 a HU23 y HU27 a HU29. La aplicación está desplegada en producción con Coolify, a partir
+Sprint 2, HU15 a HU24 y HU27 a HU29. La aplicación está desplegada en producción con Coolify, a partir
 de `main`. El equipo probó la instalación de la PWA en un Android real (HU7) y funciona.
 
 Ya implementado:
@@ -27,14 +27,14 @@ Ya implementado:
 | **Salidas** | HU13 (carrito de salida) | ✅ Backend y pantalla Nueva salida |
 | **Recuento** | HU14 (ajuste por recuento) | ✅ Backend y pantalla Recuento |
 | **RF5** Integración | HU21 (claves de integración), HU22 (salidas desde un sistema externo, con contrato OpenAPI), HU23 (simulador de ventas) | ✅ Backend, pantalla Integraciones y simulador |
-| **RF6** Reposición | HU27 (sugerencia de reposición) | ✅ Backend y pantalla Precios y reportes |
+| **RF6** Alertas y reposición | HU24 (alertas de stock), HU27 (sugerencia de reposición) | ✅ Backend, pantalla Alertas (campana del Inicio) y Precios y reportes |
 | **RF8** Reportes | HU20 (evolución de precios), HU28 (valorización de existencias), HU29 (productos sin movimiento) | ✅ Backend y pantalla Precios y reportes |
-| Frontend | Login, Tablero, Comprobantes, Precisión de la lectura, Productos (alta y edición), Proveedores, Categorías, Usuarios, Cargar remito, Lectura con IA, Revisar remito, Movimientos, Nueva salida, Recuento, Precios y reportes, Integraciones | ✅ Vistas base |
+| Frontend | Login, Tablero, Comprobantes, Precisión de la lectura, Productos (alta y edición), Proveedores, Categorías, Usuarios, Cargar remito, Lectura con IA, Revisar remito, Movimientos, Nueva salida, Recuento, Precios y reportes, Integraciones, Alertas | ✅ Vistas base |
 
 Están completos el flujo de ingreso (cargar → leer con IA → revisar →
 confirmar), el de salida (carrito → confirmar) y el recuento (contar →
 ajustar). Cada movimiento queda en el historial de Movimientos.
-El resto del backlog (integración, alertas, agente, reportes) se incorpora en las historias siguientes.
+Falta el agente de consultas (HU25) y completar el tablero (HU26).
 
 Documentación del proyecto en [`docs/`](docs/README.md): [estado y continuidad](docs/estado-proyecto.md),
 [plan de trabajo con las HU](docs/plan-de-trabajo.md) y [guía de maquetación](docs/maquetacion.md).
@@ -671,6 +671,29 @@ ventas y 30 reenvíos) y 0 diferencias. Después, un **control negativo
 separado** registra a propósito un descuento adicional y exige que el
 comparador lo detecte. Detalle en [`simulador/README.md`](simulador/README.md).
 
+### Alertas de stock (HU24)
+
+Cada movimiento de stock avisa a los interesados (patrón Observer,
+`src/modules/stock/stock.observadores.js`) dentro de su misma transacción. El
+módulo de alertas (`src/modules/alertas/`) se suscribe al crear la app y
+recalcula la alerta del producto:
+
+- **Stock negativo** (menor a 0), **sin stock** (0) o **stock bajo** (en el
+  mínimo o por debajo, si tiene mínimo). Son las mismas reglas que los
+  indicadores del tablero, separando el negativo.
+- Un producto tiene a lo sumo una alerta activa. Si cambia de situación, la
+  anterior se resuelve y se abre la nueva; si se recupera, se resuelve sola y
+  queda en la historia. El índice parcial `uq_alerta_activa` lo respalda en la base.
+- Como todo pasa por `registrarMovimiento`, generan alertas los comprobantes,
+  el carrito, el recuento y las ventas del endpoint de integración. Crear un
+  producto, cambiar su mínimo, desactivarlo o reactivarlo también la recalcula.
+- La migración `20261115120000_hu24_alertas_stock` abre las alertas del stock
+  que ya estaba bajo; el seed hace lo mismo con sus productos.
+
+Pantalla **Alertas** (campana del Inicio y menú lateral): activas por gravedad,
+con su stock y mínimo, y las últimas resueltas. Tocar una abre los movimientos
+del producto. La ven el propietario y el empleado.
+
 ### Pruebas de punta a punta
 
 `npm test` no usa base de datos. Las comprobaciones contra PostgreSQL
@@ -678,6 +701,7 @@ comparador lo detecte. Detalle en [`simulador/README.md`](simulador/README.md).
 
 ```bash
 cd backend && npm run e2e -- hu21-claves hu22-salidas hu23-simulador
+cd backend && npm run e2e -- hu24-alertas   # en una corrida aparte
 ```
 
 Requiere el PostgreSQL de desarrollo encendido (`docker compose up -d db`).
@@ -792,6 +816,7 @@ POSTGRES_PASSWORD=prueba123 JWT_SECRET=prueba CORS_ORIGIN=http://localhost:8088 
 | `GET` | `/api/reportes/precios` · `?desde=&hasta=` · `/api/reportes/precios/:productoId` (evolución de precios de compra) (HU20) | propietario |
 | `GET` | `/api/reportes/reposicion` (qué pedir y cuánto, por último proveedor) (HU27) | propietario |
 | `GET` | `/api/reportes/sin-movimiento` · `?desde=&hasta=` (productos con stock sin salidas) (HU29) | propietario |
+| `GET` | `/api/alertas` (activas por gravedad, totales por tipo y últimas resueltas) (HU24) | autenticado |
 | `GET/POST` | `/api/claves-integracion` (listado; alta con la clave completa una sola vez) (HU21) | propietario |
 | `DELETE` | `/api/claves-integracion/:id` (revoca; no borra) (HU21) | propietario |
 | `GET` | `/api/v1/integracion/estado` (comprueba la clave) (HU21) | clave de integración |

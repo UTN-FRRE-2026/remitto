@@ -31,6 +31,8 @@ export default function Inicio() {
   const [reponer, setReponer] = useState([]);
   // HU18: remitos leídos que esperan revisión (se retoman desde acá).
   const [porRevisar, setPorRevisar] = useState(null);
+  // HU24: alertas de stock activas (la campana avisa si hay alguna).
+  const [alertas, setAlertas] = useState(null);
 
   useEffect(() => {
     api.get('/productos/resumen').then(setResumen).catch(() => {});
@@ -40,6 +42,10 @@ export default function Inicio() {
       api.get('/productos?estado=STOCK_BAJO'),
     ])
       .then(([sin, bajo]) => setReponer([...sin, ...bajo].slice(0, 4)))
+      .catch(() => {});
+    api
+      .get('/alertas')
+      .then((d) => setAlertas(d.totales))
       .catch(() => {});
     api
       .get('/comprobantes?estado=EN_REVISION&limite=3')
@@ -62,9 +68,13 @@ export default function Inicio() {
           </div>
         </div>
         <div className="topbar__acciones">
-          <button className="topbar__accion" aria-label="Notificaciones">
+          <button
+            className="topbar__accion"
+            onClick={() => navegar('/alertas')}
+            aria-label={alertas?.total ? `Alertas de stock: ${alertas.total} activas` : 'Alertas de stock'}
+          >
             <IconoCampana size={20} />
-            <span className="topbar__punto" />
+            {alertas?.total > 0 && <span className="topbar__punto" />}
           </button>
           <button
             className="topbar__avatar"

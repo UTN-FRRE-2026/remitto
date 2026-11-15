@@ -1,0 +1,56 @@
+/* HU24 · Alertas de stock. */
+.alertas__totales {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.alertas__lista {
+  padding: 4px 16px;
+}
+.alertas__vacio {
+  padding: 14px 0;
+  color: var(--texto-suave);
+  font-size: var(--fs-texto);
+}
+.alerta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--borde);
+  color: var(--oscuro);
+  text-decoration: none;
+}
+.alerta:last-child {
+  border-bottom: none;
+}
+.alerta__datos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.alerta__datos strong {
+  font-size: var(--fs-producto);
+  overflow-wrap: anywhere;
+}
+.alerta__datos span {
+  font-size: var(--fs-detalle);
+  color: var(--texto-suave);
+}
+.alerta .badge {
+  flex-shrink: 0;
+}
+.alerta--resuelta strong {
+  font-weight: 600;
+}
+.alertas__reponer {
+  margin-top: 14px;
+}
+.alertas__subtitulo {
+  margin: 22px 0 10px;
+  font-size: var(--fs-seccion);
+  font-weight: 800;
+}

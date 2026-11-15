@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
 import { ApiError } from '../../lib/errors.js';
+import { evaluarAlertas } from '../alertas/alertas.service.js';
 
 // Traduce las restricciones de la base a mensajes que la pantalla puede mostrar.
 export function traducirErrorProducto(err) {
@@ -74,9 +75,11 @@ export async function obtener(id) {
 
 export async function crear(datos) {
   try {
-    const producto = await prisma.producto.create({
-      data: datos,
-      include: { categoria: true },
+    // HU24: un producto nuevo empieza sin stock y su alerta se abre con él.
+    const producto = await prisma.$transaction(async (tx) => {
+      const creado = await tx.producto.create({ data: datos, include: { categoria: true } });
+      await evaluarAlertas(tx, creado.id);
+      return creado;
     });
     return mapear(producto);
   } catch (err) {
@@ -90,10 +93,11 @@ export async function actualizar(id, datos) {
     if (datos.unidadMedida && datos.unidadMedida !== actual.unidadMedida) {
       return mapear(await cambiarUnidad(id, datos));
     }
-    const producto = await prisma.producto.update({
-      where: { id },
-      data: datos,
-      include: { categoria: true },
+    // HU24: cambiar el mínimo o reactivar el producto puede abrir o resolver su alerta.
+    const producto = await prisma.$transaction(async (tx) => {
+      const modificado = await tx.producto.update({ where: { id }, data: datos, include: { categoria: true } });
+      await evaluarAlertas(tx, id);
+      return modificado;
     });
     return mapear(producto);
   } catch (err) {
@@ -111,17 +115,20 @@ async function cambiarUnidad(id, datos) {
     if (movimientos > 0) {
       throw ApiError.invalido('No se puede cambiar la unidad de un producto que ya tiene movimientos.');
     }
-    return tx.producto.update({ where: { id }, data: datos, include: { categoria: true } });
+    const modificado = await tx.producto.update({ where: { id }, data: datos, include: { categoria: true } });
+    await evaluarAlertas(tx, id);
+    return modificado;
   });
 }
 
 // HU4: un producto con movimientos no se elimina, se desactiva.
 export async function desactivar(id) {
   await obtener(id);
-  const producto = await prisma.producto.update({
-    where: { id },
-    data: { activo: false },
-    include: { categoria: true },
+  // HU24: un producto desactivado no deja alertas activas.
+  const producto = await prisma.$transaction(async (tx) => {
+    const desactivado = await tx.producto.update({ where: { id }, data: { activo: false }, include: { categoria: true } });
+    await evaluarAlertas(tx, id);
+    return desactivado;
   });
   return mapear(producto);
 }

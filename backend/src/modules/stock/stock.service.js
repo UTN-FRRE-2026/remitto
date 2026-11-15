@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { ApiError } from '../../lib/errors.js';
+import { notificarMovimiento } from './stock.observadores.js';
 
 // HU11 (RNF5): toda variación de stock pasa por acá, dentro de la transacción
 // del llamador. El movimiento y el nuevo stockActual se escriben juntos, así
@@ -54,7 +55,8 @@ export async function registrarMovimiento(
     },
   });
   await tx.producto.update({ where: { id: productoId }, data: { stockActual: stockNuevo } });
-  // Punto de enganche para el observador de alertas de stock (HU24, Sprint 2).
+  // HU24: los observadores (alertas de stock) reaccionan en la misma transacción.
+  await notificarMovimiento(tx, { productoId, movimiento, stockAnterior, stockNuevo });
   return { movimiento, stockAnterior, stockNuevo };
 }
 
