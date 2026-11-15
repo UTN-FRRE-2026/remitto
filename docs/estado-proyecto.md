@@ -4,7 +4,7 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 
 ## Referencia verificada (15/11/2026)
 
-- `origin/main` en `2dba88f` (merge del PR #30, HU23), comprobado el 15/11/2026. **En `main`:** hasta HU23. **Solo en la rama `feature/HU24-alertas-stock`, sin integrar:** HU24.
+- `origin/main` en `3b72550` (merge del PR #31, HU24), comprobado el 15/11/2026. **En `main`:** hasta HU24. **Solo en la rama `feature/HU26-tablero-situacion`, sin integrar:** HU26.
 - **Primera entrega del TPI: lunes 16/11/2026.** Consigna y entregables en [entrega-tpi.md](entrega-tpi.md).
 - **HU7:** el equipo informó el 14/11 que instaló la PWA en un Android real y funciona (no verificado en esta revisión).
 - Los PDF de la documentación probatoria están fuera del repositorio (`../remitto-entrega/`); se regeneraron el 14/11 con HU16 a HU20 y HU27 a HU29. **No incluyen HU21 ni HU22**: hay que regenerarlos.
@@ -13,8 +13,8 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
   - HU22 (salidas desde un sistema externo): integrada por el [PR #28](https://github.com/UTN-FRRE-2026/remitto/pull/28), merge `b822eb9`. El contenido integrado es idéntico al último commit publicado de la rama (`77e614f`).
   - HU23 (simulador de ventas): integrada por el [PR #30](https://github.com/UTN-FRRE-2026/remitto/pull/30), merge `2dba88f`.
   - El respaldo del avance de HU21 (el stash `5373a09` y el patch de `retomar/`, en la copia local de Maxi) se conserva aunque ya no hace falta.
-- **Migraciones nuevas:** `20261114140000_hu21_claves_integracion` y `20261114150000_hu22_pedido_externo` (en `main`), y `20261115120000_hu24_alertas_stock` (rama de HU24, solo datos). Quien use una base local tiene que aplicarlas con `npx prisma migrate deploy` (sin reset). En producción, el contenedor las aplica al arrancar; no se verificó.
-- PR #1 a #30 integrados en `main`.
+- **Migraciones nuevas:** `20261114140000_hu21_claves_integracion`, `20261114150000_hu22_pedido_externo` y `20261115120000_hu24_alertas_stock` (solo datos), todas en `main`. HU26 no agrega migraciones. Quien use una base local tiene que aplicarlas con `npx prisma migrate deploy` (sin reset). En producción, el contenedor las aplica al arrancar; no se verificó.
+- PR #1 a #31 integrados en `main`.
 
 ## Integrado en `main`
 
@@ -49,6 +49,7 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 | HU21 claves de integración (con migración `hu21_claves_integracion`) y ejecutor de pruebas de punta a punta | [PR #27](https://github.com/UTN-FRRE-2026/remitto/pull/27) |
 | HU22 salidas desde un sistema externo, contrato OpenAPI (con migración `hu22_pedido_externo`) y corrección de HU28 (stock negativo en la valorización) | [PR #28](https://github.com/UTN-FRRE-2026/remitto/pull/28) |
 | HU23 simulador de ventas | [PR #30](https://github.com/UTN-FRRE-2026/remitto/pull/30) |
+| HU24 alertas de stock (con migración `hu24_alertas_stock`) | [PR #31](https://github.com/UTN-FRRE-2026/remitto/pull/31) |
 
 HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa que se haya comprobado ahora cada criterio de aceptación.
 
@@ -56,13 +57,40 @@ HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa qu
 
 | Estado observado | Historias |
 | --- | --- |
-| Backend y pantalla | HU1 a HU6, HU8 a HU22, HU27 a HU29 |
+| Backend y pantalla | HU1 a HU6, HU8 a HU22, HU24, HU27 a HU29 |
 | Simulador (sin pantalla) | HU23 (`simulador/simulador.mjs`, escenario `hu23-simulador`) |
-| Implementada en su rama, sin integrar | HU24 alertas de stock (`feature/HU24-alertas-stock`) |
+| Implementada en su rama, sin integrar | HU26 tablero de situación (`feature/HU26-tablero-situacion`) |
 | Probada por el equipo | HU7 PWA (`vite-plugin-pwa`): instalada en un Android real y funcionando (informado el 14/11/2026, no verificado en esta revisión) |
-| Sin implementar | HU25 (HU26 parcial) y las deseables HU30 y HU31. `/asistente` es `EnConstruccion` |
+| Sin implementar | HU25 y las deseables HU30 y HU31. `/asistente` es `EnConstruccion`. Plan de HU25 en `retomar/plan-HU25-HU26.md` (copia local) |
 
-## Validación de HU24 (15/11/2026, rama `feature/HU24-alertas-stock`, sin integrar)
+## Validación de HU26 (15/11/2026, rama `feature/HU26-tablero-situacion`, sin integrar)
+
+- **Qué hay:** `GET /api/tablero` (módulo `backend/src/modules/tablero/`) y el Inicio, que lo usa como único pedido.
+  - Trae el resumen de stock, las alertas activas por tipo y las más graves, los comprobantes pendientes por estado (PENDIENTE, PROCESANDO, EN_REVISION y ERROR; los confirmados y anulados no cuentan) con los que esperan revisión, los 4 productos para reponer y, solo para el propietario, el valor del stock del mismo `valorizacion` de HU28.
+  - Al empleado no le llega ese valor: el permiso se aplica en el backend.
+  - No hay migraciones.
+- **Una sola foto:**
+  - una transacción interactiva `REPEATABLE READ` con `SET TRANSACTION READ ONLY`;
+  - los servicios reutilizados reciben la transacción (`productos.resumen` y `productos.listar` pasaron a aceptar `db`, sin cambiar su comportamiento) y las consultas van una detrás de otra.
+- **Pruebas ejecutadas en esta rama:**
+  - `npm test`: 229 correctas, 5 nuevas en `test/tablero.test.js`.
+  - `npm run e2e -- hu26-tablero`: 22 de 22.
+    - Coincidencia de cada indicador con un cálculo propio en SQL, el valor igual a `/reportes/valorizacion` y los cambios después de confirmar, de una salida y de un recuento.
+    - El empleado recibe el tablero sin valor ni precios; sin sesión, 401.
+    - **Prueba determinística:** un recuento confirmado entre dos lecturas. Con `REPEATABLE READ` el tablero entero corresponde a la foto inicial, y la variante `READ COMMITTED` mezcla estados (resumen en A, alertas y valor en B).
+    - **Ráfaga complementaria:** unas 830 lecturas con unos 85 recuentos concurrentes y 0 mezcladas.
+  - **Mutación:** con `ReadCommitted` como aislamiento por defecto fallan la prueba determinística y la ráfaga (151 de 840 lecturas mezcladas).
+  - **Regresión:** `npm run e2e -- hu21-claves hu22-salidas hu23-simulador hu24-alertas hu26-tablero` dio 163 de 164. La que falla es de `hu24-alertas`, que necesita el stock del seed sin cambios (HU22 vende una leche) y está documentado que se corre aparte. Corrido solo: 31 de 31.
+  - `npm run build` correcto.
+  - **Navegador**, con una base descartable y datos cargados por la API:
+    - propietario en escritorio y a 375 px: las tres tarjetas y los chips por estado; el chip «En revisión» abre Comprobantes filtrado;
+    - la página hace un único pedido (`/tablero`);
+    - el empleado ve solo alertas y comprobantes, y su respuesta no trae valor ni precios;
+    - sin desplazamiento horizontal ni errores de consola.
+- **Base local:** se aplicó `hu24_alertas_stock` con `npx prisma migrate deploy`, sin reset ni seed. Quedó al día, con 9 migraciones.
+- **No probado:** en un celular real ni en producción.
+
+## Validación de HU24 (15/11/2026, integrada en el PR #31)
 
 - **Qué hay:** observador de movimientos en `registrarMovimiento` (misma transacción), módulo `alertas` (regla, evaluación con la fila del producto bloqueada, `GET /api/alertas`), recálculo al crear, editar, desactivar o reactivar un producto, migración de datos `hu24_alertas_stock` para el stock que ya estaba bajo, seed y pantalla Alertas (campana del Inicio con punto solo si hay activas, y menú lateral).
 - `npm test`: 224 correctas (9 nuevas en `test/alertas.test.js`: regla, coherencia con `estadoStock`, ciclo de vida, observador y su falla). `npm run build` correcto. `npm run doc-bd` sin cambios (la migración no cambia el esquema).

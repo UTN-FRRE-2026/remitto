@@ -12,7 +12,7 @@ automática de comprobantes de compra mediante Inteligencia Artificial.
 ## Estado actual
 
 Están implementadas las historias del Sprint 1 (HU1 a HU14) y, del
-Sprint 2, HU15 a HU24 y HU27 a HU29. La aplicación está desplegada en producción con Coolify, a partir
+Sprint 2, HU15 a HU24 y HU26 a HU29. La aplicación está desplegada en producción con Coolify, a partir
 de `main`. El equipo probó la instalación de la PWA en un Android real (HU7) y funciona.
 
 Ya implementado:
@@ -34,7 +34,7 @@ Ya implementado:
 Están completos el flujo de ingreso (cargar → leer con IA → revisar →
 confirmar), el de salida (carrito → confirmar) y el recuento (contar →
 ajustar). Cada movimiento queda en el historial de Movimientos.
-Falta el agente de consultas (HU25) y completar el tablero (HU26).
+Falta el agente de consultas (HU25).
 
 Documentación del proyecto en [`docs/`](docs/README.md): [estado y continuidad](docs/estado-proyecto.md),
 [plan de trabajo con las HU](docs/plan-de-trabajo.md) y [guía de maquetación](docs/maquetacion.md).
@@ -694,6 +694,29 @@ Pantalla **Alertas** (campana del Inicio y menú lateral): activas por gravedad,
 con su stock y mínimo, y las últimas resueltas. Tocar una abre los movimientos
 del producto. La ven el propietario y el empleado.
 
+### Tablero de situación (HU26)
+
+El **Inicio** se arma con un solo pedido, `GET /api/tablero` (módulo
+`backend/src/modules/tablero/`), que trae:
+- el resumen de stock (productos en stock, con stock bajo y sin stock);
+- las **alertas activas** por tipo y las más graves (HU24);
+- los **comprobantes pendientes** por estado: sin leer, leyendo, en revisión y
+  con error (los confirmados y anulados no cuentan), con los que esperan
+  revisión;
+- los productos **para reponer**;
+- para el propietario, el **valor del stock** (el mismo cálculo de la
+  valorización de HU28). Al empleado no le llega: son costos, y el permiso se
+  aplica en el backend.
+
+**Una sola foto de la base:** todo se lee en una transacción `REPEATABLE READ`
+de solo lectura. La primera consulta toma la foto y las siguientes ven la
+misma, aunque mientras tanto se confirmen movimientos. Por eso los servicios
+reutilizados (`productos.resumen` y `productos.listar`, `valorizacion`)
+reciben la transacción y las consultas van una detrás de otra. Un único
+endpoint o un `Promise.all` de consultas sueltas no alcanzaría: en
+`READ COMMITTED` cada consulta ve su propio momento. El escenario
+`hu26-tablero` lo demuestra con un recuento confirmado entre dos lecturas.
+
 ### Pruebas de punta a punta
 
 `npm test` no usa base de datos. Las comprobaciones contra PostgreSQL
@@ -817,6 +840,7 @@ POSTGRES_PASSWORD=prueba123 JWT_SECRET=prueba CORS_ORIGIN=http://localhost:8088 
 | `GET` | `/api/reportes/reposicion` (qué pedir y cuánto, por último proveedor) (HU27) | propietario |
 | `GET` | `/api/reportes/sin-movimiento` · `?desde=&hasta=` (productos con stock sin salidas) (HU29) | propietario |
 | `GET` | `/api/alertas` (activas por gravedad, totales por tipo y últimas resueltas) (HU24) | autenticado |
+| `GET` | `/api/tablero` (resumen de stock, alertas activas, comprobantes pendientes, para reponer y, solo para el propietario, valor del stock; una sola foto de la base) (HU26) | autenticado |
 | `GET/POST` | `/api/claves-integracion` (listado; alta con la clave completa una sola vez) (HU21) | propietario |
 | `DELETE` | `/api/claves-integracion/:id` (revoca; no borra) (HU21) | propietario |
 | `GET` | `/api/v1/integracion/estado` (comprueba la clave) (HU21) | clave de integración |

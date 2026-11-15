@@ -227,6 +227,85 @@
   border-radius: var(--radio-pill);
 }
 
+/* --- HU26: situación (alertas, comprobantes pendientes y valor) --- */
+.inicio__error {
+  margin-bottom: 14px;
+}
+.situacion {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+.situacion__tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  min-width: 0;
+}
+.situacion__cabecera {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.situacion__cabecera h3 {
+  font-size: var(--fs-seccion);
+  font-weight: 800;
+}
+.situacion__total {
+  font-size: var(--fs-titulo);
+  font-weight: 800;
+}
+.situacion__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.situacion__chips button.badge {
+  font-family: inherit;
+}
+.situacion__lista {
+  list-style: none;
+}
+.situacion__lista li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 0;
+  border-top: 1px solid var(--borde);
+  font-size: var(--fs-texto);
+}
+.situacion__lista li span:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.situacion__vacio {
+  color: var(--texto-suave);
+  font-size: var(--fs-texto);
+}
+.situacion__revisar .reponer__item {
+  padding: 10px 0;
+  border-top: 1px solid var(--borde);
+  border-bottom: none;
+}
+.situacion__monto {
+  font-size: var(--fs-titulo);
+  font-weight: 800;
+  color: var(--salvia-oscuro);
+  overflow-wrap: anywhere;
+}
+.situacion__detalle {
+  font-size: var(--fs-detalle);
+  color: var(--texto-suave);
+}
+.situacion__enlace {
+  align-self: flex-start;
+  margin-top: auto;
+}
+
 /* =============================================================
    Escritorio
    ============================================================= */
@@ -258,6 +337,12 @@
   }
   .indicador strong {
     font-size: 32px;
+  }
+
+  /* HU26: las tarjetas de situación en una fila. */
+  .situacion {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
   }
 
   /* Para reponer con ancho acotado y legible. */

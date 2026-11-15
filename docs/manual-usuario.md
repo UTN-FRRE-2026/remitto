@@ -72,7 +72,11 @@ El Inicio muestra:
 - el acceso rápido **Cargar un remito**;
 - la cantidad de productos activos y cuántos están **en stock**, con **stock bajo** (en el mínimo o por debajo) y **sin stock**;
 - **Para reponer**: los productos sin stock o con stock bajo, con su cantidad actual frente al mínimo. Para el propietario, **Ver sugerencia** abre cuánto pedir a cada proveedor (ver [Reposición](#reposición-qué-pedir-y-cuánto)); para el empleado, **Ver todo** abre Productos con el filtro de stock bajo.
-- **Remitos por revisar**: los remitos leídos que esperan revisión; tocá uno para retomarlo. **Ver comprobantes** abre el archivo de comprobantes (ver [sección 5](#comprobantes-cargados)).
+- **Alertas activas**: cuántas hay de cada tipo (negativo, sin stock y stock bajo) y las más graves. **Ver alertas** abre la lista completa.
+- **Comprobantes pendientes**: los cargados que todavía no se confirmaron, separados por estado («Sin leer», «Leyendo», «En revisión» y «Error de lectura»). Tocá un estado para ver esos comprobantes, o un remito en revisión para retomarlo. **Ver comprobantes** abre el archivo de comprobantes (ver [sección 5](#comprobantes-cargados)).
+- **Valor del stock** (solo el propietario): cuánto vale la mercadería a último precio de compra, el mismo total que la valorización de **Precios y reportes**.
+
+Todos los números del Inicio se toman en el mismo momento, así que coinciden entre sí.
 
 ### Alertas de stock
 
