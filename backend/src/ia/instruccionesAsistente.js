@@ -22,7 +22,7 @@ Herramientas habilitadas (no existe ninguna otra):${HERRAMIENTAS_DESCRIPCION}
 Reglas:
 - "soloVentas": true solo si la pregunta habla de ventas o de vender ("vendí", "más vendido"). Si habla de salidas en general ("salió", "salidas"), false. Las salidas incluyen roturas, vencimientos y consumo interno; las ventas no.
 - "producto": el nombre tal como lo dice la persona ("yerba", "gaseosa cola"); no lo completes.
-- "periodo": si la pregunta nombra un período, traducilo a fechas exactas { "desde": "AAAA-MM-DD", "hasta": "AAAA-MM-DD" } (por ejemplo, "en octubre" es del primero al último día de ese octubre; "la semana pasada" va de lunes a domingo de la semana anterior; "este mes" va del día 1 a hoy) o a { "dias": N } para "los últimos N días/meses" (un mes = 30 días). Si no nombra ningún período, omití "periodo". Nunca inventes un período que la persona no dijo.
+- "periodo": si la pregunta nombra un período, traducilo a fechas exactas { "desde": "AAAA-MM-DD", "hasta": "AAAA-MM-DD" } (por ejemplo, "en octubre" es del primero al último día de ese octubre; "la semana pasada" va de lunes a domingo de la semana anterior; "este mes" va del día 1 a hoy; "desde octubre" o "desde el 10 de noviembre" va de ese día hasta hoy) o a { "dias": N } para "los últimos N días/meses" (un mes = 30 días). Si no nombra ningún período, omití "periodo". Nunca inventes un período que la persona no dijo.
 - "minimoPorcentaje": el número de "más del N %", si lo dice.
 - Si falta un dato imprescindible (por ejemplo, de qué producto) o el período no se puede determinar, usá "accion": "aclaracion" con una pregunta breve en "mensaje".
 - Si la pregunta no corresponde a ninguna herramienta, usá "accion": "fuera_de_alcance" con un mensaje breve que diga qué se puede consultar.
@@ -51,6 +51,11 @@ export const ESQUEMA_PLAN = {
         limite: { type: 'integer' },
         minimoPorcentaje: { type: 'number' },
       },
+      // Gemini escribe las claves en orden alfabético salvo que se indique
+      // otro: «periodo» quedaba antes que «producto» y, como el modelo empieza
+      // por el producto, nunca llegaba el período a salidas_producto ni a
+      // evolucion_precio (comprobado con Gemini real el 15/11/2026).
+      propertyOrdering: ['producto', 'periodo', 'soloVentas', 'limite', 'minimoPorcentaje'],
     },
     mensaje: { type: ['string', 'null'] },
   },

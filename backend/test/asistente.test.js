@@ -1,7 +1,16 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Prisma } from '@prisma/client';
-import { argumentosSchema, resolverPeriodo, ErrorPeriodo, consultaSchema, HERRAMIENTAS_HABILITADAS } from '../src/modules/asistente/asistente.schema.js';
+import {
+  argumentosSchema,
+  resolverPeriodo,
+  ErrorPeriodo,
+  consultaSchema,
+  HERRAMIENTAS_HABILITADAS,
+  CLAVES_DEL_PLAN,
+  limpiarArgumentos,
+} from '../src/modules/asistente/asistente.schema.js';
+import { ESQUEMA_PLAN } from '../src/ia/instruccionesAsistente.js';
 import { planSimulado } from '../src/ia/planSimulado.js';
 import { elegirProducto, limitar, HERRAMIENTAS } from '../src/modules/asistente/herramientas.js';
 import { consultar, PRESUPUESTO_MS } from '../src/modules/asistente/asistente.service.js';
@@ -195,6 +204,54 @@ test('flujo: error del proveedor, herramienta no habilitada y argumentos inváli
   await consultar({ pregunta: 'x', usuario }, args.deps);
   assert.equal(args.registros[0].herramientas.herramienta.motivo, 'argumentos inválidos');
   assert.equal(args.transacciones(), 0);
+});
+
+// --- Planes de Gemini real (15/11/2026) ---
+
+test('esquema del plan: el producto va antes que el período (Gemini ordena las claves)', () => {
+  const args = ESQUEMA_PLAN.properties.argumentos;
+  assert.deepEqual(args.propertyOrdering, CLAVES_DEL_PLAN);
+  assert.deepEqual([...Object.keys(args.properties)].sort(), [...CLAVES_DEL_PLAN].sort(), 'el orden cubre todas las claves');
+  assert.ok(args.propertyOrdering.indexOf('producto') < args.propertyOrdering.indexOf('periodo'));
+});
+
+test('argumentos: se descartan los null y las claves del plan que la herramienta no usa', () => {
+  const casos = [
+    // Planes devueltos por Gemini real o señalados en la revisión.
+    ['evolucion_precio', { producto: 'yerba con palo', soloVentas: false }, { producto: 'yerba con palo' }, ['soloVentas']],
+    ['sin_ventas', { periodo: { dias: 30 }, soloVentas: true }, { periodo: { dias: 30 } }, ['soloVentas']],
+    ['faltantes', { soloVentas: false }, {}, ['soloVentas']],
+    ['stock_producto', { producto: 'yerba', soloVentas: false, limite: 10 }, { producto: 'yerba' }, ['soloVentas', 'limite']],
+    ['mas_salidas', { periodo: null, limite: null, soloVentas: true }, { soloVentas: true }, ['periodo', 'limite']],
+    ['mas_salidas', { periodo: { dias: 7, desde: null, hasta: null } }, { periodo: { dias: 7 } }, []],
+    ['salidas_producto', { producto: 'gaseosa', periodo: {} }, { producto: 'gaseosa' }, ['periodo']],
+  ];
+  for (const [herramienta, entrada, esperado, descartados] of casos) {
+    const r = limpiarArgumentos(herramienta, entrada);
+    assert.deepEqual(r.argumentos, esperado, `${herramienta} ${JSON.stringify(entrada)}`);
+    assert.deepEqual(r.descartados, descartados);
+    assert.ok(argumentosSchema[herramienta].safeParse(r.argumentos).success, `${herramienta}: válido después de limpiar`);
+  }
+  assert.deepEqual(limpiarArgumentos('faltantes', null), { argumentos: {}, descartados: [] });
+});
+
+test('argumentos: una clave ajena al plan o un tipo incorrecto siguen siendo inválidos', () => {
+  for (const [herramienta, entrada] of [
+    ['stock_producto', { producto: 'yerba', sql: 'SELECT 1' }],
+    ['mas_salidas', { periodo: { dias: 7, semanas: 1 } }],
+    ['mas_salidas', { soloVentas: 'sí' }],
+    ['salidas_producto', { producto: 'gaseosa', periodo: 'octubre' }],
+  ]) {
+    assert.equal(argumentosSchema[herramienta].safeParse(limpiarArgumentos(herramienta, entrada).argumentos).success, false, JSON.stringify(entrada));
+  }
+});
+
+test('flujo: un plan con claves de más se ejecuta y la traza registra lo descartado', async () => {
+  const e = entorno({ respuestas: [{ accion: 'herramienta', herramienta: 'faltantes', argumentos: { soloVentas: false, periodo: null }, mensaje: null }] });
+  const r = await consultar({ pregunta: '¿Qué me falta?', usuario }, e.deps);
+  assert.equal(r.accion, 'respuesta');
+  assert.equal(e.registros[0].exitosa, true);
+  assert.deepEqual(e.registros[0].herramientas.argumentosDescartados, ['soloVentas', 'periodo']);
 });
 
 test('presupuesto global de tiempo: compartido entre intentos y ejecución', async () => {

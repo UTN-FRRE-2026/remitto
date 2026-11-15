@@ -138,6 +138,31 @@ Revisión del código integrado. Se volvieron a correr `npm test` (251) y los e2
     - sin errores de consola.
 - **No probado:** la descarga en un celular real (en la PWA instalada) ni en producción. `npm audit` informa vulnerabilidades previas de `body-parser` y `multer`, ajenas a esta historia.
 
+## Corrección de HU25 con Gemini real (15/11/2026, rama `fix/HU25-plan-gemini`, sin integrar)
+
+- **Qué se encontró:** fue la primera prueba con Gemini real (`gemini-3.1-flash-lite`), contra una base descartable con ventas, roturas y precios.
+  - Los 8 tipos respondían, pero las herramientas con producto nunca recibían el período (0 de 10).
+  - Gemini escribe las claves del JSON en orden alfabético: «periodo» queda antes que «producto», y como el modelo empieza por el producto ya no lo agregaba.
+  - Por eso «¿Cuánta gaseosa cola vendí en octubre?» respondía «Del 17/10 al 15/11 se vendieron 12 u.» (los 30 días por defecto), cuando en octubre no hubo ventas.
+  - Además, «¿Cuánto me aumentó la yerba con palo en los últimos tres meses?» llegaba con un `soloVentas` de más y terminaba en «argumentos inválidos».
+  - Ni una regla en las instrucciones ni un ejemplo lo resolvían: se probó directamente con el SDK.
+- **Corrección:**
+  - `propertyOrdering` en el esquema del plan, con el producto primero;
+  - antes de validar se descartan los `null` y las claves del plan que la herramienta no usa (quedan en la traza como `argumentosDescartados`); una clave ajena al plan, como `sql`, sigue rechazándose;
+  - una regla para «desde octubre» (de ese día hasta hoy).
+- **Pruebas:**
+  - `npm test`: 255 correctas, 4 nuevas. Mutación: sin la limpieza falla la prueba del flujo.
+  - `npm run e2e -- hu25-asistente`: 31 de 31 con la IA simulada.
+  - **Gemini real**, 31 consultas: los 8 tipos, la aclaración y su elección con el mismo período, y «fuera de alcance».
+    - Las 15 preguntas con producto y período lo recibieron.
+    - «desde octubre» se tomaba como solo octubre hasta agregar la regla; después, de ese día hasta hoy (3 de 3).
+    - Ningún «argumentos inválidos», ni ninguna clave descartada después del arreglo.
+    - Tiempos de 1,3 a 7 s, con picos de 14 a 28 s propios de la capa gratuita.
+- **Pendiente de la revisión de HU25 (no corregido en esta rama):**
+  - el mensaje de los 503 y 500 en la pantalla;
+  - la fecha en UTC de «Última venta»;
+  - la aclaración resuelta antes de ejecutar.
+
 ## Validación de HU25 (15/11/2026, integrada en el PR #33)
 
 - **Qué hay:**

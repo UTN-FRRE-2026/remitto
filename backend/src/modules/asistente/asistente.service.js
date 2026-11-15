@@ -3,7 +3,7 @@ import { ApiError } from '../../lib/errors.js';
 import { hoyArgentina } from '../reportes/reportes.schema.js';
 import { adaptadorPorDefecto, asistenteDisponible, modeloAsistente, planificar, interpretarPlan } from '../../ia/asistente.js';
 import { mensajeDe } from '../../ia/errores.js';
-import { argumentosSchema, HERRAMIENTAS_HABILITADAS, ErrorPeriodo } from './asistente.schema.js';
+import { argumentosSchema, HERRAMIENTAS_HABILITADAS, ErrorPeriodo, limpiarArgumentos } from './asistente.schema.js';
 import { HERRAMIENTAS } from './herramientas.js';
 
 // HU25 (RF7.1): asistente de consultas en lenguaje natural, solo para el
@@ -177,7 +177,9 @@ async function ejecutarPlan(plan, d, vence, traza) {
     traza.herramienta = { nombre: String(nombre).slice(0, 60), rechazada: true, motivo: 'no habilitada' };
     throw new Falla('HERRAMIENTA_NO_HABILITADA');
   }
-  const validacion = argumentosSchema[nombre].safeParse(plan.argumentos ?? {});
+  const { argumentos, descartados } = limpiarArgumentos(nombre, plan.argumentos);
+  if (descartados.length > 0) traza.argumentosDescartados = descartados;
+  const validacion = argumentosSchema[nombre].safeParse(argumentos);
   if (!validacion.success) {
     traza.herramienta = {
       nombre,
