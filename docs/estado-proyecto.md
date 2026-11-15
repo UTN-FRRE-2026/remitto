@@ -106,6 +106,32 @@ Revisión del código integrado. Se volvieron a correr `npm test` (251) y los e2
   - Helvetica de pdfkit no dibuja caracteres fuera de WinAnsi (−, ≥, emojis); los acentos y la ñ salen bien.
   - En un iPhone con la PWA instalada, `<a download>` puede abrir el visor en lugar de descargar (sin probar).
 
+## Facturas con IVA y descuentos generales (15/11/2026, rama `feature/HU10-iva-descuentos`)
+
+- **Problema informado por el equipo:** en una factura de un proveedor responsable inscripto (IVA discriminado), o con una bonificación sobre el subtotal, la suma de las líneas no coincide con el total.
+  - La lectura marcaba el comprobante para revisar («puede haber filas sin leer»).
+  - La validación avisaba que el total no coincidía, aunque estaba bien.
+- **Cambio:**
+  - **Lectura:** esquema de lectura v4 con `ajustes`, los renglones entre los artículos y el total, cada uno con su concepto, importe y tipo (descuento o impuesto). El modelo solo transcribe; el backend suma.
+  - **Base:** columnas `descuento_declarado` e `impuestos_declarados`, en la migración `hu10_descuentos_impuestos` con un `CHECK`.
+  - **Control del total:** suma − descuentos + impuestos, igual al leer y al validar (`src/lib/totales.js`).
+  - **Revisión:** los campos se pueden corregir en la cabecera, y el resumen muestra la cuenta y marca en rojo si no cierra.
+  - **Tipo:** el tipo leído (por ejemplo, FACTURA) ahora se precarga; antes quedaba siempre «Remito».
+  - **Precio de compra:** sigue siendo el de la línea, el neto sin IVA para un responsable inscripto, sin prorratear la bonificación.
+- **Pruebas:**
+  - `npm test`: 267 correctas, 10 nuevas (normalización, revisión, esquema y cabecera).
+  - `npm run e2e -- hu10-iva-descuentos`: 17 de 17, con la IA simulada (escenario `factura_iva`).
+  - `prisma migrate diff`: sin diferencias. `npm run doc-bd` actualizado.
+  - **Gemini real** (`gemini-3.1-flash-lite`), con dos facturas sintéticas:
+    - **Factura A**, con bonificación del 5 %, subtotal intermedio, IVA del 21 % y percepción de IIBB: leyó 3.600 de descuento y 16.416 de impuestos sin contar el subtotal intermedio, total 84.816, sin motivos de revisión.
+    - **Factura B**, con el IVA incluido: ningún ajuste, y el total igual a la suma.
+  - **Navegador, a 390 px:**
+    - la lectura muestra los renglones;
+    - el resumen muestra la cuenta;
+    - al borrar los impuestos se marca la diferencia, y al cargarlos en formato argentino vuelve a cuadrar;
+    - «Validar datos» queda sin aviso de total, sin errores de consola.
+- **No probado:** con facturas reales de proveedores, ni con descuentos por renglón (una columna «Bonif.» en cada fila), que siguen dependiendo del precio unitario leído.
+
 ## Validación de HU31 (15/11/2026, integrada en el PR #34; pruebas ejecutadas en la rama `feature/HU31-orden-compra`)
 
 - **Qué hay:**

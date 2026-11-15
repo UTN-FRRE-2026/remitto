@@ -45,7 +45,7 @@ Para el detalle de lo verificado en cada entrega, ver [estado-proyecto.md](estad
 | RF3.1 | Cargar un comprobante por foto o PDF | HU8 | Implementado | Pantalla Cargar remito · `POST /api/comprobantes` |
 | RF3.2 | Extraer los ítems con IA | HU9 | Implementado | Pantalla Leyendo con IA · Gemini mediante un adaptador |
 | RF3.3 | Asociar los ítems al catálogo con nivel de confianza | HU15 | Implementado | Propuesta y confianza en la revisión. Falta calibrarla con remitos reales |
-| RF3.4 | Revisar y confirmar, con alta de productos nuevos | HU10 | Implementado | Pantalla Revisar remito |
+| RF3.4 | Revisar y confirmar, con alta de productos nuevos | HU10 | Implementado | Pantalla Revisar remito. Facturas con IVA discriminado o descuentos generales: el total se controla como suma − descuentos + impuestos (verificado con Gemini real el 15/11/2026) |
 | RF3.5 | Reconocer equivalencias por proveedor | HU16 | Implementado | Se aprenden al confirmar y se proponen en el siguiente comprobante del proveedor («Recordado») · tabla `codigos_proveedor` |
 | RF3.6 | Exigir revisión completa en comprobantes dudosos | HU17 | Implementado | Aviso de revisión obligatoria y «Marcar como revisada» por línea; no se confirma hasta revisarlas todas |
 | RF3.7 | Consultar los comprobantes archivados | HU18 | Implementado | Pantalla Comprobantes, con filtros y acceso desde la ficha del proveedor · `GET /api/comprobantes` |

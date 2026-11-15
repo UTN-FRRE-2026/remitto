@@ -59,6 +59,12 @@ Termina con código 0 si todos los controles pasaron, 1 si alguno falló y 2 si 
 
 | Archivo | Historia | Qué comprueba |
 | --- | --- | --- |
+| `hu10-iva-descuentos.mjs` | HU10 | Factura A con bonificación, IVA y percepción, con la IA simulada (escenario `factura_iva`):
+- **lectura:** guarda total, descuento e impuestos, precarga el tipo FACTURA y no marca la factura para revisar;
+- **validación:** suma − descuentos + impuestos coincide con el total;
+- **corrección:** al borrar los impuestos aparece un aviso con la cuenta, que no impide confirmar; 400 si el importe es negativo o tiene más de 2 decimales, y `CHECK` en la base;
+- **confirmación:** el stock sube y el precio de compra es el de la línea;
+- **un remito sin ajustes** sigue cuadrando. |
 | `hu21-claves.mjs` | HU21 | Permisos, la clave completa solo en el alta, el hash SHA-256 en la base, el último uso, la revocación (incluso con pedidos en curso) y `CHECK chk_clave_revocada`. |
 | `hu22-salidas.mjs` | HU22 | Contrato publicado, autenticación, validación y atomicidad, venta por código de barras e id, reenvíos (200 y 409), reenvíos con el catálogo cambiado (código cambiado, borrado o pasado a otro producto, producto desactivado, fecha distinta, 10 en paralelo), `CHECK chk_pedido_externo`, stock negativo y su aviso en la valorización, kilos, carrito sin cambios, 25 reenvíos simultáneos, 52 operaciones simultáneas de dos cajas y carritos, revocación con 120 ventas en curso y el orden determinístico venta → revocación. |
 | `hu24-alertas.mjs` | HU24 | Permisos; las alertas del seed coinciden con los indicadores del tablero; ciclo de vida con producto nuevo, recuento, carrito y venta del endpoint (sin stock → resuelta → stock bajo → sin stock → negativo → resuelta) con su historia; reenvío sin alerta duplicada; mínimo, desactivación y reactivación; 30 ventas del endpoint y 10 carritos simultáneos con una sola alerta por situación; `uq_alerta_activa` rechaza una segunda activa; al final, las alertas activas de todos los productos coinciden con su stock. **Se corre en una ejecución aparte** (`npm run e2e -- hu24-alertas`): parte de los datos del seed sin cambios, y HU21 y HU22 esperan una base sin claves ni salidas previas. |

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { ESQUEMA_JSON, lecturaSchema, lineaSchema, VERSION_ESQUEMA } from '../src/ia/esquemaComprobante.js';
+import { ESQUEMA_JSON, lecturaSchema, lineaSchema, ajusteSchema, VERSION_ESQUEMA } from '../src/ia/esquemaComprobante.js';
 
 // El JSON Schema que ve el modelo y el Zod que valida deben declarar lo mismo.
 const clavesZod = (schema) => Object.keys(schema.shape).sort();
@@ -11,6 +11,14 @@ test('JSON Schema y Zod declaran los mismos campos en cada nivel', () => {
   assert.deepEqual(clavesJson(ESQUEMA_JSON.properties.documento), clavesZod(lecturaSchema.shape.documento));
   assert.deepEqual(clavesJson(ESQUEMA_JSON.properties.cabecera), clavesZod(lecturaSchema.shape.cabecera));
   assert.deepEqual(clavesJson(ESQUEMA_JSON.properties.lineas.items), clavesZod(lineaSchema));
+  assert.deepEqual(clavesJson(ESQUEMA_JSON.properties.ajustes.items), clavesZod(ajusteSchema));
+});
+
+test('v4: los ajustes se piden aparte de las líneas, con concepto y tipo; ausentes = sin ajustes', () => {
+  assert.equal(VERSION_ESQUEMA, 4);
+  assert.deepEqual(ESQUEMA_JSON.properties.ajustes.items.required, ['concepto', 'tipo']);
+  assert.ok(!ESQUEMA_JSON.required.includes('ajustes'), 'una lectura sin ajustes sigue siendo válida');
+  assert.deepEqual(lecturaSchema.shape.ajustes.parse(undefined), []);
 });
 
 const NODOS = [
@@ -18,6 +26,7 @@ const NODOS = [
   ESQUEMA_JSON.properties.documento,
   ESQUEMA_JSON.properties.cabecera,
   ESQUEMA_JSON.properties.lineas.items,
+  ESQUEMA_JSON.properties.ajustes.items,
 ];
 
 function recorrer(nodo, fn, ruta = '$') {
@@ -58,7 +67,7 @@ test('los datos de lectura no son obligatorios: lo ilegible se omite (nunca se c
 
 test('v3: el esquema enviado no tiene "cantidad" numérica y exige "cantidadTexto" de texto', () => {
   const linea = ESQUEMA_JSON.properties.lineas.items;
-  assert.equal(VERSION_ESQUEMA, 3);
+  assert.ok(VERSION_ESQUEMA >= 3, "desde la versión 3");
   assert.equal('cantidad' in linea.properties, false);
   assert.equal(linea.properties.cantidadTexto.type, 'string');
   assert.ok(linea.required.includes('cantidadTexto'));

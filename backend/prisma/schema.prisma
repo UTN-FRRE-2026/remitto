@@ -245,6 +245,11 @@ model Comprobante {
   numero         String?
   fechaEmision   DateTime?       @map("fecha_emision") @db.Date
   totalDeclarado Decimal?        @map("total_declarado") @db.Decimal(14, 2)
+  /// HU10: descuentos generales (bonificaciones sobre el subtotal), en positivo.
+  /// Total = suma de líneas − descuento + impuestos.
+  descuentoDeclarado  Decimal? @map("descuento_declarado") @db.Decimal(14, 2)
+  /// HU10: IVA discriminado, percepciones y otros impuestos que suman al total.
+  impuestosDeclarados Decimal? @map("impuestos_declarados") @db.Decimal(14, 2)
 
   archivoUrl    String        @map("archivo_url")
   archivoMime   String        @map("archivo_mime")

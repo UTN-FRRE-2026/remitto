@@ -5,6 +5,9 @@ import { normalizarNumero } from '../../ia/normalizar.js';
 import { registrarMovimiento } from '../stock/stock.service.js';
 import { esDudosa } from './comprobantes.asociacion.js';
 import { registrarEquivalencias } from './comprobantes.equivalencias.js';
+import { totalCalculado, coincideTotal, describirCuenta } from '../../lib/totales.js';
+
+const formatoPesos = (n) => n.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 // HU10: revisión del comprobante leído por la IA (estado EN_REVISION).
 // - Las correcciones se guardan como borrador en las columnas confirmables
@@ -58,7 +61,7 @@ export async function actualizarCabecera(id, datos) {
   }
   return prisma.comprobante.findUnique({
     where: { id },
-    select: { id: true, numero: true, tipo: true, fechaEmision: true, totalDeclarado: true },
+    select: { id: true, numero: true, tipo: true, fechaEmision: true, totalDeclarado: true, descuentoDeclarado: true, impuestosDeclarados: true },
   });
 }
 
@@ -194,10 +197,23 @@ export function evaluarRevision(c, { duplicados = [] } = {}) {
 
   const totalImpreso = num(c.totalDeclarado);
   const importeRedondeado = Math.round(importe * 100) / 100;
-  const coincideTotal =
-    totalImpreso == null || lineasSinPrecio > 0 ? null : Math.abs(importeRedondeado - totalImpreso) <= Math.max(1, totalImpreso * 0.01);
-  if (coincideTotal === false) {
-    avisos.push({ campo: 'totalDeclarado', mensaje: `La suma de las líneas ($${importeRedondeado}) no coincide con el total impreso ($${totalImpreso}).` });
+  // HU10: total = suma de las líneas − descuentos + impuestos (IVA
+  // discriminado, percepciones). Sin ellos, una factura A o con una
+  // bonificación general nunca coincidía.
+  const descuento = num(c.descuentoDeclarado);
+  const impuestos = num(c.impuestosDeclarados);
+  const totalEsperado = totalCalculado({ sumaLineas: importeRedondeado, descuento, impuestos });
+  const coincide =
+    lineasSinPrecio > 0 ? null : coincideTotal({ sumaLineas: importeRedondeado, descuento, impuestos, total: totalImpreso });
+  if (coincide === false) {
+    const cuenta = describirCuenta({ sumaLineas: importeRedondeado, descuento, impuestos });
+    const sinAjustes = descuento == null && impuestos == null;
+    avisos.push({
+      campo: 'totalDeclarado',
+      mensaje: sinAjustes
+        ? `La suma de las líneas (${cuenta}) no coincide con el total impreso ($ ${formatoPesos(totalImpreso)}). Si la factura tiene descuentos generales o IVA discriminado, cargalos en la cabecera.`
+        : `Lo calculado (${cuenta}) no coincide con el total impreso ($ ${formatoPesos(totalImpreso)}).`,
+    });
   }
 
   return {
@@ -210,8 +226,11 @@ export function evaluarRevision(c, { duplicados = [] } = {}) {
       descartadas: c.detalles.length - activas.length,
       unidades: Math.round(unidades * 1000) / 1000,
       importe: importeRedondeado,
+      descuento,
+      impuestos,
+      totalCalculado: totalEsperado,
       totalImpreso,
-      coincideTotal,
+      coincideTotal: coincide,
       // HU17
       revisionCompleta,
       sinRevisar: sinRevisar.length,

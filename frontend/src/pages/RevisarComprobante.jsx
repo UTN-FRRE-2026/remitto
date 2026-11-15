@@ -164,6 +164,14 @@ export default function RevisarComprobante() {
     (s, d) => s + (d.cantidad != null && d.precioUnitario != null ? Number(d.cantidad) * Number(d.precioUnitario) : 0),
     0,
   );
+  // HU10: factura con bonificación general o IVA discriminado: el total es
+  // suma − descuentos + impuestos (misma regla que el backend).
+  const descuento = comprobante.descuentoDeclarado != null ? Number(comprobante.descuentoDeclarado) : null;
+  const impuestos = comprobante.impuestosDeclarados != null ? Number(comprobante.impuestosDeclarados) : null;
+  const conAjustes = descuento != null || impuestos != null;
+  const totalCalculado = Math.round((importe - (descuento ?? 0) + (impuestos ?? 0)) * 100) / 100;
+  const totalImpreso = comprobante.totalDeclarado != null ? Number(comprobante.totalDeclarado) : null;
+  const difiere = totalImpreso != null && Math.abs(totalCalculado - totalImpreso) > Math.max(1, totalImpreso * 0.01);
 
   return (
     <div className="revisar">
@@ -290,7 +298,23 @@ export default function RevisarComprobante() {
               <span>Suma de las líneas</span>
               <strong>{pesos(importe)}</strong>
             </div>
-            <div>
+            {conAjustes && (
+              <>
+                <div>
+                  <span>− Descuentos</span>
+                  <strong>{pesos(descuento ?? 0)}</strong>
+                </div>
+                <div>
+                  <span>+ IVA y otros impuestos</span>
+                  <strong>{pesos(impuestos ?? 0)}</strong>
+                </div>
+                <div className={difiere ? 'revisar__resumen-difiere' : ''}>
+                  <span>Total calculado</span>
+                  <strong>{pesos(totalCalculado)}</strong>
+                </div>
+              </>
+            )}
+            <div className={!conAjustes && difiere ? 'revisar__resumen-difiere' : ''}>
               <span>Total impreso</span>
               <strong>{pesos(comprobante.totalDeclarado)}</strong>
             </div>
@@ -371,12 +395,17 @@ function ResumenIngreso({ confirmacion }) {
   );
 }
 
+// Importes de la cabecera: se escriben en formato argentino y se guardan como número.
+const IMPORTES = ['totalDeclarado', 'descuentoDeclarado', 'impuestosDeclarados'];
+
 function Cabecera({ comprobante, editable, registrar, onGuardado }) {
   const inicial = () => ({
     numero: comprobante.numero ?? '',
     fechaEmision: comprobante.fechaEmision ? comprobante.fechaEmision.slice(0, 10) : '',
     tipo: comprobante.tipo,
     totalDeclarado: comprobante.totalDeclarado != null ? mostrarNumero(comprobante.totalDeclarado, 2) : '',
+    descuentoDeclarado: comprobante.descuentoDeclarado != null ? mostrarNumero(comprobante.descuentoDeclarado, 2) : '',
+    impuestosDeclarados: comprobante.impuestosDeclarados != null ? mostrarNumero(comprobante.impuestosDeclarados, 2) : '',
   });
   const [campos, setCampos] = useState(inicial);
   const [estado, setEstado] = useState({});
@@ -395,10 +424,10 @@ function Cabecera({ comprobante, editable, registrar, onGuardado }) {
 
   function alSalir(campo) {
     const texto = campos[campo];
-    if (campo === 'totalDeclarado') {
+    if (IMPORTES.includes(campo)) {
       const v = leerNumero(texto);
       if (Number.isNaN(v)) return setEstado((e) => ({ ...e, [campo]: { error: formatoInvalido } }));
-      if (v === (comprobante.totalDeclarado != null ? Number(comprobante.totalDeclarado) : null)) return undefined;
+      if (v === (comprobante[campo] != null ? Number(comprobante[campo]) : null)) return undefined;
       return guardar(campo, v);
     }
     const actual = campo === 'fechaEmision' ? inicial().fechaEmision : comprobante[campo] ?? '';
@@ -444,6 +473,19 @@ function Cabecera({ comprobante, editable, registrar, onGuardado }) {
         </select>,
       )}
       {campo('totalDeclarado', 'Total impreso', <input inputMode="decimal" {...props('totalDeclarado')} placeholder="0,00" />)}
+      {/* HU10: facturas con bonificación general o IVA discriminado. */}
+      {campo(
+        'descuentoDeclarado',
+        'Descuentos generales',
+        <input inputMode="decimal" {...props('descuentoDeclarado')} placeholder="0,00" />,
+        'Bonificaciones sobre el subtotal',
+      )}
+      {campo(
+        'impuestosDeclarados',
+        'IVA y otros impuestos',
+        <input inputMode="decimal" {...props('impuestosDeclarados')} placeholder="0,00" />,
+        'IVA discriminado y percepciones',
+      )}
     </div>
   );
 }

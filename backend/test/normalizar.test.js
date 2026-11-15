@@ -310,3 +310,68 @@ test('tipo desconocido no se fuerza a un valor válido', () => {
   assert.equal(n.cabecera.tipo, null);
   assert.ok(n.motivosRevision.some((m) => m.includes('TICKET')));
 });
+
+// --- v4: descuentos e impuestos entre los artículos y el total ---
+
+const conAjustes = (ajustes, totalDeclarado) =>
+  lecturaSchema.parse({ ...lectura({ cabecera: { tipo: 'FACTURA', totalDeclarado }, lineas: [linea()] }), ajustes });
+
+test('v4: factura A con bonificación e IVA: el total cuadra y no pide revisión', () => {
+  // 12 × 2.850 = 34.200; bonificación 5 % 1.710; IVA 21 % sobre 32.490 = 6.822,90.
+  const n = normalizarLectura(
+    conAjustes(
+      [
+        { concepto: 'Bonificación 5 %', tipo: 'DESCUENTO', importe: 1710 },
+        { concepto: 'IVA 21 %', tipo: 'IMPUESTO', importe: 6822.9 },
+        { concepto: 'Percepción IIBB', tipo: 'impuesto', importe: 974.7 },
+      ],
+      40287.6,
+    ),
+    { hoy: HOY },
+  );
+  assert.equal(n.cabecera.descuentoDeclarado, 1710);
+  assert.equal(n.cabecera.impuestosDeclarados, 7797.6);
+  assert.equal(n.ajustes.length, 3);
+  assert.deepEqual(n.motivosRevision, []);
+  assert.equal(n.requiereRevision, false);
+});
+
+test('v4: sin los ajustes, la misma factura avisa que puede haber impuestos sin cargar', () => {
+  const n = normalizarLectura(conAjustes([], 40287.6), { hoy: HOY });
+  assert.equal(n.cabecera.descuentoDeclarado, null);
+  assert.equal(n.cabecera.impuestosDeclarados, null);
+  assert.ok(n.motivosRevision.some((m) => m.includes('impuestos (IVA, percepciones) sin cargar')));
+});
+
+test('v4: un descuento sin impuestos que deja el total por debajo de la suma se explica', () => {
+  const n = normalizarLectura(conAjustes([], 32490), { hoy: HOY });
+  assert.ok(n.motivosRevision.some((m) => m.includes('puede haber un descuento sin cargar')));
+  const ok = normalizarLectura(conAjustes([{ concepto: 'Desc. pronto pago', tipo: 'DESCUENTO', importe: -1710 }], 32490), { hoy: HOY });
+  assert.equal(ok.cabecera.descuentoDeclarado, 1710, 'el signo menos impreso se toma en positivo');
+  assert.deepEqual(ok.motivosRevision, []);
+});
+
+test('v4: un ajuste sin importe o sin tipo no se inventa: se informa y no se verifica el total', () => {
+  const n = normalizarLectura(
+    conAjustes(
+      [
+        { concepto: 'IVA 21 %', tipo: 'IMPUESTO', importe: null },
+        { concepto: 'Otros', tipo: 'VARIOS', importe: 100 },
+      ],
+      41000,
+    ),
+    { hoy: HOY },
+  );
+  assert.equal(n.cabecera.impuestosDeclarados, null);
+  assert.ok(n.motivosRevision.some((m) => m.includes('importe válido para «IVA 21 %»')));
+  assert.ok(n.motivosRevision.some((m) => m.includes('«Otros» suma o resta')));
+  assert.ok(n.motivosRevision.some((m) => m.includes('algún descuento o impuesto no se leyó')));
+  assert.equal(n.requiereRevision, true);
+});
+
+test('v4: una lectura v3 (sin "ajustes") se normaliza igual que antes', () => {
+  const { ajustes, ...v3 } = conAjustes([], 34200);
+  const n = normalizarLectura(lecturaSchema.parse(v3), { hoy: HOY });
+  assert.deepEqual(n.ajustes, []);
+  assert.deepEqual(n.motivosRevision, []);
+});

@@ -7,6 +7,8 @@
 const TIPOS = ['REMITO', 'FACTURA', 'OTRO'];
 const MAX_CANTIDAD = 1e9; // Decimal(12,3)
 const MAX_PRECIO = 1e10; // Decimal(12,2)
+import { totalCalculado, tolerancia, describirCuenta } from '../lib/totales.js';
+
 const MAX_TOTAL = 1e12; // Decimal(14,2)
 const UNIDAD_AGRUPADA = /\b(caja|cja|bulto|blt|pack|paq|paquete|docena|fardo|display|bolsa|x\s*\d+)\b/i;
 // Presentación de producto (500ML, 1,5L, 80G): va en la descripción, no es unidad de venta.
@@ -181,6 +183,37 @@ function normalizarLinea(linea, indice) {
   };
 }
 
+// v4: renglones de descuento e impuestos entre los artículos y el total. Se
+// suman por tipo; un renglón sin importe o sin tipo reconocible impide
+// verificar el total (se informa, no se inventa).
+export function normalizarAjustes(ajustes = []) {
+  const motivos = [];
+  const lista = [];
+  let descuento = null;
+  let impuestos = null;
+  let incompletos = 0;
+  for (const a of ajustes) {
+    const concepto = limpiar(a.concepto) ?? 'sin concepto';
+    const tipo = limpiar(a.tipo)?.toUpperCase() ?? null;
+    const importe = representable(a.importe, MAX_TOTAL);
+    if (tipo !== 'DESCUENTO' && tipo !== 'IMPUESTO') {
+      motivos.push(`No se distingue si «${concepto}» suma o resta al total.`);
+      incompletos += 1;
+    } else if (importe === null || (tipo === 'IMPUESTO' && importe < 0)) {
+      motivos.push(`No se leyó un importe válido para «${concepto}».`);
+      incompletos += 1;
+    } else {
+      // Un descuento impreso con signo menos se toma en positivo.
+      const valor = Math.abs(importe);
+      lista.push({ concepto, tipo, importe: valor });
+      if (tipo === 'DESCUENTO') descuento = (descuento ?? 0) + valor;
+      else impuestos = (impuestos ?? 0) + valor;
+    }
+  }
+  const r2 = (n) => (n === null ? null : Math.round(n * 100) / 100);
+  return { ajustes: lista, descuento: r2(descuento), impuestos: r2(impuestos), incompletos, motivos };
+}
+
 // Recibe la lectura ya validada por lecturaSchema.
 export function normalizarLectura(lectura, { hoy = new Date() } = {}) {
   const motivos = [];
@@ -212,19 +245,36 @@ export function normalizarLectura(lectura, { hoy = new Date() } = {}) {
   const lineas = lectura.lineas.map(normalizarLinea);
   if (!ilegible && lineas.length === 0) motivos.push('No se detectaron líneas de artículos.');
 
-  // Control cruzado: total impreso vs. suma de las líneas con cantidad y precio.
+  const ajustes = normalizarAjustes(lectura.ajustes);
+  motivos.push(...ajustes.motivos);
+  const { descuento, impuestos } = ajustes;
+
+  // Control cruzado: total impreso vs. suma de las líneas con cantidad y
+  // precio, menos los descuentos y más los impuestos leídos (v4).
   if (totalDeclarado !== null && lineas.length > 0) {
     const completas = lineas.filter((l) => l.cantidad !== null && l.precioUnitario !== null);
-    const suma = Math.round(completas.reduce((s, l) => s + l.cantidad * l.precioUnitario, 0) * 100) / 100;
-    const tolerancia = Math.max(1, totalDeclarado * 0.01);
+    const sumaLineas = completas.reduce((s, l) => s + l.cantidad * l.precioUnitario, 0);
+    const esperado = totalCalculado({ sumaLineas, descuento, impuestos });
+    const margen = tolerancia(totalDeclarado);
+    const cuenta = describirCuenta({ sumaLineas, descuento, impuestos });
     const incompletas = lineas.length - completas.length;
     if (incompletas > 0) {
       motivos.push(`No se pudo verificar el total impreso (${totalDeclarado}): ${incompletas} línea(s) sin cantidad o precio.`);
     }
-    if (suma < totalDeclarado - tolerancia) {
-      motivos.push(`El total impreso (${totalDeclarado}) supera la suma de las líneas leídas (${suma}): puede haber filas sin leer.`);
-    } else if (incompletas === 0 && Math.abs(suma - totalDeclarado) > tolerancia) {
-      motivos.push(`El total impreso (${totalDeclarado}) no coincide con la suma de las líneas (${suma}).`);
+    if (ajustes.incompletos > 0) {
+      motivos.push(`No se pudo verificar el total impreso (${totalDeclarado}): algún descuento o impuesto no se leyó.`);
+    } else if (esperado < totalDeclarado - margen) {
+      motivos.push(
+        descuento === null && impuestos === null
+          ? `El total impreso (${totalDeclarado}) supera la suma de las líneas leídas (${esperado}): puede haber filas sin leer o impuestos (IVA, percepciones) sin cargar.`
+          : `El total impreso (${totalDeclarado}) supera lo calculado (${cuenta}): puede haber filas sin leer o impuestos sin cargar.`,
+      );
+    } else if (incompletas === 0 && Math.abs(esperado - totalDeclarado) > margen) {
+      motivos.push(
+        descuento === null && impuestos === null
+          ? `El total impreso (${totalDeclarado}) no coincide con la suma de las líneas (${esperado}): puede haber un descuento sin cargar.`
+          : `El total impreso (${totalDeclarado}) no coincide con lo calculado (${cuenta}).`,
+      );
     }
   }
 
@@ -237,10 +287,13 @@ export function normalizarLectura(lectura, { hoy = new Date() } = {}) {
       numeroNormalizado: normalizarNumero(numero),
       fechaEmision: fecha,
       totalDeclarado,
+      descuentoDeclarado: descuento,
+      impuestosDeclarados: impuestos,
       proveedorNombre: limpiar(cabecera.proveedorNombre),
       proveedorCuit: limpiar(cabecera.proveedorCuit),
     },
     lineas,
+    ajustes: ajustes.ajustes,
     motivosRevision: motivos,
     requiereRevision: motivos.length > 0 || lineas.some((l) => l.motivosRevision.length > 0),
   };

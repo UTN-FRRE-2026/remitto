@@ -123,6 +123,8 @@ La revisión muestra el archivo original (**Ver archivo** lo abre en grande), lo
 
 **Encabezado.** Completá el **Número** del comprobante: debajo se muestra el número leído como referencia («Leído: 0001-00045872»). El número es obligatorio y sirve para que un mismo remito no se ingrese dos veces. Revisá también la fecha de emisión, el tipo (remito, factura u otro) y el total impreso.
 
+**Facturas con IVA o descuentos.** En una factura A (con el IVA discriminado), o cuando el proveedor aplica una bonificación sobre el subtotal, el total no es la suma de los productos. Remitto lee esos renglones y completa **Descuentos generales** (las bonificaciones) e **IVA y otros impuestos** (IVA, percepciones). Si no se leyeron o están mal, corregilos en el encabezado. El resumen muestra la cuenta: suma de las líneas − descuentos + impuestos = total calculado, que tiene que dar el total impreso. Si no da, el total calculado aparece en rojo. En una factura B o C, con el IVA incluido en los precios, esos campos quedan vacíos.
+
 **Líneas.** Cada línea muestra lo que se leyó («Leído: GAS, COLA 500ML», con su código, cantidad y precio impresos) y el producto del catálogo asociado:
 
 | Indicador | Significa | Qué hacer |
@@ -147,7 +149,7 @@ Los cambios se guardan solos («Guardado»): podés salir y retomar la revisión
 
 <img src="manual/07-validar-datos.png" alt="Datos validados, con el botón Confirmar ingreso" width="300">
 
-1. Tocá **Validar datos**. Si falta algo (el número, un producto, una cantidad), aparece la lista **Faltan datos para confirmar** con lo que hay que corregir. Las líneas dudosas generan un aviso, pero no impiden confirmar.
+1. Tocá **Validar datos**. Si falta algo (el número, un producto, una cantidad), aparece la lista **Faltan datos para confirmar** con lo que hay que corregir. Las líneas dudosas generan un aviso, pero no impiden confirmar. Si el total calculado no coincide con el impreso, también es un aviso: revisá las cantidades, los precios y los descuentos e impuestos del encabezado.
 2. Con los datos completos aparece **Confirmar ingreso (N unidades)**. Al tocarlo, el stock de todos los productos se actualiza en una sola operación.
 
 <img src="manual/08-ingreso-confirmado.png" alt="Ingreso confirmado con el stock actualizado" width="300">

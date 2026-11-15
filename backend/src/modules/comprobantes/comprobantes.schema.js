@@ -75,6 +75,16 @@ export const hoyArgentina = (ahora = new Date()) =>
 // compra (HU20, HU28): una fecha futura dominaría el «último precio».
 const fechaEmision = fecha.refine((t) => t <= hoyArgentina(), 'La fecha de emisión no puede ser posterior a hoy.');
 
+// Importe de la cabecera: no negativo, hasta 2 decimales (Decimal(14,2)).
+const importe = (nombre) =>
+  z
+    .number({ invalid_type_error: `${nombre} debe ser un número` })
+    .nonnegative(`${nombre} no puede ser negativo`)
+    .max(999999999999, `${nombre} es demasiado grande`)
+    .refine(conDecimales(2), `${nombre} admite hasta 2 decimales`)
+    .nullable()
+    .optional();
+
 export const actualizarCabeceraSchema = z
   .object({
     numero: z
@@ -86,13 +96,10 @@ export const actualizarCabeceraSchema = z
       .transform((v) => (v === '' ? null : v)),
     fechaEmision: fechaEmision.nullable().optional(),
     tipo: z.enum(['REMITO', 'FACTURA', 'OTRO']).optional(),
-    totalDeclarado: z
-      .number({ invalid_type_error: 'El total debe ser un número' })
-      .nonnegative('El total no puede ser negativo')
-      .max(999999999999, 'El total es demasiado grande')
-      .refine(conDecimales(2), 'El total admite hasta 2 decimales')
-      .nullable()
-      .optional(),
+    totalDeclarado: importe('El total'),
+    // HU10: factura con bonificación general o IVA discriminado.
+    descuentoDeclarado: importe('El descuento'),
+    impuestosDeclarados: importe('El importe de impuestos'),
   })
   .strict()
   .refine((d) => Object.keys(d).length > 0, 'No hay cambios para guardar');

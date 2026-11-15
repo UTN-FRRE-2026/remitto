@@ -56,6 +56,21 @@ function respuestaOk(numero = '0001-00045872') {
   };
 }
 
+// HU10: factura A con bonificación general, IVA discriminado y percepción.
+// 72.000 − 3.600 + 14.364 + 2.052 = 84.816.
+function respuestaFacturaIva() {
+  const r = respuestaOk('0003-00012345');
+  r.cabecera.tipo = 'FACTURA';
+  r.cabecera.totalDeclarado = 84816;
+  r.cabecera.totalTexto = '84.816,00';
+  r.ajustes = [
+    { concepto: 'Bonificación 5 %', tipo: 'DESCUENTO', importe: 3600, importeTexto: '3.600,00' },
+    { concepto: 'IVA 21 %', tipo: 'IMPUESTO', importe: 14364, importeTexto: '14.364,00' },
+    { concepto: 'Percepción IIBB 3 %', tipo: 'IMPUESTO', importe: 2052, importeTexto: '2.052,00' },
+  ];
+  return r;
+}
+
 function respuestaParcial() {
   const r = respuestaOk(null);
   r.documento.bajaCalidad = true;
@@ -100,6 +115,8 @@ export async function llamar({ buffer, timeoutMs }) {
     case 'lento':
     case 'demora':
       return responder(respuestaOk());
+    case 'factura_iva':
+      return responder(respuestaFacturaIva());
     case 'duplicado':
       return responder(respuestaOk('0001-00000099'));
     case 'parcial':
