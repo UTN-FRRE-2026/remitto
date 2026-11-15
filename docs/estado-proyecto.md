@@ -78,6 +78,10 @@ HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa qu
   - Desde HU24, el seed importa `alertas.service`, que cargaba el cliente global y con él la configuración del servidor. La configuración inválida de la prueba hacía fallar el seed antes de que arrancara la API.
   - El ejecutor igual abortaba sin correr escenarios y borraba su base.
   - Corregido: `alertas.service` ya no importa el cliente global (la ruta le pasa `prisma`). Ahora 26 de 26; `hu24-alertas` y `hu26-tablero` 53 de 53.
+- **Prueba de HU22 «la revocación cayó con ventas en curso»:** fallaba a veces, porque las 120 ventas terminaban antes de que llegara la revocación.
+  - Ahora son 240 ventas y la revocación sale al terminar la primera.
+  - En 3 de 3 corridas se superpusieron (de 63 a 78 ventas aceptadas y el resto rechazadas) y dieron 63 de 63.
+  - Las garantías que se comprueban no cambiaron.
 - **Producción** (`remitto.blackandred.com.ar`), solo pedidos sin sesión:
   - `/api/health` responde y HTTP redirige a HTTPS (certificado de Let's Encrypt hasta el 24/01/2027);
   - las rutas de HU21 a HU31 existen (401 sin sesión);

@@ -312,9 +312,11 @@ export default async function hu22({ api, check, db, dueño, empleado }) {
   );
 
   // --- Revocación con ventas en curso ---
-  // 120 ventas en paralelo; la revocación sale cuando terminaron 10, así cae
-  // con ventas en curso. Que se superpongan depende de los tiempos: si en una
-  // ronda la revocación llega tarde, se repite con otra clave (hasta 3). Las
+  // 240 ventas en paralelo; la revocación sale apenas termina la primera, así
+  // cae con ventas en curso. (Con 120 ventas y la revocación después de 10, en
+  // algunas máquinas todas terminaban antes de que llegara.) Que se
+  // superpongan depende de los tiempos: si en una ronda la revocación llega
+  // tarde, se repite con otra clave (hasta 3). Las
   // garantías se comprueban en todas las rondas; el orden exacto venta →
   // revocación lo prueba el caso determinístico que sigue.
   let rondas = 0;
@@ -328,10 +330,10 @@ export default async function hu22({ api, check, db, dueño, empleado }) {
     const k3 = await nuevaClave(`Caja 3 (ronda ${rondas})`);
     let terminadas = 0;
     let revocacion;
-    const enCurso = Array.from({ length: 120 }, (_, i) =>
+    const enCurso = Array.from({ length: 240 }, (_, i) =>
       vender(k3.clave, { referencia: `R-${i}`, lineas: [{ productoId: productos[i % 4], cantidad: 1 }] }).then((r) => {
         terminadas += 1;
-        if (terminadas === 10) revocacion = api('DELETE', `/claves-integracion/${k3.id}`, { token: dueño });
+        if (terminadas === 1) revocacion = api('DELETE', `/claves-integracion/${k3.id}`, { token: dueño });
         return r;
       }),
     );
@@ -345,7 +347,7 @@ export default async function hu22({ api, check, db, dueño, empleado }) {
     sinErrores &&= revocada.status === 200 && durante.every((r) => r.status === 201 || r.status === 401);
     coinciden &&= registradasK3 === exitos;
     rechazadasDespues &&= despues.every((r) => r.status === 401) && (await salidasDe(k3.id)) === registradasK3;
-    superpuestas = exitos >= 10 && exitos < durante.length;
+    superpuestas = exitos >= 1 && exitos < durante.length;
     resumen += `${resumen ? '; ' : ''}ronda ${rondas}: ${exitos} × 201 y ${durante.length - exitos} × 401`;
   }
   check(sinErrores, `ventas durante la revocación: solo 201 o 401, sin errores (${resumen})`);
