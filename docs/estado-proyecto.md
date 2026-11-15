@@ -72,7 +72,7 @@ HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa qu
   - los códigos de barras se resuelven con el catálogo de prueba conocido;
   - no usa cantidades, stocks ni ids de las respuestas.
 - **Pruebas ejecutadas en esta rama:**
-  - `npm test`: 214 correctas, 9 nuevas en `test/simulador.test.js`. Cubren la reproducibilidad, 120 referencias y 30 reenvíos, cantidades válidas, milésimas exactas, el esperado contando cada referencia una vez (contar un reenvío cambia el resultado), los cuerpos válidos para HU22, el 503 seguido de 201 (2 intentos HTTP, 1 venta, la espera de `Retry-After` y la misma petición), el límite de reintentos agotado (envío incompleto) y la regla de respuestas por referencia.
+  - `npm test`: 215 correctas, 10 nuevas en `test/simulador.test.js`. Cubren la reproducibilidad, 120 referencias y 30 reenvíos, cantidades válidas, milésimas exactas, el esperado contando cada referencia una vez (contar un reenvío cambia el resultado), los cuerpos válidos para HU22, el 503 seguido de 201 (2 intentos HTTP, 1 venta, la espera de `Retry-After` y la misma petición), el límite de reintentos agotado (envío incompleto) y la regla de respuestas por referencia.
   - `npm run e2e -- hu21-claves hu22-salidas hu23-simulador`: 111 controles correctos (38 + 63 + 10).
   - **Corrida válida (semilla 2026):**
     - 150 envíos lógicos (120 ventas únicas y 30 reenvíos) y 150 intentos HTTP;
@@ -82,6 +82,12 @@ HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa qu
   - **Control negativo, separado:** la venta `SIM-2026-0007` registrada otra vez como `SIM-2026-0007-BIS`; el comparador detecta exactamente la diferencia introducida (6 unidades del producto #13).
   - **Corrida adicional** con la semilla 7, 200 ventas y 60 reenvíos: 260 operaciones, 0 diferencias y el control negativo detectado.
 - **Corrección por la revisión de la rama publicada:** los reenvíos paralelos se agregaban a tandas que ya tenían ocho envíos; con la semilla 2026 había una tanda de 11 envíos simultáneos. Ahora se eligen primero los reenvíos y las tandas se arman con cada venta junto a sus reenvíos paralelos, sin pasar de ocho. Se conservan los 120 primeros envíos, los 30 reenvíos y los 15 que comparten tanda con su primer envío. Una prueba nueva mide con un `fetch` simulado las llamadas en curso a la vez (semillas 2026, 7 y 1): el máximo es 8 y se usa el paralelismo completo. Con el armado anterior, la prueba falla. `npm test` 214 correctas; `npm run e2e -- hu23-simulador` 10/10, con los mismos resultados (150 operaciones, 0 diferencias y el control negativo detectado).
+- **Corrección por la segunda revisión:** con más reenvíos paralelos que lugares, `generarVentas` quedaba en un bucle infinito. Reproducido con 100 ventas y 1401 reenvíos: hay 701 reenvíos paralelos y solo caben 700, 7 por venta; el proceso no terminó en 5 s. Ahora `validarConfiguracion` rechaza antes de generar:
+  - `ventas` que no sea un entero positivo;
+  - `reenvios` que no sea un entero no negativo;
+  - más de `2 × ventas × 7` reenvíos, con un mensaje que indica el máximo.
+  - Regresión unitaria: el caso reproducido se rechaza; el límite exacto (1400 con 100 ventas) se acepta en tandas de 8; los valores inválidos se rechazan; los valores por defecto siguen siendo 120 y 30.
+  - `npm test` 215 correctas; `npm run e2e -- hu23-simulador` 10/10, con los mismos resultados por defecto.
 - **No probado:** contra un punto de venta real ni contra producción. El simulador solo corre en el ejecutor de punta a punta, no contra una API arbitraria.
 
 ## Actualización documental tras integrar HU21 y HU22 (14/11/2026)

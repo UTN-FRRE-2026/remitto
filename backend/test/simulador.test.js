@@ -10,6 +10,7 @@ import {
   verificarRespuestas,
   segundosDeEspera,
   TAMANO_TANDA,
+  maxReenvios,
 } from '../../simulador/simulador.mjs';
 import { ventaSchema } from '../src/modules/integracion/integracion.schema.js';
 
@@ -172,6 +173,28 @@ test('nunca hay más de ocho envíos simultáneos (fetch simulado que mide la co
     assert.equal(r.enviosLogicos, 150);
     assert.deepEqual(r.incompletos, []);
   }
+});
+
+test('configuración inválida: se rechaza antes de generar (sin bucle infinito)', () => {
+  const generar = (ventas, reenvios) => () => generarVentas({ semilla: 1, catalogo, ventas, reenvios });
+  // Caso reproducido en la revisión: 701 reenvíos paralelos y solo caben 700.
+  assert.throws(generar(100, 1401), /Demasiados reenvíos para 100 ventas: 701 .* solo caben 700 .* máximo es 1400/);
+  // El límite exacto sí se acepta: 700 paralelos, 7 por venta, en tandas de 8.
+  const { tandas } = generarVentas({ semilla: 1, catalogo, ventas: 100, reenvios: 1400 });
+  assert.equal(tandas.flat().length, 1500);
+  assert.ok(tandas.every((t) => t.length <= TAMANO_TANDA));
+  assert.equal(maxReenvios(120), 1680);
+  // Sin indicar ventas ni reenvíos se usan los valores por defecto (120 y 30).
+  assert.equal(generarVentas({ semilla: 1, catalogo }).tandas.flat().length, 150);
+  for (const ventas of [0, -1, 1.5, NaN, '120', null]) {
+    assert.throws(generar(ventas, 0), /ventas debe ser un entero positivo/, String(ventas));
+  }
+  for (const reenvios of [-1, 0.5, NaN, '30', null]) {
+    assert.throws(generar(10, reenvios), /reenvios debe ser un entero no negativo/, String(reenvios));
+  }
+  assert.throws(() => generarVentas({ semilla: 1, catalogo: [], ventas: 1, reenvios: 0 }), /catálogo de prueba está vacío/);
+  // Sin reenvíos también es válido.
+  assert.equal(generarVentas({ semilla: 1, catalogo, ventas: 5, reenvios: 0 }).tandas.flat().length, 5);
 });
 
 test('respuestas por referencia: un 201, el resto 200 repetida con el mismo id', () => {

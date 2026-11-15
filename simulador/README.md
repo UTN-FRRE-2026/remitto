@@ -18,6 +18,11 @@ Requiere el PostgreSQL de desarrollo encendido (`docker compose up -d db`). Vari
 | `SIM_VENTAS` | 120 | Ventas distintas (cada una con su referencia). |
 | `SIM_REENVIOS` | 30 | Reenvíos intencionales de ventas ya generadas. |
 
+**Límites, validados antes de generar las ventas:**
+- `SIM_VENTAS` tiene que ser un entero positivo y `SIM_REENVIOS` un entero no negativo.
+- La mitad de los reenvíos, redondeada hacia arriba, sale en la misma tanda que su venta. Una tanda de 8 envíos admite la venta y hasta 7 reenvíos, así que el máximo es `SIM_REENVIOS ≤ 2 × SIM_VENTAS × 7`: por ejemplo, 1680 para 120 ventas o 1400 para 100.
+- Por encima, la corrida se rechaza con un mensaje que indica el máximo, en lugar de quedar buscando lugar sin fin.
+
 ## Qué hace (`simulador.mjs`, sin dependencias)
 
 1. **Ventas reproducibles** (`generarVentas`):

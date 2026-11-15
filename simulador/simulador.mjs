@@ -42,6 +42,31 @@ export function generador(semilla) {
 const UNIDADES_ENTERAS = new Set(['UNIDAD', 'PAQUETE']);
 export const TAMANO_TANDA = 8;
 
+// Límites de la configuración, comprobados antes de generar nada:
+// - ventas: entero positivo; reenvios: entero no negativo.
+// - La mitad de los reenvíos (redondeada hacia arriba) sale en la misma tanda
+//   que su venta, y una tanda admite la venta y hasta TAMANO_TANDA - 1
+//   reenvíos. Por eso caben como máximo ventas × (TAMANO_TANDA - 1)
+//   reenvíos paralelos, es decir reenvios ≤ 2 × ventas × 7 (con 120 ventas,
+//   hasta 1680). Por encima, no hay lugar para todos y se rechaza.
+export function maxReenvios(ventas) {
+  return 2 * ventas * (TAMANO_TANDA - 1);
+}
+
+export function validarConfiguracion({ catalogo, ventas, reenvios }) {
+  if (!Array.isArray(catalogo) || catalogo.length === 0) throw new Error('El catálogo de prueba está vacío');
+  if (!Number.isInteger(ventas) || ventas < 1) throw new Error(`ventas debe ser un entero positivo (recibido: ${ventas})`);
+  if (!Number.isInteger(reenvios) || reenvios < 0) throw new Error(`reenvios debe ser un entero no negativo (recibido: ${reenvios})`);
+  const paralelos = Math.ceil(reenvios / 2);
+  const capacidad = ventas * (TAMANO_TANDA - 1);
+  if (paralelos > capacidad) {
+    throw new Error(
+      `Demasiados reenvíos para ${ventas} ventas: ${paralelos} tendrían que salir junto con su venta y solo caben ${capacidad} ` +
+        `(${TAMANO_TANDA - 1} por venta). El máximo es ${maxReenvios(ventas)} reenvíos.`,
+    );
+  }
+}
+
 // catalogo: [{ productoId, codigoBarras, unidadMedida }] (productos de prueba).
 // Devuelve { ventas, tandas }:
 // - ventas: [{ referencia, lineas: [{ productoId? | codigoBarras?, milesimas }] }],
@@ -53,7 +78,7 @@ export const TAMANO_TANDA = 8;
 //   mitad sale en la misma tanda que el primer envío de esa venta y la otra
 //   mitad, al final.
 export function generarVentas({ semilla, catalogo, ventas = 120, reenvios = 30 }) {
-  if (!catalogo.length) throw new Error('El catálogo de prueba está vacío');
+  validarConfiguracion({ catalogo, ventas, reenvios });
   const azar = generador(semilla);
   const entero = (n) => Math.floor(azar() * n);
   const lista = [];
