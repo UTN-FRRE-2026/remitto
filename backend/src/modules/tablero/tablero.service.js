@@ -51,7 +51,8 @@ export function paraReponer(lista, cantidad = CANTIDAD_REPONER) {
 
 const numero = (v) => new Prisma.Decimal(v).toNumber();
 
-async function alertasActivas(tx) {
+// Alertas activas ordenadas por gravedad (también las usa el asistente, HU25).
+export async function alertasActivas(tx, cantidad = CANTIDAD_ALERTAS) {
   const filas = await tx.alertaStock.findMany({
     where: { estado: 'ACTIVA' },
     include: { producto: { select: { id: true, nombre: true, unidadMedida: true, stockActual: true, stockMinimo: true } } },
@@ -70,7 +71,7 @@ async function alertasActivas(tx) {
       },
     })),
   );
-  return { totales: contar(lista), principales: lista.slice(0, CANTIDAD_ALERTAS) };
+  return { totales: contar(lista), principales: lista.slice(0, cantidad), todas: lista };
 }
 
 async function comprobantesPendientes(tx) {
@@ -111,7 +112,7 @@ export async function tablero(usuario, db = prisma, { aislamiento = 'RepeatableR
       const [{ generadoEn }] = await tx.$queryRaw`SELECT now() AS "generadoEn"`;
       const stock = await productos.resumen(tx);
       if (entreLecturas) await entreLecturas();
-      const alertas = await alertasActivas(tx);
+      const { todas: _todas, ...alertas } = await alertasActivas(tx);
       const comprobantes = await comprobantesPendientes(tx);
       const reponer = paraReponer(await productos.listar({}, tx));
       const respuesta = { generadoEn, stock, alertas, comprobantes, reponer };

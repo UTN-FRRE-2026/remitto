@@ -30,7 +30,7 @@ Estado al 14/11/2026, según el repositorio (`main` en `bfd995e`, PR #1 a #25 in
 
 | Entregable | Estado en el repo | Pendiente |
 | --- | --- | --- |
-| Producto final (aplicación) | En `main` están implementadas HU1 a HU24 y HU27 a HU29 (89 de 100 puntos del plan). HU26 (3 puntos) está completa en su rama, sin integrar. La PWA se instaló en un Android real (informado por el equipo). Ver [estado](estado-proyecto.md) y [requerimientos](requerimientos.md#resumen) | **Integrar HU26** y **HU25 sin implementar** (8 puntos). La consigna exige cumplir todos los requerimientos del plan |
+| Producto final (aplicación) | En `main` están implementadas HU1 a HU24 y HU26 a HU29 (92 de 100 puntos del plan). HU25 (8 puntos) está completa en su rama, sin integrar. La PWA se instaló en un Android real (informado por el equipo). Ver [estado](estado-proyecto.md) y [requerimientos](requerimientos.md#resumen) | **Integrar HU25**. Probar el asistente con Gemini real. La consigna exige cumplir todos los requerimientos del plan |
 | Plan de Trabajo | [plan-de-trabajo.md](plan-de-trabajo.md) | Definir el formato de entrega (¿el documento original del equipo?) |
 | Informe Final del Alumno | No está en el repo | Bajar el modelo del aula y completarlo |
 | Informe del Tutor | No corresponde si el trabajo no se hace en una organización | Confirmar si aplica (el plan describe un comercio, «Almacén Don Carlos») |

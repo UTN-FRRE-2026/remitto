@@ -284,14 +284,17 @@ export function inmovilizados(filas, { hasta }) {
   return { productos, valorTotal: total.toNumber(), productosSinPrecio: sinPrecio };
 }
 
-export async function sinMovimiento({ desde, hasta }, db = prisma) {
+// soloVentas (HU25): cuenta solo las salidas con motivo VENTA («sin ventas»);
+// por defecto, cualquier SALIDA («sin salidas», HU29).
+export async function sinMovimiento({ desde, hasta, soloVentas = false }, db = prisma) {
   const rango = rangoFechas(desde, hasta);
+  const motivo = soloVentas ? Prisma.sql`AND m.motivo = 'VENTA'` : Prisma.empty;
   const filas = await db.$queryRaw(
     consultaProductos(
       Prisma.sql`AND p.stock_actual > 0 AND NOT EXISTS (
         SELECT 1 FROM movimientos_stock m
-        WHERE m.producto_id = p.id AND m.tipo = 'SALIDA' AND m.fecha >= ${rango.gte} AND m.fecha < ${rango.lt})`,
-      Prisma.sql`, (SELECT max(m.fecha) FROM movimientos_stock m WHERE m.producto_id = p.id AND m.tipo = 'SALIDA') AS "ultimaSalida"`,
+        WHERE m.producto_id = p.id AND m.tipo = 'SALIDA' ${motivo} AND m.fecha >= ${rango.gte} AND m.fecha < ${rango.lt})`,
+      Prisma.sql`, (SELECT max(m.fecha) FROM movimientos_stock m WHERE m.producto_id = p.id AND m.tipo = 'SALIDA' ${motivo}) AS "ultimaSalida"`,
     ),
   );
   return { desde, hasta, generadoEn: filas[0]?.generadoEn ?? new Date(), ...inmovilizados(filas, { hasta: rango.lt }) };

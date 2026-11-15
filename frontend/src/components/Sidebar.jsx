@@ -29,7 +29,8 @@ const principales = [
   { to: '/salidas', label: 'Salidas', Icono: IconoSalidas },
   { to: '/recuento', label: 'Recuento', Icono: IconoRecuento },
   { to: '/precios', label: 'Precios y reportes', Icono: IconoPrecios },
-  { to: '/asistente', label: 'Asistente', Icono: IconoAsistente },
+  // HU25: el asistente es solo del propietario (el backend lo exige).
+  { to: '/asistente', label: 'Asistente', Icono: IconoAsistente, soloPropietario: true },
 ];
 
 // Sección de configuración, solo visible para el propietario.
@@ -84,7 +85,7 @@ export default function Sidebar() {
       </div>
 
       <nav className="sidebar__nav">
-        {principales.map(item)}
+        {principales.filter((i) => !i.soloPropietario || esPropietario).map(item)}
 
         {esPropietario && (
           <>
