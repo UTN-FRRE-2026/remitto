@@ -189,6 +189,21 @@
 .reportes__vistas {
   margin-bottom: 14px;
 }
+/* HU31: descarga de la orden de compra de cada proveedor. */
+.reportes__orden {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 10px 0 14px;
+}
+.reportes__orden-boton {
+  padding: 10px 14px;
+}
+.reportes__orden-listo {
+  color: var(--fg-en-stock);
+  font-weight: 700;
+}
 .reportes__proveedor-cabeza {
   font-size: var(--fs-producto);
   color: var(--oscuro);

@@ -11,7 +11,8 @@ export function crearApp() {
   activarAlertas();
   const app = express();
 
-  app.use(cors({ origin: env.corsOrigin, credentials: true }));
+  // Content-Disposition: nombre de los archivos para descargar (HU31).
+  app.use(cors({ origin: env.corsOrigin, credentials: true, exposedHeaders: ['Content-Disposition'] }));
   app.use(express.json({ limit: '2mb' }));
   app.use(express.urlencoded({ extended: true }));
   if (!esProduccion) app.use(morgan('dev'));

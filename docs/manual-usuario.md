@@ -332,6 +332,7 @@ Lista los productos que están en su **stock mínimo o por debajo** y cuánto pe
 
 - Están agrupados por el **proveedor al que se le compró por última vez**, con el costo estimado al último precio. Los que nunca se compraron con un remito aparecen en «Sin proveedor registrado».
 - Los productos sin stock deseado aparecen aparte: tocá **Definir deseado** para completarlo en el producto.
+- **Descargar orden (PDF)**, en cada proveedor, descarga la orden de compra para enviársela: el proveedor, cada producto y la cantidad con su unidad, sin precios. En «Sin proveedor registrado» el botón es **Descargar lista (PDF)** y el proveedor figura «a definir».
 
 ### Sin movimiento: mercadería inmovilizada
 

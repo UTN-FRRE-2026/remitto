@@ -12,7 +12,7 @@ automática de comprobantes de compra mediante Inteligencia Artificial.
 ## Estado actual
 
 Están implementadas las historias del Sprint 1 (HU1 a HU14) y, del
-Sprint 2, HU15 a HU29. La aplicación está desplegada en producción con Coolify, a partir
+Sprint 2, HU15 a HU29, y la deseable HU31 (orden de compra). La aplicación está desplegada en producción con Coolify, a partir
 de `main`. El equipo probó la instalación de la PWA en un Android real (HU7) y funciona.
 
 Ya implementado:
@@ -500,6 +500,28 @@ compra (`GET /api/reportes/valorizacion`, lógica en
   precio nuevo.
 
 
+### Orden de compra (HU31)
+
+En **Precios y reportes › Reposición**, cada proveedor de la sugerencia tiene
+el botón **Descargar orden (PDF)**; el grupo «Sin proveedor registrado»,
+**Descargar lista (PDF)**. El backend
+(`GET /api/reportes/reposicion/orden?proveedor=<id|sin>`, solo el
+propietario) usa el mismo cálculo de HU27 (`reposicion()`), toma el grupo
+del proveedor y arma un PDF con `pdfkit` (`backend/src/modules/reportes/ordenCompra.js`):
+
+- el título, la fecha de emisión y el proveedor (razón social, CUIT,
+  contacto, teléfono, correo y dirección si los tiene; «a definir» para
+  los productos sin compras registradas);
+- una tabla con **producto, cantidad** (formato argentino, hasta 3
+  decimales) **y unidad**. Si los productos no entran en una página, la
+  cabecera se repite en cada página, y los nombres largos ocupan varias
+  líneas sin pisar la cantidad;
+- sin precios ni costos: es para enviárselo al proveedor.
+
+Se descarga como `orden-compra-<proveedor>-AAAA-MM-DD.pdf`. Un proveedor
+sin productos para pedir en la sugerencia actual da 404. No se guardan ni se
+numeran las órdenes, y no hay migraciones.
+
 ### Sugerencia de reposición y productos sin movimiento (HU27, HU29)
 
 Dos vistas más en **Precios y reportes** (pestañas Valorización · Reposición ·
@@ -767,7 +789,7 @@ endpoint o un `Promise.all` de consultas sueltas no alcanzaría: en
 (permisos, SQL, reenvíos y concurrencia) se corren con una base descartable:
 
 ```bash
-cd backend && npm run e2e -- hu21-claves hu22-salidas hu23-simulador hu26-tablero hu25-asistente
+cd backend && npm run e2e -- hu21-claves hu22-salidas hu23-simulador hu26-tablero hu25-asistente hu31-orden-compra
 cd backend && npm run e2e -- hu24-alertas   # en una corrida aparte
 ```
 
@@ -882,6 +904,7 @@ POSTGRES_PASSWORD=prueba123 JWT_SECRET=prueba CORS_ORIGIN=http://localhost:8088 
 | `GET` | `/api/reportes/valorizacion` (valor del stock a último precio de compra, por categoría) | propietario |
 | `GET` | `/api/reportes/precios` · `?desde=&hasta=` · `/api/reportes/precios/:productoId` (evolución de precios de compra) (HU20) | propietario |
 | `GET` | `/api/reportes/reposicion` (qué pedir y cuánto, por último proveedor) (HU27) | propietario |
+| `GET` | `/api/reportes/reposicion/orden` · `?proveedor=<id\|sin>` (orden de compra en PDF para descargar) (HU31) | propietario |
 | `GET` | `/api/reportes/sin-movimiento` · `?desde=&hasta=` (productos con stock sin salidas) (HU29) | propietario |
 | `GET` | `/api/alertas` (activas por gravedad, totales por tipo y últimas resueltas) (HU24) | autenticado |
 | `POST` | `/api/asistente/consultas` (pregunta en castellano; respuesta con tabla o gráfico, aclaración o error registrado) (HU25) | propietario |

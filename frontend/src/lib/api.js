@@ -49,12 +49,37 @@ async function request(metodo, ruta, cuerpo) {
 
 // Descarga autenticada (p. ej. el archivo de un comprobante): un <img src>
 // no puede mandar el header Authorization, por eso se pide como blob.
-async function blob(ruta) {
+async function pedirArchivo(ruta) {
   const res = await fetch(BASE + ruta, {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
   if (!res.ok) await lanzarError(res);
-  return res.blob();
+  return res;
+}
+
+// Devuelve el Blob (contrato de siempre, lo usan los comprobantes).
+async function blob(ruta) {
+  return (await pedirArchivo(ruta)).blob();
+}
+
+// HU31: archivo para descargar, con el nombre que indica el backend
+// (Content-Disposition). Devuelve { blob, nombre }.
+async function descargar(ruta) {
+  const res = await pedirArchivo(ruta);
+  const nombre = /filename="([^"]+)"/.exec(res.headers.get('Content-Disposition') ?? '')?.[1] ?? null;
+  return { blob: await res.blob(), nombre };
+}
+
+// Hace que el navegador guarde un Blob con ese nombre.
+export function guardarArchivo(blobArchivo, nombre) {
+  const url = URL.createObjectURL(blobArchivo);
+  const enlace = document.createElement('a');
+  enlace.href = url;
+  enlace.download = nombre;
+  document.body.appendChild(enlace);
+  enlace.click();
+  enlace.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 export const api = {
@@ -64,6 +89,7 @@ export const api = {
   del: (ruta) => request('DELETE', ruta),
   upload: (ruta, formData) => request('POST', ruta, formData),
   blob,
+  descargar,
 };
 
 // Texto para mostrar de un error de la API: los detalles de validación por
