@@ -11,7 +11,7 @@ import './AppShell.css';
 
 // Ítems de la barra inferior (móvil). "Cargar" es el botón central elevado.
 // Entran 5: con 6, las etiquetas se pisan en pantallas de 360 px. El
-// Asistente (HU25) queda en el menú lateral hasta que se implemente.
+// Asistente (HU25, solo el propietario) se abre desde Cuenta.
 const items = [
   { to: '/', fin: true, label: 'Inicio', Icono: IconoInicio },
   { to: '/productos', label: 'Productos', Icono: IconoProductos },

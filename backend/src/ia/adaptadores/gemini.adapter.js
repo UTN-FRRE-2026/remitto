@@ -2,6 +2,7 @@ import { GoogleGenAI } from '@google/genai';
 import { env } from '../../config/env.js';
 import { ESQUEMA_JSON } from '../esquemaComprobante.js';
 import { INSTRUCCIONES } from '../instrucciones.js';
+import { instruccionesAsistente, ESQUEMA_PLAN } from '../instruccionesAsistente.js';
 
 // HU9 / RNF6 (Adapter): único módulo que conoce el SDK de Gemini.
 // - Interactions API con store:false (Google no conserva la interacción).
@@ -62,4 +63,23 @@ export async function llamar({ buffer, mime, origen, timeoutMs }) {
       : null,
     modelo: env.ia.modelo,
   };
+}
+
+// HU25: planificador del asistente. Una sola solicitud (sin reintentos del
+// SDK) con el tiempo que le queda a la consulta; devuelve el texto JSON del
+// plan, que valida ia/asistente.js.
+// reintentos: el asistente siempre pide false; igual se fuerza retries none
+// (nunca más de una solicitud por intento).
+export async function planificar({ pregunta, hoy, timeoutMs }) {
+  const interaccion = await obtenerCliente().interactions.create(
+    {
+      model: env.ia.modelo,
+      input: [{ type: 'text', text: `${instruccionesAsistente(hoy)}\n\nPregunta: ${pregunta}` }],
+      response_format: { type: 'text', mime_type: 'application/json', schema: ESQUEMA_PLAN },
+      generation_config: { thinking_level: env.ia.nivelRazonamiento },
+      store: false,
+    },
+    { timeout_ms: timeoutMs, retries: { strategy: 'none' } },
+  );
+  return { texto: interaccion.output_text ?? '', modelo: env.ia.modelo };
 }

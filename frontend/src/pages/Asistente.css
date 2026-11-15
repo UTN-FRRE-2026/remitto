@@ -1,0 +1,177 @@
+/* HU25 · Asistente (M8). Los chips (.chip) vienen de Productos.css. */
+.asistente {
+  max-width: 820px;
+  padding-bottom: 12px;
+}
+.asistente__titulo {
+  font-size: var(--fs-titulo);
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+.asistente__ayuda {
+  color: var(--texto-suave);
+  margin-bottom: 16px;
+}
+.asistente__sugerencias,
+.asistente__opciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.asistente__sugerencias .chip,
+.asistente__opciones .chip {
+  white-space: normal;
+  text-align: left;
+}
+.asistente__conversacion {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.asistente__pregunta {
+  align-self: flex-end;
+  max-width: 85%;
+  padding: 10px 14px;
+  border-radius: var(--radio) var(--radio) 4px var(--radio);
+  background: var(--salvia-oscuro);
+  color: #fff;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.asistente__respuesta {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px;
+  min-width: 0;
+}
+.asistente__respuesta--error {
+  border-color: #e9c3cb;
+  background: var(--bg-sin-stock);
+}
+.asistente__texto {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  line-height: 1.4;
+}
+.asistente__texto svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--fg-ia);
+}
+.asistente__datos {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.asistente__datos h3 {
+  font-size: var(--fs-producto);
+  font-weight: 800;
+}
+.asistente__tabla-envoltorio {
+  overflow-x: auto;
+  max-width: 100%;
+}
+.asistente__tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-detalle);
+}
+.asistente__tabla th,
+.asistente__tabla td {
+  padding: 7px 8px;
+  border-bottom: 1px solid var(--borde);
+  text-align: left;
+  vertical-align: top;
+}
+.asistente__tabla th {
+  color: var(--texto-suave);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.asistente__num {
+  text-align: right !important;
+  white-space: nowrap;
+}
+.asistente__totales {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  font-size: var(--fs-detalle);
+}
+.asistente__totales dt {
+  color: var(--texto-suave);
+}
+.asistente__totales dd {
+  font-weight: 800;
+}
+.asistente__nota {
+  font-size: var(--fs-detalle);
+  color: var(--texto-suave);
+}
+.asistente__barras {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: var(--fs-detalle);
+}
+.asistente__barras li {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) 3fr auto;
+  align-items: center;
+  gap: 8px;
+}
+.asistente__barra-nombre {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.asistente__barra {
+  height: 10px;
+  border-radius: var(--radio-pill);
+  background: var(--crema-claro);
+}
+.asistente__barra span {
+  display: block;
+  height: 100%;
+  border-radius: var(--radio-pill);
+  background: var(--salvia);
+}
+.asistente__barra-valor {
+  font-weight: 700;
+  white-space: nowrap;
+}
+.asistente__cargando {
+  color: var(--texto-suave);
+}
+.asistente__formulario {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  position: sticky;
+  bottom: calc(var(--nav-alto) + 8px);
+}
+.asistente__formulario input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  outline: none;
+  padding: 0 8px;
+  font-size: var(--fs-texto);
+  color: var(--oscuro);
+}
+.asistente__formulario .btn {
+  padding: 10px 14px;
+}
+
+@media (min-width: 900px) {
+  .asistente__formulario {
+    bottom: 12px;
+  }
+}

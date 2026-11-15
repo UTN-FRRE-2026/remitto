@@ -7,6 +7,7 @@ import {
   IconoUsuarios,
   IconoPrecios,
   IconoIntegraciones,
+  IconoAsistente,
 } from '../components/iconos.jsx';
 import './Cuenta.css';
 
@@ -63,6 +64,10 @@ export default function Cuenta() {
           <Link to="/precios" className="cuenta__admin-item">
             <IconoPrecios size={20} />
             Precios y reportes
+          </Link>
+          <Link to="/asistente" className="cuenta__admin-item">
+            <IconoAsistente size={20} />
+            Asistente
           </Link>
           <Link to="/integraciones" className="cuenta__admin-item">
             <IconoIntegraciones size={20} />

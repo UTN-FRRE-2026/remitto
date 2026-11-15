@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 // Día calendario AAAA-MM-DD (hora de Argentina), como en Movimientos (HU12).
-const dia = z
+export const dia = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/, 'Usá el formato AAAA-MM-DD')
   .refine((s) => {

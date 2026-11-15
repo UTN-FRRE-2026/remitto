@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { env } from '../../config/env.js';
+import { planSimulado } from '../planSimulado.js';
 
 // HU9: adaptador simulado para pruebas sin red (nunca en producción).
 // El escenario sale de un marcador "SIMULACION=<escenario>[:ms]" dentro del
@@ -132,4 +133,25 @@ export async function llamar({ buffer, timeoutMs }) {
     default:
       throw new Error(`Escenario de simulación desconocido: ${esc}`);
   }
+}
+
+// HU25: planificador simulado del asistente. Un marcador en la pregunta
+// provoca fallas: SIMULACION=error (error del proveedor), lento (supera el
+// tiempo), json_invalido, herramienta_ajena y argumentos_invalidos.
+export async function planificar({ pregunta, hoy, timeoutMs }) {
+  const marcador = /SIMULACION=([a-z_]+)/.exec(pregunta)?.[1];
+  const responder = (obj) => ({ texto: typeof obj === 'string' ? obj : JSON.stringify(obj), modelo: `simulado:${env.ia.modelo}` });
+  if (marcador === 'error') throw errorSdk('InternalServerError', 500, 'INTERNAL');
+  if (marcador === 'lento') {
+    await esperar(timeoutMs);
+    throw errorTimeout();
+  }
+  if (marcador === 'json_invalido') return responder('esto no es un plan');
+  if (marcador === 'herramienta_ajena') {
+    return responder({ accion: 'herramienta', herramienta: 'borrar_productos', argumentos: {}, mensaje: null });
+  }
+  if (marcador === 'argumentos_invalidos') {
+    return responder({ accion: 'herramienta', herramienta: 'stock_producto', argumentos: { producto: 'yerba', consulta: 'SELECT *' }, mensaje: null });
+  }
+  return responder(planSimulado(pregunta, hoy));
 }

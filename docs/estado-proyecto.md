@@ -4,7 +4,7 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 
 ## Referencia verificada (15/11/2026)
 
-- `origin/main` en `3b72550` (merge del PR #31, HU24), comprobado el 15/11/2026. **En `main`:** hasta HU24. **Solo en la rama `feature/HU26-tablero-situacion`, sin integrar:** HU26.
+- `origin/main` en `be9ee48` (merge del PR #32, HU26), comprobado el 15/11/2026. **En `main`:** HU1 a HU24 y HU26 a HU29. **Solo en la rama `feature/HU25-asistente-consultas`, sin integrar:** HU25.
 - **Primera entrega del TPI: lunes 16/11/2026.** Consigna y entregables en [entrega-tpi.md](entrega-tpi.md).
 - **HU7:** el equipo informó el 14/11 que instaló la PWA en un Android real y funciona (no verificado en esta revisión).
 - Los PDF de la documentación probatoria están fuera del repositorio (`../remitto-entrega/`); se regeneraron el 14/11 con HU16 a HU20 y HU27 a HU29. **No incluyen HU21 ni HU22**: hay que regenerarlos.
@@ -14,7 +14,7 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
   - HU23 (simulador de ventas): integrada por el [PR #30](https://github.com/UTN-FRRE-2026/remitto/pull/30), merge `2dba88f`.
   - El respaldo del avance de HU21 (el stash `5373a09` y el patch de `retomar/`, en la copia local de Maxi) se conserva aunque ya no hace falta.
 - **Migraciones nuevas:** `20261114140000_hu21_claves_integracion`, `20261114150000_hu22_pedido_externo` y `20261115120000_hu24_alertas_stock` (solo datos), todas en `main`. HU26 no agrega migraciones. Quien use una base local tiene que aplicarlas con `npx prisma migrate deploy` (sin reset). En producción, el contenedor las aplica al arrancar; no se verificó.
-- PR #1 a #31 integrados en `main`.
+- PR #1 a #32 integrados en `main`.
 
 ## Integrado en `main`
 
@@ -50,6 +50,7 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 | HU22 salidas desde un sistema externo, contrato OpenAPI (con migración `hu22_pedido_externo`) y corrección de HU28 (stock negativo en la valorización) | [PR #28](https://github.com/UTN-FRRE-2026/remitto/pull/28) |
 | HU23 simulador de ventas | [PR #30](https://github.com/UTN-FRRE-2026/remitto/pull/30) |
 | HU24 alertas de stock (con migración `hu24_alertas_stock`) | [PR #31](https://github.com/UTN-FRRE-2026/remitto/pull/31) |
+| HU26 tablero de situación | [PR #32](https://github.com/UTN-FRRE-2026/remitto/pull/32) |
 
 HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa que se haya comprobado ahora cada criterio de aceptación.
 
@@ -57,13 +58,57 @@ HU1, HU2 y HU4 a HU7 llegaron con el scaffold inicial. Integrado no significa qu
 
 | Estado observado | Historias |
 | --- | --- |
-| Backend y pantalla | HU1 a HU6, HU8 a HU22, HU24, HU27 a HU29 |
+| Backend y pantalla | HU1 a HU6, HU8 a HU22, HU24, HU26 a HU29 |
 | Simulador (sin pantalla) | HU23 (`simulador/simulador.mjs`, escenario `hu23-simulador`) |
-| Implementada en su rama, sin integrar | HU26 tablero de situación (`feature/HU26-tablero-situacion`) |
+| Implementada en su rama, sin integrar | HU25 asistente de consultas (`feature/HU25-asistente-consultas`) |
 | Probada por el equipo | HU7 PWA (`vite-plugin-pwa`): instalada en un Android real y funcionando (informado el 14/11/2026, no verificado en esta revisión) |
-| Sin implementar | HU25 y las deseables HU30 y HU31. `/asistente` es `EnConstruccion`. Plan de HU25 en `retomar/plan-HU25-HU26.md` (copia local) |
+| Sin implementar | Las deseables HU30 y HU31 |
 
-## Validación de HU26 (15/11/2026, rama `feature/HU26-tablero-situacion`, sin integrar)
+## Validación de HU25 (15/11/2026, rama `feature/HU25-asistente-consultas`, sin integrar)
+
+- **Qué hay:**
+  - el módulo `backend/src/modules/asistente/` (esquemas, 8 herramientas de lectura, servicio y rutas solo para el propietario);
+  - `backend/src/ia/asistente.js`, `instruccionesAsistente.js` y `planSimulado.js`;
+  - `planificar` en los adaptadores de Gemini y simulado;
+  - la pantalla `Asistente.jsx`, con el acceso en el menú lateral y en Cuenta, solo para el propietario.
+  - Sin migraciones: usa `consultas_agente`.
+  - `sinMovimiento` (HU29) acepta `soloVentas` (por defecto `false`, sin cambios en HU29). `productos.listar` y `productos.resumen` ya aceptaban `db` (HU26).
+- **Diseño:**
+  - **El modelo solo devuelve un plan JSON** (herramienta y argumentos, aclaración o fuera de alcance).
+  - **El backend valida y ejecuta** una herramienta habilitada en una transacción de solo lectura con `statement_timeout`, y arma el texto y la tabla o el gráfico.
+  - **Límites:** 2 intentos sin reintentos del SDK y un presupuesto global de 30 s. Es el límite de espera; el objetivo de RNF2 es 3 s.
+  - **Aclaración:** se guarda un plan pendiente. La elección ejecuta la misma herramienta y el mismo período sin volver al modelo.
+- **Pruebas ejecutadas en esta rama:**
+  - `npm test`: 242 correctas, 13 nuevas en `test/asistente.test.js`:
+    - los 8 tipos con el planificador simulado;
+    - los períodos nombrados y sus rechazos;
+    - los argumentos;
+    - la resolución de productos;
+    - más de 20 resultados con totales del conjunto completo;
+    - los rótulos de ventas y salidas;
+    - el flujo con adaptador falso: reintento por JSON inválido, proveedor, herramienta ajena y argumentos inválidos;
+    - el **presupuesto de tiempo con reloj simulado**: 25 s más 5 s restantes, 31 s sin segundo intento, y sin tiempo para la herramienta;
+    - sin IA (503).
+  - `npm run e2e -- hu25-asistente`: 31 de 31 contra PostgreSQL con la IA simulada:
+    - los 8 tipos, cada uno contra una fuente independiente;
+    - salidas frente a ventas;
+    - «sin ventas» frente a HU29;
+    - 20 de 26 filas, con el total del conjunto completo;
+    - «en octubre» exacto;
+    - la aclaración y la elección con el mismo período (400 y 409);
+    - 5 fallas registradas, incluido el tiempo agotado a los 30 s;
+    - los permisos y el registro de las 18 consultas.
+  - **Mutaciones:**
+    - sin la lista de herramientas habilitadas, falla el control de herramienta no habilitada;
+    - con «sin ventas» igual a «sin salidas», falla el control del tipo 6.
+  - **Regresión:** `npm run e2e -- hu21-claves hu22-salidas hu23-simulador hu26-tablero hu25-asistente` dio 164 de 164, y `hu24-alertas` aparte, 31 de 31. El escenario de HU25 usa nombres específicos («gaseosa cola», «yerba mate») y calcula los totales por unidad, para no depender de los productos que crean otros escenarios.
+  - `npm run build` correcto.
+  - **Navegador**, con una base descartable y datos cargados por la API:
+    - propietario: una pregunta sugerida (ranking de ventas con barras), una escrita con aclaración entre dos yerbas y la elección con el gráfico de precios del mismo período, una pregunta fuera de alcance y una tabla ancha a 375 px sin desplazamiento horizontal;
+    - empleado: la API da 403, `/asistente` lo lleva al inicio y no ve el acceso ni en el menú ni en Cuenta.
+- **No probado:** con Gemini real (planificador y tiempos), en un celular real ni en producción.
+
+## Validación de HU26 (15/11/2026, integrada en el PR #32)
 
 - **Qué hay:** `GET /api/tablero` (módulo `backend/src/modules/tablero/`) y el Inicio, que lo usa como único pedido.
   - Trae el resumen de stock, las alertas activas por tipo y las más graves, los comprobantes pendientes por estado (PENDIENTE, PROCESANDO, EN_REVISION y ERROR; los confirmados y anulados no cuentan) con los que esperan revisión, los 4 productos para reponer y, solo para el propietario, el valor del stock del mismo `valorizacion` de HU28.

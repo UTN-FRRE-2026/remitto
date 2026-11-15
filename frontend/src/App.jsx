@@ -19,8 +19,8 @@ import Comprobantes from './pages/Comprobantes.jsx';
 import PrecisionLectura from './pages/PrecisionLectura.jsx';
 import UsuarioForm from './pages/UsuarioForm.jsx';
 import ProveedorForm from './pages/ProveedorForm.jsx';
-import EnConstruccion from './pages/EnConstruccion.jsx';
 import Reportes from './pages/Reportes.jsx';
+import Asistente from './pages/Asistente.jsx';
 import Integraciones from './pages/Integraciones.jsx';
 import Alertas from './pages/Alertas.jsx';
 
@@ -73,18 +73,7 @@ export default function App() {
           <Route path="/comprobantes/:id/revisar" element={<Privado><RevisarComprobante /></Privado>} />
           <Route path="/salidas" element={<Privado><Salidas /></Privado>} />
           <Route path="/recuento" element={<Privado><Recuento /></Privado>} />
-          <Route
-            path="/asistente"
-            element={
-              <Privado>
-                <EnConstruccion
-                  titulo="Asistente"
-                  descripcion="Preguntale a tu stock en lenguaje natural."
-                  hu="HU25 (Sprint 2)"
-                />
-              </Privado>
-            }
-          />
+          <Route path="/asistente" element={<Propietario><Asistente /></Propietario>} />
           <Route path="/comprobantes" element={<Privado><Comprobantes /></Privado>} />
           <Route path="/comprobantes/precision" element={<Privado><PrecisionLectura /></Privado>} />
           <Route path="/movimientos" element={<Privado><Movimientos /></Privado>} />

@@ -61,7 +61,7 @@ Remitto es una aplicación web instalable (PWA). En Chrome para Android, abrí l
 
 <img src="manual/20-tablero-escritorio.png" alt="Tablero en la computadora, con el menú lateral" width="640">
 
-La sección **Asistente** del menú todavía muestra «En construcción». Se habilita en una próxima versión.
+El **Asistente** lo usa solo el propietario: en la computadora está en el menú lateral y en el celular, en **Cuenta** (ver [Asistente](#asistente-preguntarle-al-stock)).
 
 ## 4. Inicio (tablero)
 
@@ -269,6 +269,27 @@ Se abre desde **Configuración** en el menú lateral (computadora) o desde **Cue
 - **Desactivar usuario:** no puede volver a ingresar y, si tenía una sesión abierta, deja de funcionar en su siguiente acción. Lo que registró se conserva. Se puede reactivar.
 - En tus propios datos no podés quitarte el rol de propietario ni desactivarte, para que el comercio nunca quede sin administrador.
 
+### Asistente: preguntarle al stock
+
+En el menú lateral, **Asistente**; en el celular, desde **Cuenta**. Escribí una pregunta en castellano o tocá una de las sugeridas. Por ejemplo:
+
+- ¿Cuánta yerba me queda?
+- ¿Qué me está faltando?
+- ¿Qué tengo que reponer?
+- ¿Cuánta gaseosa salió esta semana? (o «¿cuánta vendí?»)
+- ¿Qué fue lo más vendido este mes?
+- ¿Qué no se vendió este mes?
+- ¿Cuánto me aumentó la yerba en los últimos tres meses?
+- ¿Qué productos me aumentaron más del 15 % este trimestre?
+
+La respuesta trae un texto y una tabla o un gráfico con los datos registrados, y siempre indica el período consultado.
+
+- **Ventas y salidas no son lo mismo:** las ventas son solo las salidas por venta; las salidas incluyen también roturas, vencimientos y consumo interno. El título de cada respuesta dice cuál se consultó. «Lo que no se vendió» puede incluir productos que tuvieron roturas.
+- Si el asistente no está seguro de qué producto es (por ejemplo, hay varias yerbas), muestra las opciones: tocá la correcta y responde la misma pregunta.
+- Si el período no se puede consultar (por ejemplo, más de un año o fechas futuras), te pide que lo precises.
+- Si hay muchos resultados, muestra los primeros 20 e indica cuántos hay en total.
+- Cada pregunta queda registrada.
+
 ### Integraciones: conectar la caja
 
 En el menú lateral, **Integraciones**; en el celular, desde **Cuenta**. Una clave de integración permite que la caja del comercio (el sistema de punto de venta) informe sus ventas a Remitto.
@@ -356,4 +377,4 @@ Puede estar desactivado: el propietario lo ve con el filtro **Desactivados** y l
 - La sección «Alertas de stock» (HU24, 15/11/2026) todavía no tiene captura en el manual ni en el PDF.
 - La sección de instalación describe el procedimiento estándar de Chrome; el equipo instaló la aplicación en un Android real y funciona (HU7, 14/11/2026).
 - Las capturas de precisión y evolución de precios (14/11) usan tres remitos simulados confirmados con fechas de emisión de junio, agosto y septiembre; para la precisión se marcaron como lecturas reales en la base descartable.
-- Al implementar más historias, agregar sus secciones (Asistente) y actualizar la lista de «En construcción».
+- Al implementar más historias, agregar sus secciones. Falta la captura del Asistente.

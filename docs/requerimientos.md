@@ -14,9 +14,9 @@ Para el detalle de lo verificado en cada entrega, ver [estado-proyecto.md](estad
 
 | | Historias | Puntos del plan |
 | --- | --- | --- |
-| Implementadas | 28 (HU1 a HU24 y HU26 a HU29) | 92 de 100 obligatorios |
+| Implementadas | 29 (HU1 a HU29) | 100 de 100 obligatorios |
 | Parciales | 0 | 0 |
-| Pendientes obligatorias | 1 (HU25) | 8 |
+| Pendientes obligatorias | 0 | 0 |
 | Deseables pendientes | 2 (HU30, HU31) | 5 (fuera de los 100) |
 
 ## Requerimientos funcionales
@@ -78,7 +78,7 @@ Para el detalle de lo verificado en cada entrega, ver [estado-proyecto.md](estad
 
 | Sub. | Descripción | HU | Estado | Qué falta |
 | --- | --- | --- | --- | --- |
-| RF7.1 | Responder preguntas en lenguaje natural y registrar cada consulta | HU25 | Pendiente | `/asistente` está «En construcción». La tabla `consultas_agente` existe |
+| RF7.1 | Responder preguntas en lenguaje natural y registrar cada consulta | HU25 | Implementado | Pantalla Asistente (solo el propietario) · `/api/asistente/consultas`. 8 tipos de preguntas con 8 herramientas de lectura habilitadas; el modelo solo elige la herramienta y el backend arma la respuesta con datos reales; cada consulta queda en `consultas_agente`. Verificado con la IA simulada contra PostgreSQL (`backend/e2e/hu25-asistente.mjs`); falta probarlo con Gemini real |
 
 ### RF8 Reportes · Mandatoria
 
@@ -101,7 +101,7 @@ Para el detalle de lo verificado en cada entrega, ver [estado-proyecto.md](estad
 | ID | Tipo | Especificación | Estado |
 | --- | --- | --- | --- |
 | RNF1 | Seguridad | Sesión autenticada y HTTPS; contraseñas y claves como hash; credencial de IA solo en el servidor | **Cumplido en lo implementado.** Sesión con token y contraseñas con bcrypt. La clave de Gemini está solo en el backend. Las claves de integración se guardan como hash SHA-256 (HU21). HTTPS depende del despliegue en Coolify, no verificado en esta revisión |
-| RNF2 | Rendimiento | Consultas en 3 s o menos; extracción de un comprobante en 30 s o menos | **Medición implementada:** cada lectura registra su duración y si cumple el objetivo. Falta medirlo con remitos reales en producción |
+| RNF2 | Rendimiento | Consultas en 3 s o menos; extracción de un comprobante en 30 s o menos | **Medición implementada:** cada lectura registra su duración y si cumple el objetivo. Falta medirlo con remitos reales en producción. El asistente (HU25) registra la duración de cada consulta; con Gemini real todavía no se midió |
 | RNF3 | Usabilidad | Comprobante de 20 líneas en menos de 3 minutos; baja confianza y errores indicados con claridad | **Parcial:** las líneas dudosas se destacan y la validación explica qué corregir. Falta cronometrar un comprobante real de 20 líneas |
 | RNF4 | Compatibilidad | Instalable como PWA en Android y usable en escritorio | **Cumplido:** PWA configurada e instalada por el equipo en un Android real, donde funciona (14/11/2026). Las pantallas también se probaron a 360-390 px y en escritorio con un navegador sin interfaz |
 | RNF5 | Integridad | Reglas principales en la base; stock en la misma transacción que su movimiento | **Cumplido:** claves únicas, `CHECK` e índices parciales (ver [base-de-datos.md](base-de-datos.md)), y todo cambio de stock pasa por `registrarMovimiento` dentro de una transacción |
