@@ -264,8 +264,14 @@ async function finalizarConExito(trabajo, { versionEsquema, original, lectura, n
           requiereRevision: normalizada.requiereRevision,
           // Precarga editable en HU10. El número NO se escribe: la unicidad
           // por proveedor se exige al confirmar con el número definitivo.
+          // El tipo leído (FACTURA, REMITO u OTRO) se precarga; si no se
+          // reconoció, queda el que tenía.
+          ...(cabecera.tipo ? { tipo: cabecera.tipo } : {}),
           fechaEmision: cabecera.fechaEmision ? new Date(cabecera.fechaEmision) : null,
           totalDeclarado: cabecera.totalDeclarado,
+          // v4: descuentos e impuestos leídos (null en lecturas anteriores).
+          descuentoDeclarado: cabecera.descuentoDeclarado ?? null,
+          impuestosDeclarados: cabecera.impuestosDeclarados ?? null,
           errorProcesamiento: null,
         },
       });

@@ -105,6 +105,8 @@ erDiagram
     text numero
     date fecha_emision
     decimal_14_2 total_declarado
+    decimal_14_2 descuento_declarado
+    decimal_14_2 impuestos_declarados
     text archivo_url
     text archivo_mime
     OrigenArchivo origen_archivo
@@ -326,6 +328,8 @@ Remito o factura de compra cargado como imagen o PDF, con su estado, la respuest
 | `numero` | text | sí | — | — |
 | `fecha_emision` | date | sí | — | — |
 | `total_declarado` | decimal(14,2) | sí | — | — |
+| `descuento_declarado` | decimal(14,2) | sí | — | HU10: descuentos generales (bonificaciones sobre el subtotal), en positivo. Total = suma de líneas − descuento + impuestos. |
+| `impuestos_declarados` | decimal(14,2) | sí | — | HU10: IVA discriminado, percepciones y otros impuestos que suman al total. |
 | `archivo_url` | text | no | — | — |
 | `archivo_mime` | text | no | — | — |
 | `origen_archivo` | enum OrigenArchivo | no | — | — |
@@ -350,6 +354,7 @@ Remito o factura de compra cargado como imagen o PDF, con su estado, la respuest
 - CHECK `chk_ia_intentos`: `"ia_intentos" >= 0` — Las llamadas a la IA nunca son negativas
 - CHECK `chk_procesando_con_trabajo`: `"estado" <> 'PROCESANDO' OR ("ia_trabajo_id" IS NOT NULL AND "ia_vigente_hasta" IS NOT NULL AND "ia_solicitado_en" IS NOT NULL)` — Un comprobante en PROCESANDO siempre tiene dueño, vigencia y hora de solicitud
 - CHECK `chk_comprobante_confirmado`: `"estado" <> 'CONFIRMADO' OR ( "confirmado_por_id" IS NOT NULL AND "confirmado_en" IS NOT NULL AND "numero" IS NOT NULL )` — Un comprobante confirmado registra quién y cuándo, y tiene número.
+- CHECK `chk_comprobante_descuento_impuestos`: `(descuento_declarado IS NULL OR descuento_declarado >= 0) AND (impuestos_declarados IS NULL OR impuestos_declarados >= 0)` — Los dos importes se guardan en positivo: el descuento resta y los impuestos suman.
 
 ### detalles_comprobante
 
@@ -539,3 +544,4 @@ Prisma no expresa estas reglas; se agregaron en las migraciones (`backend/prisma
 | codigos_proveedor | `uq_codigo_proveedor_descripcion` | UNIQUE parcial | `("proveedor_id", "descripcion") WHERE "codigo" IS NULL` | Una descripción de un proveedor tiene una sola fila por descripción. |
 | claves_integracion | `chk_clave_revocada` | CHECK | `("activa" AND "revocada_en" IS NULL) OR (NOT "activa" AND "revocada_en" IS NOT NULL)` | Una clave activa no tiene fecha de revocación y una revocada sí. |
 | salidas | `chk_pedido_externo` | CHECK | `("origen" = 'INTEGRACION') = ("pedido_externo" IS NOT NULL)` | Las ventas de integración guardan su petición; las del carrito no. |
+| comprobantes | `chk_comprobante_descuento_impuestos` | CHECK | `(descuento_declarado IS NULL OR descuento_declarado >= 0) AND (impuestos_declarados IS NULL OR impuestos_declarados >= 0)` | Los dos importes se guardan en positivo: el descuento resta y los impuestos suman. |

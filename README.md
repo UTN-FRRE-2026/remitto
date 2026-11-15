@@ -153,6 +153,32 @@ original junto a las líneas leídas, para corregir antes de ingresar.
   al menos una línea) y muestra avisos (sin precio, sin fecha, total distinto,
   posible duplicado). No modifica nada; si está todo, habilita "Confirmar ingreso".
 
+### Facturas con IVA discriminado o descuentos generales
+
+En una factura A, o con una bonificación sobre el subtotal, el total impreso no
+es la suma de las líneas, sino **suma − descuentos + impuestos**.
+
+- **Lectura (esquema v4):** la IA transcribe en `ajustes` los renglones que hay
+  entre los artículos y el total. Son la bonificación, el IVA, las percepciones
+  y otros tributos, cada uno con su concepto, su importe y si resta
+  (`DESCUENTO`) o suma (`IMPUESTO`). No transcribe el subtotal ni el total.
+- **Backend:** suma los ajustes (`normalizar.js`) y guarda
+  `comprobantes.descuento_declarado` e `impuestos_declarados` (migración
+  `hu10_descuentos_impuestos`, con un `CHECK` de no negativos).
+  - El control del total usa la misma cuenta al leer y al validar
+    (`src/lib/totales.js`, tolerancia de $1 o el 1 %).
+  - Un renglón sin importe o sin tipo no se inventa: se informa y el total no
+    se verifica.
+- **Revisión:** la cabecera tiene «Descuentos generales» e «IVA y otros
+  impuestos», que se corrigen como el total. El resumen muestra la cuenta y
+  marca en rojo si no cierra. Si no hay ajustes cargados, el aviso sugiere
+  cargarlos. La diferencia es un aviso, no impide confirmar.
+- **Tipo:** el tipo leído (factura, remito u otro) se precarga en la revisión.
+- **Precio de compra:** es el de cada línea, tal como figura. Para un
+  responsable inscripto es el neto sin IVA, y no se le prorratea la
+  bonificación general.
+- **Lecturas anteriores (v3):** quedan sin ajustes, como antes.
+
 ### Revisión obligatoria en comprobantes dudosos (HU17)
 
 Si la IA indica que el comprobante está **escrito a mano**, que la imagen es de
@@ -915,7 +941,7 @@ POSTGRES_PASSWORD=prueba123 JWT_SECRET=prueba CORS_ORIGIN=http://localhost:8088 
 | `GET` | `/api/comprobantes/:id` · `/api/comprobantes/:id/archivo` | autenticado |
 | `POST` | `/api/comprobantes/:id/procesar` (202; lectura con IA) | autenticado |
 | `GET` | `/api/comprobantes/:id/estado` (progreso de la lectura) | autenticado |
-| `PATCH` | `/api/comprobantes/:id/cabecera` · `/api/comprobantes/:id/detalles/:detalleId` (borrador de revisión) | autenticado |
+| `PATCH` | `/api/comprobantes/:id/cabecera` (número, fecha, tipo, `totalDeclarado`, `descuentoDeclarado`, `impuestosDeclarados`) · `/api/comprobantes/:id/detalles/:detalleId` (borrador de revisión) | autenticado |
 | `POST` | `/api/comprobantes/:id/detalles` (línea manual) · `/api/comprobantes/:id/validar` (no confirma) | autenticado |
 | `POST` | `/api/comprobantes/:id/confirmar` (ingreso al stock; repetirlo da 409) | autenticado |
 | `GET` | `/api/movimientos` · `?productoId=&tipo=&desde=&hasta=&pagina=&limite=` | autenticado |

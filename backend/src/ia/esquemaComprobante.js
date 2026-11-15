@@ -16,8 +16,14 @@ import { z } from 'zod';
 // obtiene el backend (normalizar.js). En la versión 2 el campo numérico
 // opcional "cantidad" fue omitido por el modelo en todas las filas.
 // Las lecturas ya guardadas con versiones anteriores no se reinterpretan.
-export const VERSION_ESQUEMA = 3;
+//
+// Versión 4: "ajustes", los renglones entre la suma de los artículos y el
+// total (bonificaciones generales, IVA discriminado, percepciones). Se
+// transcriben uno por uno con su importe; el backend los suma. Sin ellos, una
+// factura A con IVA o con un descuento sobre el subtotal nunca cuadraba.
+export const VERSION_ESQUEMA = 4;
 export const MAX_LINEAS = 200;
+export const MAX_AJUSTES = 20;
 
 const texto = (description) => ({ type: 'string', description });
 const numero = (description) => ({ type: 'number', description });
@@ -42,6 +48,18 @@ const ESQUEMA_LINEA = {
     observacion: texto('Duda puntual sobre la fila, en pocas palabras. Sin explicaciones ni razonamientos.'),
   },
   required: ['cantidadTexto', 'ilegible'],
+};
+
+const ESQUEMA_AJUSTE = {
+  type: 'object',
+  description: 'Un renglón entre la suma de los artículos y el total: bonificación o descuento general, IVA, percepción u otro impuesto.',
+  properties: {
+    concepto: texto('Concepto tal como figura, por ejemplo «IVA 21 %», «Bonificación 5 %» o «Percepción IIBB».'),
+    tipo: texto('DESCUENTO si se resta (bonificación o descuento general); IMPUESTO si se suma (IVA, percepción, impuesto interno u otro tributo).'),
+    importe: numero('Importe del renglón en positivo, tal como figura. Omitir si no se lee.'),
+    importeTexto: texto('Importe exactamente como figura en el papel.'),
+  },
+  required: ['concepto', 'tipo'],
 };
 
 export const ESQUEMA_JSON = {
@@ -74,6 +92,12 @@ export const ESQUEMA_JSON = {
       description: 'Una entrada por cada fila de producto de la tabla, en el orden del papel, sin saltear ninguna.',
       items: ESQUEMA_LINEA,
     },
+    ajustes: {
+      type: 'array',
+      description:
+        'Renglones entre la suma de los artículos y el total (descuentos generales, IVA, percepciones), uno por renglón y en el orden del papel. Sin el subtotal ni el total. Vacío si no hay.',
+      items: ESQUEMA_AJUSTE,
+    },
   },
   required: ['documento', 'cabecera', 'lineas'],
 };
@@ -95,6 +119,13 @@ export const lineaSchema = z.object({
   observacion: textoZ,
 });
 
+export const ajusteSchema = z.object({
+  concepto: textoZ,
+  tipo: textoZ, // DESCUENTO o IMPUESTO; otro valor se informa al normalizar
+  importe: numeroZ,
+  importeTexto: textoZ,
+});
+
 export const lecturaSchema = z.object({
   documento: z.object({
     legible: z.boolean(),
@@ -112,4 +143,10 @@ export const lecturaSchema = z.object({
     proveedorCuit: textoZ,
   }),
   lineas: z.array(lineaSchema).max(MAX_LINEAS),
+  // Ausente (lecturas v3 o un modelo que lo omite) = sin ajustes.
+  ajustes: z
+    .array(ajusteSchema)
+    .max(MAX_AJUSTES)
+    .nullish()
+    .transform((v) => v ?? []),
 });

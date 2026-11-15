@@ -42,6 +42,9 @@ test('datos completos: sin problemas, con resumen de unidades e importe', () => 
     descartadas: 0,
     unidades: 12,
     importe: 34200,
+    descuento: null,
+    impuestos: null,
+    totalCalculado: 34200,
     totalImpreso: 34200,
     coincideTotal: true,
     revisionCompleta: false,
@@ -221,4 +224,36 @@ test('el día de hoy se calcula en hora de Argentina', async () => {
   // 01:00 UTC del 15/11 todavía es 14/11 en Argentina (UTC−3).
   assert.equal(hoyArgentina(new Date('2026-11-15T01:00:00Z')), '2026-11-14');
   assert.equal(hoyArgentina(new Date('2026-11-15T03:30:00Z')), '2026-11-15');
+});
+
+// --- HU10: factura con descuentos generales e IVA discriminado ---
+
+test('factura A: suma − descuento + impuestos coincide con el total impreso', () => {
+  // 34.200 − 1.710 + 6.822,90 = 39.312,90
+  const r = evaluarRevision(comprobante({ totalDeclarado: '39312.90', descuentoDeclarado: '1710.00', impuestosDeclarados: '6822.90' }));
+  assert.equal(r.resumen.coincideTotal, true);
+  assert.equal(r.resumen.totalCalculado, 39312.9);
+  assert.equal(r.resumen.descuento, 1710);
+  assert.equal(r.resumen.impuestos, 6822.9);
+  assert.equal(r.avisos.some((a) => a.campo === 'totalDeclarado'), false);
+});
+
+test('factura A sin descuentos ni impuestos cargados: el aviso dice cómo resolverlo', () => {
+  const r = evaluarRevision(comprobante({ totalDeclarado: '39312.90' }));
+  assert.equal(r.resumen.coincideTotal, false);
+  const aviso = r.avisos.find((a) => a.campo === 'totalDeclarado');
+  assert.match(aviso.mensaje, /cargalos en la cabecera/);
+  assert.equal(r.completo, true, 'es un aviso: no impide confirmar');
+});
+
+test('con descuentos e impuestos que no cierran, el aviso muestra la cuenta', () => {
+  const r = evaluarRevision(comprobante({ totalDeclarado: '40000.00', descuentoDeclarado: '1710.00', impuestosDeclarados: '6822.90' }));
+  assert.equal(r.resumen.coincideTotal, false);
+  assert.match(r.avisos.find((a) => a.campo === 'totalDeclarado').mensaje, /Lo calculado \(\$ 34\.200,00 − descuentos \$ 1\.710,00 \+ impuestos \$ 6\.822,90 = \$ 39\.312,90\)/);
+});
+
+test('cabecera: descuento e impuestos se editan como el total (no negativos, 2 decimales)', () => {
+  assert.deepEqual(actualizarCabeceraSchema.parse({ descuentoDeclarado: 1710.5, impuestosDeclarados: null }), { descuentoDeclarado: 1710.5, impuestosDeclarados: null });
+  assert.equal(actualizarCabeceraSchema.safeParse({ descuentoDeclarado: -1 }).success, false);
+  assert.equal(actualizarCabeceraSchema.safeParse({ impuestosDeclarados: 1.234 }).success, false);
 });

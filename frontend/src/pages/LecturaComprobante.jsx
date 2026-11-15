@@ -223,6 +223,15 @@ export default function LecturaComprobante() {
                 <dt>Total impreso</dt>
                 <dd>{normalizada.cabecera.totalDeclarado != null ? `$ ${numero(normalizada.cabecera.totalDeclarado, 2)}` : 'sin dato'}</dd>
               </div>
+              {/* HU10: renglones de descuento e impuestos leídos (lecturas v4). */}
+              {(normalizada.ajustes ?? []).map((a, i) => (
+                <div key={`${a.concepto}-${i}`}>
+                  <dt>{a.concepto}</dt>
+                  <dd>
+                    {a.tipo === 'DESCUENTO' ? '− ' : '+ '}$ {numero(a.importe, 2)}
+                  </dd>
+                </div>
+              ))}
             </dl>
             {normalizada.motivosRevision.length > 0 && (
               <ul className="lectura__motivos">

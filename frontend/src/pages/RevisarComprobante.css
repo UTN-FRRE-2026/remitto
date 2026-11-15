@@ -350,6 +350,10 @@
   color: var(--texto-suave);
   font-weight: 700;
 }
+/* HU10: el total calculado no coincide con el impreso. */
+.revisar__resumen-difiere strong {
+  color: var(--rojo);
+}
 .revisar__validacion {
   padding: 12px 14px;
   border-radius: var(--radio);
