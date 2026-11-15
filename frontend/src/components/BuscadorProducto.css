@@ -44,3 +44,16 @@
 .buscador__resultados .buscador__nota {
   padding: 10px 14px;
 }
+.buscador__escanear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin: -10px -10px -10px 0;
+  border-radius: var(--radio-sm);
+  color: var(--salvia-oscuro);
+}
+.buscador__escanear:hover {
+  background: var(--crema);
+}

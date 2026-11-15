@@ -12,7 +12,7 @@ automática de comprobantes de compra mediante Inteligencia Artificial.
 ## Estado actual
 
 Están implementadas las historias del Sprint 1 (HU1 a HU14) y, del
-Sprint 2, HU15 a HU29, y la deseable HU31 (orden de compra). La aplicación está desplegada en producción con Coolify, a partir
+Sprint 2, HU15 a HU29, y las deseables HU30 (escaneo de códigos con la cámara) y HU31 (orden de compra). La aplicación está desplegada en producción con Coolify, a partir
 de `main`. El equipo probó la instalación de la PWA en un Android real (HU7) y funciona.
 
 Ya implementado:
@@ -29,6 +29,7 @@ Ya implementado:
 | **RF5** Integración | HU21 (claves de integración), HU22 (salidas desde un sistema externo, con contrato OpenAPI), HU23 (simulador de ventas) | ✅ Backend, pantalla Integraciones y simulador |
 | **RF6** Alertas y reposición | HU24 (alertas de stock), HU27 (sugerencia de reposición) | ✅ Backend, pantalla Alertas (campana del Inicio) y Precios y reportes |
 | **RF8** Reportes | HU20 (evolución de precios), HU28 (valorización de existencias), HU29 (productos sin movimiento) | ✅ Backend y pantalla Precios y reportes |
+| **RF9** Deseables | HU30 (escanear el código en el carrito), HU31 (orden de compra) | ✅ Escáner en Nueva salida y PDF en Reposición |
 | Frontend | Login, Tablero, Comprobantes, Precisión de la lectura, Productos (alta y edición), Proveedores, Categorías, Usuarios, Cargar remito, Lectura con IA, Revisar remito, Movimientos, Nueva salida, Recuento, Precios y reportes, Integraciones, Alertas | ✅ Vistas base |
 
 Están completos el flujo de ingreso (cargar → leer con IA → revisar →
@@ -388,6 +389,28 @@ producto.
 - El carrito se guarda como borrador en la pestaña (`sessionStorage`) hasta
   confirmarlo.
 - Las salidas aparecen en **Movimientos** (HU12).
+
+### Escanear el código de barras en el carrito (HU30)
+
+En **Nueva salida**, el botón de código de barras del buscador abre la
+cámara trasera (`frontend/src/components/EscanerCodigo.jsx`, con
+[ZXing](https://github.com/zxing-js/browser) `@zxing/browser` 0.1.5, que se
+carga recién al abrir el escáner). Lee EAN-13, EAN-8, UPC-A, UPC-E, Code 128,
+Code 39 e ITF y se cierra con el primer código leído:
+
+- busca el producto con `GET /api/productos?codigo=<código>`, que compara el
+  código **exacto** entre los productos activos (no una parte ni el nombre);
+- si existe y tiene stock, lo agrega al carrito (o suma 1 si ya estaba) y
+  avisa «Se agregó …»;
+- si no existe, avisa «No hay ningún producto con el código …»; sin stock,
+  avisa y no lo agrega.
+
+La búsqueda por nombre y el lector que actúa como teclado siguen igual. Si no
+hay permiso, cámara o conexión segura (la cámara exige HTTPS, salvo en
+`localhost`), el escáner lo explica y se vuelve a la búsqueda. Los códigos del
+seed son ficticios y no tienen un dígito verificador EAN válido: para
+probarlo con la cámara hay que cargar en la ficha del producto el código real
+del envase.
 
 ### Ajuste de stock por recuento (HU14)
 
@@ -883,7 +906,7 @@ POSTGRES_PASSWORD=prueba123 JWT_SECRET=prueba CORS_ORIGIN=http://localhost:8088 
 | `POST/PATCH/DELETE` | `/api/categorias/:id` | propietario |
 | `GET` | `/api/proveedores` | autenticado |
 | `POST/PATCH/DELETE` | `/api/proveedores/:id` | propietario |
-| `GET` | `/api/productos` · `?q=&estado=&categoriaId=` | autenticado |
+| `GET` | `/api/productos` · `?q=&estado=&categoriaId=&codigo=` (`codigo`: coincidencia exacta del código de barras, HU30) | autenticado |
 | `GET` | `/api/productos/resumen` | autenticado |
 | `POST/PATCH/DELETE` | `/api/productos/:id` | propietario |
 | `POST` | `/api/comprobantes` (multipart: `archivo`, `proveedorId`, `tipo?`) | autenticado |

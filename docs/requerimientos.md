@@ -17,8 +17,8 @@ Para el detalle de lo verificado en cada entrega, ver [estado-proyecto.md](estad
 | Implementadas | 29 (HU1 a HU29) | 100 de 100 obligatorios |
 | Parciales | 0 | 0 |
 | Pendientes obligatorias | 0 | 0 |
-| Deseables implementadas | 1 (HU31) | 2 (fuera de los 100) |
-| Deseables pendientes | 1 (HU30) | 3 (fuera de los 100) |
+| Deseables implementadas | 2 (HU30 y HU31) | 5 (fuera de los 100) |
+| Deseables pendientes | 0 | 0 |
 
 ## Requerimientos funcionales
 
@@ -94,7 +94,7 @@ Para el detalle de lo verificado en cada entrega, ver [estado-proyecto.md](estad
 
 | Sub. | Descripción | HU | Estado |
 | --- | --- | --- | --- |
-| RF9.1 | Lectura de códigos de barras con la cámara en el carrito | HU30 | Pendiente. El buscador acepta el código tipeado o el de un lector que actúe como teclado |
+| RF9.1 | Lectura de códigos de barras con la cámara en el carrito | HU30 | Implementado. Nueva salida: botón de escaneo en el buscador (ZXing); el código leído agrega el producto y uno desconocido muestra un aviso · `GET /api/productos?codigo=` (coincidencia exacta). La búsqueda por nombre y el lector tipo teclado siguen disponibles |
 | RF9.2 | Exportar la sugerencia como orden de compra | HU31 | Implementado. Precios y reportes › Reposición: un PDF por proveedor con producto, cantidad y unidad, más el proveedor · `GET /api/reportes/reposicion/orden` (solo el propietario) |
 
 ## Requerimientos no funcionales

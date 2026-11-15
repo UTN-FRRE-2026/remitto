@@ -1,13 +1,31 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Prisma } from '@prisma/client';
-import { crearProductoSchema, actualizarProductoSchema } from '../src/modules/productos/productos.schema.js';
+import { crearProductoSchema, actualizarProductoSchema, listarQuerySchema } from '../src/modules/productos/productos.schema.js';
 import { crearProveedorSchema, actualizarProveedorSchema } from '../src/modules/proveedores/proveedores.schema.js';
-import { traducirErrorProducto } from '../src/modules/productos/productos.service.js';
+import { traducirErrorProducto, listar } from '../src/modules/productos/productos.service.js';
 import { traducirErrorProveedor } from '../src/modules/proveedores/proveedores.service.js';
 
 const errorPrisma = (code) =>
   new Prisma.PrismaClientKnownRequestError('error de prueba', { code, clientVersion: 'test' });
+
+// --- HU30 búsqueda por el código leído ---
+
+test('HU30: el código leído se recorta; vacío o de más de 64 caracteres se rechaza', () => {
+  assert.equal(listarQuerySchema.parse({ codigo: ' 7790001000012\n' }).codigo, '7790001000012');
+  assert.equal(listarQuerySchema.safeParse({ codigo: '   ' }).success, false);
+  assert.equal(listarQuerySchema.safeParse({ codigo: '1'.repeat(65) }).success, false);
+  assert.equal(listarQuerySchema.parse({}).codigo, undefined);
+});
+
+test('HU30: el código busca la coincidencia exacta entre los activos, no una parte del código', async () => {
+  const pedidos = [];
+  const db = { producto: { findMany: async (args) => (pedidos.push(args), []) } };
+  await listar({ codigo: '7790001000012' }, db);
+  assert.deepEqual(pedidos[0].where, { activo: true, codigoBarras: '7790001000012' });
+  await listar({ q: '779' }, db);
+  assert.deepEqual(pedidos[1].where.OR[1], { codigoBarras: { contains: '779' } }, 'la búsqueda por texto sigue igual');
+});
 
 // --- HU4 productos ---
 

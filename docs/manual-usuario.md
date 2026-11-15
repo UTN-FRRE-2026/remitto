@@ -217,11 +217,23 @@ Arriba, el aviso «El stock de todos los productos coincide con sus movimientos�
 
 1. Abrí **Salidas**.
 2. Elegí el motivo: **Venta**, **Consumo interno**, **Rotura**, **Vencimiento** u **Otro**. Con «Otro», la observación es obligatoria.
-3. Buscá los productos por nombre o código y tocálos para agregarlos. Los que no tienen stock aparecen deshabilitados.
+3. Buscá los productos por nombre o código y tocálos para agregarlos. Los que no tienen stock aparecen deshabilitados. También podés **escanear el código de barras** con la cámara (ver abajo).
 4. Ajustá las cantidades con **−** y **+** o escribiéndolas. Las unidades y los paquetes van enteros; los kilos y litros admiten hasta 3 decimales (con coma: 1,5).
 5. Tocá **Confirmar salida**.
 
 El resumen muestra el stock de cada producto antes y después (por ejemplo «94 − 6 → 88»). Si la conexión falla y se reintenta, la salida no se descuenta dos veces: aparece «Ya se había registrado: no se descontó de nuevo».
+
+### Escanear el código de barras
+
+| Escáner abierto | Producto agregado |
+| --- | --- |
+| <img src="manual/27-escanear-codigo.png" alt="Escáner con la cámara apuntando a un código de barras" width="280"> | <img src="manual/28-codigo-leido.png" alt="Carrito con el producto agregado por su código" width="280"> |
+
+1. En **Salidas**, tocá el ícono de código de barras, a la derecha del buscador. La primera vez, el celular pide permiso para usar la cámara.
+2. Apuntá al código del envase, dentro del recuadro. Al leerlo, la cámara se cierra y el producto se suma al carrito con cantidad 1 (si ya estaba, suma uno más).
+3. Para otro producto, volvé a tocar el ícono. **Cancelar** cierra la cámara sin agregar nada.
+
+Si el código no corresponde a ningún producto, aparece «No hay ningún producto con el código …»: buscalo por nombre o pedile al propietario que cargue el código en la ficha del producto. Un lector de códigos conectado al celular o a la computadora también funciona: escribe el código en el buscador y lo agrega.
 
 ## 9. Recuento de stock
 
@@ -366,6 +378,9 @@ La función requiere el rol de propietario.
 **«Sesión inválida o expirada» o «Usuario inexistente o desactivado»**
 Volvé a iniciar sesión. Si el problema sigue, el propietario tiene que revisar tu usuario.
 
+**«No hay permiso para usar la cámara»**
+El navegador bloqueó la cámara. Habilitala en los permisos del sitio, o escribí el código en el buscador.
+
 **Un producto no aparece en la búsqueda**
 Puede estar desactivado: el propietario lo ve con el filtro **Desactivados** y lo puede reactivar.
 
@@ -378,4 +393,5 @@ Puede estar desactivado: el propietario lo ve con el filtro **Desactivados** y l
 - La sección «Alertas de stock» (HU24, 15/11/2026) todavía no tiene captura en el manual ni en el PDF.
 - La sección de instalación describe el procedimiento estándar de Chrome; el equipo instaló la aplicación en un Android real y funciona (HU7, 14/11/2026).
 - Las capturas de precisión y evolución de precios (14/11) usan tres remitos simulados confirmados con fechas de emisión de junio, agosto y septiembre; para la precisión se marcaron como lecturas reales en la base descartable.
+- Las capturas del escáner (HU30, 15/11/2026) usan una cámara simulada de Chromium con un EAN-13 generado; en la de la izquierda el video muestra barras ilegibles para que el escáner siga abierto.
 - Al implementar más historias, agregar sus secciones. Falta la captura del Asistente.

@@ -38,6 +38,8 @@ export const idParamSchema = z.object({
 
 export const listarQuerySchema = z.object({
   q: z.string().trim().optional(),
+  // HU30: código de barras leído con la cámara; busca la coincidencia exacta.
+  codigo: z.string().trim().min(1).max(64).optional(),
   categoriaId: z.coerce.number().int().positive().optional(),
   // Filtros de la pantalla de productos (maqueta): Todos / Stock bajo / Sin stock.
   estado: z.enum(['TODOS', 'EN_STOCK', 'STOCK_BAJO', 'SIN_STOCK']).default('TODOS'),

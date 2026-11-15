@@ -43,10 +43,11 @@ function mapear(p) {
 }
 
 // db: el cliente o una transacción (el tablero de HU26 lee en una sola foto).
-export async function listar({ q, categoriaId, estado = 'TODOS', incluirInactivos = false } = {}, db = prisma) {
+export async function listar({ q, codigo, categoriaId, estado = 'TODOS', incluirInactivos = false } = {}, db = prisma) {
   const where = {};
   if (!incluirInactivos) where.activo = true;
   if (categoriaId) where.categoriaId = categoriaId;
+  if (codigo) where.codigoBarras = codigo;
   if (q) {
     where.OR = [
       { nombre: { contains: q, mode: 'insensitive' } },
