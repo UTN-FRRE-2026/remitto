@@ -2,19 +2,19 @@
 
 Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuente de verdad: contrastá esta nota antes de usarla.
 
-## Referencia verificada (15/11/2026)
+## Referencia verificada (16/11/2026)
 
-- `origin/main` en `0aea032` (merge del PR #36, corrección de HU25), comprobado el 15/11/2026. **En `main`:** HU1 a HU31, las 29 obligatorias y las 2 deseables.
+- `origin/main` en `71269f3` (merge del PR #40, documentación de la entrega), comprobado el 16/11/2026. **En `main`:** HU1 a HU31, las 29 obligatorias y las 2 deseables.
 - **Primera entrega del TPI: lunes 16/11/2026.** Consigna y entregables en [entrega-tpi.md](entrega-tpi.md).
 - **HU7:** el equipo informó el 14/11 que instaló la PWA en un Android real y funciona (no verificado en esta revisión).
-- Los PDF de la documentación probatoria están fuera del repositorio (`../remitto-entrega/`); se regeneraron el 15/11 con HU1 a HU31 y las facturas con IVA (los del 14/11 quedaron en `anteriores-14-11/`). En la misma carpeta están el borrador del Informe Final del Alumno (`.docx`, sobre el modelo oficial) y, en `video/`, la demo sin voz de 4:54, el guion por integrante y los subtítulos.
+- Los PDF de la documentación probatoria están fuera del repositorio (`../remitto-entrega/`); se regeneraron el 15/11 con HU1 a HU31 y las facturas con IVA (los del 14/11 quedaron en `anteriores-14-11/`). En la misma carpeta están el borrador del Informe Final del Alumno (`.docx`, sobre el modelo oficial), la infografía vertical (PDF A3 y PNG, 16/11) y, en `video/armado/`, el video final de 4:18 con los tres integrantes y subtítulos en castellano (16/11; falta subirlo a YouTube).
 - **Integración externa:**
   - HU21 (claves de integración): integrada por el [PR #27](https://github.com/UTN-FRRE-2026/remitto/pull/27), merge `708f9d9`.
   - HU22 (salidas desde un sistema externo): integrada por el [PR #28](https://github.com/UTN-FRRE-2026/remitto/pull/28), merge `b822eb9`. El contenido integrado es idéntico al último commit publicado de la rama (`77e614f`).
   - HU23 (simulador de ventas): integrada por el [PR #30](https://github.com/UTN-FRRE-2026/remitto/pull/30), merge `2dba88f`.
   - El respaldo del avance de HU21 (el stash `5373a09` y el patch de `retomar/`, en la copia local de Maxi) se conserva aunque ya no hace falta.
 - **Migraciones nuevas:** `20261114140000_hu21_claves_integracion`, `20261114150000_hu22_pedido_externo` y `20261115120000_hu24_alertas_stock` (solo datos), todas en `main`. HU26 no agrega migraciones. Quien use una base local tiene que aplicarlas con `npx prisma migrate deploy` (sin reset). En producción, el contenedor las aplica al arrancar. El 15/11 las rutas de HU21 a HU31 respondían en producción (401 sin sesión), lo que indica el esquema al día; no se entró con usuario.
-- PR #1 a #36 integrados en `main`.
+- PR #1 a #40 integrados en `main`.
 
 ## Integrado en `main`
 
