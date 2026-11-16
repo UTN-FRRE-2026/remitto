@@ -24,7 +24,8 @@ const casos = [
   [errorSdk('InternalServerError', 503, 'service_unavailable'), 'SERVICIO_NO_DISPONIBLE', true],
   [errorSdk('InternalServerError', 504, 'deadline_exceeded'), 'DEMORA', true],
   [errorSdk('BadRequestError', 400, 'invalid_request'), 'SOLICITUD_RECHAZADA', false],
-  [errorSdk('APIError', 402, 'payment_required'), 'SOLICITUD_RECHAZADA', false],
+  // 402: sin saldo (Gemini prepago en cero o Anthropic billing_error).
+  [errorSdk('APIError', 402, 'payment_required'), 'SIN_CREDITO', false],
 ];
 
 for (const [err, codigo, automatico] of casos) {

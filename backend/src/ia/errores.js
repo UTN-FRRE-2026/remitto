@@ -14,6 +14,10 @@ const CATALOGO = {
       'Se agotó la cuota gratuita diaria de la IA. Se renueva a la medianoche del Pacífico (4 o 5 de la mañana en Argentina).',
     automatico: false,
   },
+  SIN_CREDITO: {
+    mensaje: 'La cuenta del servicio de IA no tiene saldo. Hay que cargar crédito en la cuenta del proveedor.',
+    automatico: false,
+  },
   LIMITE_POR_MINUTO: {
     mensaje: 'La IA recibió demasiadas solicitudes en poco tiempo. Esperá un minuto y reintentá.',
     automatico: true,
@@ -77,8 +81,9 @@ export function sanear(texto) {
   if (texto == null) return null;
   const t = String(texto)
     .replace(/AIza[0-9A-Za-z_-]{10,}/g, '[CLAVE]')
+    .replace(/sk-ant-[0-9A-Za-z_-]{10,}/g, '[CLAVE]')
     .replace(/([?&](?:key|api_key|apikey|token|access_token)=)[^&\s"']+/gi, '$1[REDACTADO]')
-    .replace(/(x-goog-api-key|authorization)(["']?\s*[:=]\s*["']?)[^\s"',}]+/gi, '$1$2[REDACTADO]')
+    .replace(/(x-goog-api-key|x-api-key|authorization)(["']?\s*[:=]\s*["']?)[^\s"',}]+/gi, '$1$2[REDACTADO]')
     .replace(/[A-Za-z0-9+/=_-]{120,}/g, '[DATOS]');
   return t.length > MAX_TEXTO_PROVEEDOR ? `${t.slice(0, MAX_TEXTO_PROVEEDOR)}…` : t;
 }
@@ -97,7 +102,8 @@ export function leerError(texto) {
   return m ? { codigo: m[1], mensaje: m[2] } : texto ? { codigo: 'ERROR_INTERNO', mensaje: texto } : null;
 }
 
-// Cuerpo de error de la API ({ error: { code, message, details? } }) si viene.
+// Cuerpo de error de la API si viene: Gemini { error: { code, message, details? } };
+// Anthropic { type: 'error', error: { type, message } }.
 function errorApi(err) {
   const directo = err?.error?.error ?? (typeof err?.error?.code === 'string' ? err.error : null);
   if (directo && typeof directo === 'object') return directo;
@@ -108,13 +114,13 @@ function errorApi(err) {
   }
 }
 
-// Traduce un error del SDK @google/genai (o de red) a ErrorIa, conservando
+// Traduce un error del SDK @google/genai o @anthropic-ai/sdk (o de red) a ErrorIa, conservando
 // el detalle técnico saneado del proveedor para el servidor.
 export function traducirErrorSdk(err) {
   if (err instanceof ErrorIa) return err;
   const status = Number(err?.status ?? err?.statusCode);
   const api = errorApi(err);
-  const codigo = typeof api?.code === 'string' ? api.code : undefined;
+  const codigo = typeof api?.code === 'string' ? api.code : typeof api?.type === 'string' ? api.type : undefined;
   const proveedor = {
     clase: err?.constructor?.name ?? 'Error',
     status: Number.isFinite(status) ? status : null,
@@ -134,6 +140,10 @@ export function traducirErrorSdk(err) {
     return crear('ERROR_INTERNO');
   }
   if (status === 401 || status === 403) return crear('CLAVE_RECHAZADA');
+  // Anthropic: 402 billing_error, o 400 con «credit balance is too low».
+  if (status === 402 || codigo === 'billing_error' || (status === 400 && /credit balance/i.test(proveedor.message ?? ''))) {
+    return crear('SIN_CREDITO');
+  }
   if (status === 404) return crear('MODELO_NO_DISPONIBLE');
   if (status === 429) {
     const diario = codigo === 'quota_exceeded' || (!codigo && /daily|per day|quota/i.test(err?.message ?? ''));

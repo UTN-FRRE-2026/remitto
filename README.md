@@ -108,12 +108,20 @@ HEIC/HEIF y PDF; tamaño máximo `ARCHIVO_MAX_MB` (10 MB por defecto).
 ### Lectura con IA (HU9)
 
 Después de cargar un comprobante, la pantalla M4 (`/comprobantes/:id/lectura`)
-pide la lectura con Gemini. Corre en segundo plano y el estado queda en la base:
+pide la lectura con IA (Gemini o Claude, según `IA_PROVEEDOR`). Corre en segundo plano y el estado queda en la base:
 `PENDIENTE → PROCESANDO (en cola / leyendo) → EN_REVISION | ERROR`. Nada se
 procesa solo: los comprobantes anteriores se leen tocando "Leer con IA".
 
 - La clave va solo en `backend/.env` (`IA_API_KEY`) y el modelo en `IA_MODELO`
   (`gemini-3.8-flash`). Sin clave, `POST /procesar` responde 503.
+- **Proveedor:** `IA_PROVEEDOR=gemini` (por defecto) o `claude`. Con Claude, el
+  modelo por defecto es `claude-haiku-5-5` y la clave es de la consola de
+  Anthropic (la API se paga por uso con crédito prepago; sin saldo, la lectura
+  falla con `SIN_CREDITO`). Cada proveedor tiene su adaptador en
+  `backend/src/ia/adaptadores/` con las mismas operaciones (leer un comprobante
+  y planificar una pregunta del asistente) y el mismo esquema de respuesta; el
+  de Claude agrega `additionalProperties: false` a cada objeto, como exige su
+  salida estructurada, y convierte a JPEG las fotos HEIC, que Claude no acepta.
 - Capa gratuita: Google puede usar el contenido enviado para mejorar sus
   productos. Se usa `store: false`, sin `service_tier` ni cambio de modelo.
 - Cada ejecución tiene un tope de `IA_PRESUPUESTO_MS` (30 s) para llamadas y
@@ -805,7 +813,8 @@ abre desde **Cuenta**). Responde preguntas en castellano sobre el stock
   `consultas_agente`, con el planificador (intentos y milisegundos), la
   herramienta (argumentos, filas y milisegundos, o el rechazo) y la duración
   total. Sin migraciones.
-- **Proveedor:** Gemini (`planificar` en `gemini.adapter.js`) y un adaptador
+- **Proveedor:** Gemini o Claude según `IA_PROVEEDOR` (`planificar` en
+  `gemini.adapter.js` o `claude.adapter.js`) y un adaptador
   simulado con palabras clave para las pruebas (`IA_SIMULACION`), que en
   producción queda deshabilitado.
 
@@ -890,7 +899,9 @@ del VPS (la PWA solo se instala con HTTPS) y acceso de Coolify al repositorio.
    | `POSTGRES_PASSWORD` | `openssl rand -hex 24` (solo letras y números: va dentro de `DATABASE_URL`) |
    | `JWT_SECRET` | `openssl rand -hex 48` |
    | `CORS_ORIGIN` | `https://<dominio>` |
-   | `IA_API_KEY` | clave de Gemini (sin clave, la lectura con IA queda deshabilitada) |
+   | `IA_PROVEEDOR` | `gemini` (por defecto) o `claude` |
+   | `IA_API_KEY` | clave del proveedor elegido (sin clave, la lectura con IA queda deshabilitada) |
+   | `IA_MODELO` | opcional; vacío usa `gemini-3.8-flash` o `claude-haiku-5-5` |
 
 3. Asignar el dominio al servicio **frontend** (puerto 80) y desplegar.
 4. Primer usuario: desde la terminal del contenedor `backend` en Coolify,
