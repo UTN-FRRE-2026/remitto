@@ -6,6 +6,7 @@ Fotografía breve para retomar el trabajo. Git, los PR y el código son la fuent
 
 - `origin/main` en `71269f3` (merge del PR #40, documentación de la entrega), comprobado el 16/11/2026. **En `main`:** HU1 a HU31, las 29 obligatorias y las 2 deseables.
 - **Primera entrega del TPI: lunes 16/11/2026.** Consigna y entregables en [entrega-tpi.md](entrega-tpi.md).
+- **Proveedor de IA (rama `feature/ia-claude`, 16/11):** se puede elegir Claude con `IA_PROVEEDOR=claude` (modelo por defecto `claude-haiku-5-5`) además de Gemini, que sigue siendo el valor por defecto. El equipo decidió pasar a Claude porque el plan pago de Gemini exigía una carga mínima de USD 30; en producción hay que configurar `IA_PROVEEDOR`, `IA_API_KEY` (clave de Anthropic) y quitar el `IA_MODELO` de Gemini. El video, el manual y el informe siguen mencionando Gemini.
 - **HU7:** el equipo informó el 14/11 que instaló la PWA en un Android real y funciona (no verificado en esta revisión).
 - Los PDF de la documentación probatoria están fuera del repositorio (`../remitto-entrega/`); se regeneraron el 15/11 con HU1 a HU31 y las facturas con IVA (los del 14/11 quedaron en `anteriores-14-11/`). En la misma carpeta están el borrador del Informe Final del Alumno (`.docx`, sobre el modelo oficial), la infografía vertical (PDF A3 y PNG, 16/11) y, en `video/armado/`, el video final de 4:18 con los tres integrantes y subtítulos en castellano (16/11; falta subirlo a YouTube).
 - **Integración externa:**

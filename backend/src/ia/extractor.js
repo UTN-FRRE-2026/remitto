@@ -1,5 +1,5 @@
 import { env, esProduccion } from '../config/env.js';
-import * as gemini from './adaptadores/gemini.adapter.js';
+import { adaptadorReal } from './proveedor.js';
 import * as simulado from './adaptadores/simulado.adapter.js';
 import { ErrorIa, traducirErrorSdk } from './errores.js';
 import { lecturaSchema, VERSION_ESQUEMA } from './esquemaComprobante.js';
@@ -13,7 +13,7 @@ const MAX_ORIGINAL = 100 * 1024;
 const usaSimulacion = () => Boolean(env.ia.simulacion) && !esProduccion;
 
 function adaptador() {
-  return usaSimulacion() ? simulado : gemini;
+  return usaSimulacion() ? simulado : adaptadorReal();
 }
 
 // Hay con qué leer: simulación (solo desarrollo) o clave configurada.

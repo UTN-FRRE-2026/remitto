@@ -10,8 +10,9 @@
 #    JWT_SECRET         generar con: openssl rand -hex 48
 #    CORS_ORIGIN        https://<dominio del frontend>
 #  Opcionales: POSTGRES_USER, POSTGRES_DB, JWT_EXPIRES_IN,
-#    ARCHIVO_MAX_MB, IA_API_KEY (sin clave la lectura con IA queda
-#    deshabilitada), IA_MODELO.
+#    ARCHIVO_MAX_MB, IA_PROVEEDOR (gemini o claude; por defecto gemini),
+#    IA_API_KEY (del proveedor elegido; sin clave la lectura con IA queda
+#    deshabilitada), IA_MODELO (vacío: gemini-3.8-flash o claude-haiku-5-5).
 #
 #  Prueba local:
 #    docker compose -f docker-compose.prod.yml up -d --build
@@ -51,8 +52,10 @@ services:
       UPLOADS_DIR: /app/uploads
       # Si se sube, ajustar client_max_body_size en frontend/nginx.conf.
       ARCHIVO_MAX_MB: ${ARCHIVO_MAX_MB:-10}
+      IA_PROVEEDOR: ${IA_PROVEEDOR:-gemini}
       IA_API_KEY: ${IA_API_KEY:-}
-      IA_MODELO: ${IA_MODELO:-gemini-3.8-flash}
+      # Vacío: el backend usa el modelo por defecto del proveedor.
+      IA_MODELO: ${IA_MODELO:-}
     volumes:
       # HU8: los comprobantes subidos sobreviven a cada nuevo despliegue.
       - remitto_uploads:/app/uploads

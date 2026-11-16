@@ -23,6 +23,16 @@ function numeroPositivo(nombre, valorPorDefecto) {
   return valor;
 }
 
+const MODELO_POR_DEFECTO = { gemini: 'gemini-3.8-flash', claude: 'claude-haiku-5-5' };
+
+function proveedorIa() {
+  const valor = (process.env.IA_PROVEEDOR ?? '').trim().toLowerCase() || 'gemini';
+  if (!MODELO_POR_DEFECTO[valor]) {
+    throw new Error('La variable de entorno IA_PROVEEDOR debe ser gemini o claude');
+  }
+  return valor;
+}
+
 export const env = {
   port: Number(process.env.PORT ?? 4000),
   nodeEnv: process.env.NODE_ENV ?? 'development',
@@ -36,8 +46,11 @@ export const env = {
   // HU9: lectura de comprobantes con IA. La clave reside solo en el servidor (RNF1)
   // y nunca se registra; si falta, la lectura queda deshabilitada sin romper el arranque.
   ia: {
+    // Proveedor de IA (RNF6, Adapter): gemini o claude. La clave y el modelo
+    // tienen que ser del proveedor elegido.
+    proveedor: proveedorIa(),
     apiKey: (process.env.IA_API_KEY ?? '').trim() || null,
-    modelo: (process.env.IA_MODELO ?? '').trim() || 'gemini-3.8-flash',
+    modelo: (process.env.IA_MODELO ?? '').trim() || MODELO_POR_DEFECTO[proveedorIa()],
     nivelRazonamiento: (process.env.IA_NIVEL_RAZONAMIENTO ?? '').trim() || 'low',
     // Tope de cada ejecución (llamadas + esperas entre reintentos). RNF2: 30 s.
     presupuestoMs: numeroPositivo('IA_PRESUPUESTO_MS', 30000),

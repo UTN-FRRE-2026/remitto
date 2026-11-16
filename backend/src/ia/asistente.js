@@ -1,5 +1,5 @@
 import { env, esProduccion } from '../config/env.js';
-import * as gemini from './adaptadores/gemini.adapter.js';
+import { adaptadorReal } from './proveedor.js';
 import * as simulado from './adaptadores/simulado.adapter.js';
 import { ErrorIa, traducirErrorSdk } from './errores.js';
 import { planSchema } from '../modules/asistente/asistente.schema.js';
@@ -10,7 +10,7 @@ import { planSchema } from '../modules/asistente/asistente.schema.js';
 
 const usaSimulacion = () => Boolean(env.ia.simulacion) && !esProduccion;
 
-export const adaptadorPorDefecto = () => (usaSimulacion() ? simulado : gemini);
+export const adaptadorPorDefecto = () => (usaSimulacion() ? simulado : adaptadorReal());
 
 export function asistenteDisponible() {
   return usaSimulacion() || Boolean(env.ia.apiKey);

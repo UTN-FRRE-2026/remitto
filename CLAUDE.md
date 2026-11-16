@@ -47,7 +47,7 @@ TFI de UTN FRRe (Tecnicatura Universitaria en Programación): PWA de gestión de
 
 ## IA, secretos y entornos
 
-- No hagas llamadas reales a Gemini sin autorización explícita. `backend/.env` puede tener una clave: no la muestres ni asumas que falta.
+- No hagas llamadas reales a la IA (Gemini o Claude, según `IA_PROVEEDOR`) sin autorización explícita. `backend/.env` puede tener una clave: no la muestres ni asumas que falta.
 - Para probar sin red, arrancá el backend con `IA_SIMULACION=ok` y `IA_API_KEY` con un espacio (en PowerShell: `$env:IA_SIMULACION='ok'; $env:IA_API_KEY=' '; npm run dev`), sin tocar `.env`. La simulación se ignora con `NODE_ENV=production`; una lectura simulada registra `modeloIa` como `simulado:<modelo>`.
 - No imprimas secretos ni subas `.env`, comprobantes o temporales. Revisá solo las variables necesarias.
 - No modifiques Coolify, producción ni su configuración sin pedido explícito. No asumas que el despliegue coincide con el repo.
